@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { services, upcoming } from "@/lib/services";
+import { services } from "@/lib/services";
+import { categories, totalServices } from "@/lib/catalogue";
+import CategoryIcon from "@/components/site/CategoryIcon";
 import HeroStack from "@/components/motion/HeroStack";
 import Reveal from "@/components/ui/Reveal";
 
@@ -111,13 +113,33 @@ export default function Home() {
         </div>
 
         <Reveal delay={0.1}>
-          <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded border border-line bg-surface/40 px-6 py-5">
-            <p className="label text-slate">Next up</p>
-            {upcoming.map((u) => (
-              <span key={u.name} className="text-[13.5px] text-ash">
-                {u.name}
-              </span>
-            ))}
+          <div className="mt-6 overflow-hidden rounded-lg border border-line bg-surface/30">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-6 py-4">
+              <p className="label text-slate">The rest of the catalogue</p>
+              <p className="font-mono text-[12px] text-slate tnum">
+                <span className="text-brass">{totalServices}</span> services across{" "}
+                <span className="text-brass">{categories.length}</span> categories
+              </p>
+            </div>
+            <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+              {categories.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/services#${c.id}`}
+                  className="group flex items-start gap-3 bg-ink-2 px-5 py-4 transition-colors hover:bg-surface"
+                >
+                  <CategoryIcon name={c.icon} size={17} className="mt-0.5 shrink-0 text-brass-lo" />
+                  <span className="min-w-0">
+                    <span className="block text-[13.5px] text-ash group-hover:text-bone">
+                      {c.name}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[11px] text-slate tnum">
+                      {c.services.length} services
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </Reveal>
       </Section>

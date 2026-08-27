@@ -202,10 +202,3 @@ export const services: Service[] = [
 export function getService(slug: string): Service | undefined {
   return services.find((s) => s.slug === slug);
 }
-
-export const upcoming = [
-  { name: "FSSAI Food Licence", note: "Basic, State and Central registration" },
-  { name: "Jobs for you", note: "Openings matched to your city and trade" },
-  { name: "Trademark", note: "Search, filing and objection replies" },
-  { name: "ITR Filing", note: "Salaried, business and presumptive" },
-];

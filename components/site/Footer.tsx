@@ -1,42 +1,85 @@
 import Link from "next/link";
-import { services, upcoming } from "@/lib/services";
+import { categories, liveServices, totalServices } from "@/lib/catalogue";
+import CategoryIcon from "./CategoryIcon";
 import Wordmark from "./Wordmark";
 
 export default function Footer() {
   return (
     <footer className="relative mt-32 border-t border-line bg-ink-2">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="grid gap-12 lg:grid-cols-[1.2fr_2.4fr]">
           <div>
             <Wordmark />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-slate">
               Registrations, licences and compliance for Indian businesses — prepared properly,
               priced in the open.
             </p>
+            <p className="mt-6 font-mono text-[12px] text-slate tnum">
+              <span className="text-brass">{totalServices}</span> services ·{" "}
+              <span className="text-jade">{liveServices.length}</span> live
+            </p>
           </div>
 
-          <FooterCol title="Services">
-            {services.map((s) => (
-              <Link key={s.slug} href={`/services/${s.slug}`} className="hover:text-bone">
-                {s.short}
-              </Link>
+          {/* The catalogue, by category. Live services link; the rest are listed
+              so the footer says what is coming without promising a page. */}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((c) => (
+              <div key={c.id}>
+                <p className="mb-3.5 flex items-center gap-2">
+                  <CategoryIcon name={c.icon} size={14} className="text-brass-lo" />
+                  <span className="label text-slate">{c.name}</span>
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {c.services.slice(0, 5).map((s) =>
+                    s.status === "live" ? (
+                      <li key={s.slug}>
+                        <Link
+                          href={`/services/${s.slug}`}
+                          className="text-[13px] text-ash transition-colors hover:text-bone"
+                        >
+                          {s.name}
+                        </Link>
+                      </li>
+                    ) : (
+                      <li key={s.slug} className="text-[13px] text-slate">
+                        {s.name}
+                      </li>
+                    )
+                  )}
+                  {c.services.length > 5 && (
+                    <li>
+                      <Link
+                        href={`/services#${c.id}`}
+                        className="text-[13px] text-brass transition-colors hover:text-brass-hi"
+                      >
+                        +{c.services.length - 5} more
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
             ))}
-          </FooterCol>
 
-          <FooterCol title="Coming soon">
-            {upcoming.map((u) => (
-              <span key={u.name} className="text-slate">
-                {u.name}
-              </span>
-            ))}
-          </FooterCol>
-
-          <FooterCol title="Company">
-            <Link href="/about" className="hover:text-bone">About us</Link>
-            <Link href="/jobs" className="hover:text-bone">Jobs</Link>
-            <Link href="/wallet" className="hover:text-bone">Wallet</Link>
-            <Link href="/login" className="hover:text-bone">Sign in</Link>
-          </FooterCol>
+            <div>
+              <p className="label mb-3.5 text-slate">Company</p>
+              <ul className="flex flex-col gap-2 text-[13px] text-ash">
+                {[
+                  ["/services", "All services"],
+                  ["/about", "About us"],
+                  ["/jobs", "Jobs"],
+                  ["/wallet", "Wallet"],
+                  ["/orders", "Your filings"],
+                  ["/login", "Sign in"],
+                ].map(([href, label]) => (
+                  <li key={href}>
+                    <Link href={href} className="transition-colors hover:text-bone">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Rule 3 and the positioning line from the plan. This is not fine print. */}
@@ -54,20 +97,13 @@ export default function Footer() {
           <p className="label text-slate">© {new Date().getFullYear()} LAWFIC</p>
           <div className="flex flex-wrap gap-6">
             {["Terms", "Privacy", "Refunds", "Wallet terms"].map((t) => (
-              <span key={t} className="label text-slate">{t}</span>
+              <span key={t} className="label text-slate">
+                {t}
+              </span>
             ))}
           </div>
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="label mb-4 text-slate">{title}</p>
-      <div className="flex flex-col gap-2.5 text-sm text-ash">{children}</div>
-    </div>
   );
 }
