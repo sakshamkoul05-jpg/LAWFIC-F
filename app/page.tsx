@@ -2,10 +2,9 @@ import Link from "next/link";
 import { services } from "@/lib/services";
 import { categories, totalServices } from "@/lib/catalogue";
 import CategoryIcon from "@/components/site/CategoryIcon";
-import HeroStack from "@/components/motion/HeroStack";
 import Reveal from "@/components/ui/Reveal";
 import ProductShot from "@/components/marketing/ProductShot";
-import TrustStrip from "@/components/marketing/TrustStrip";
+import TrustStrip, { TrustRow } from "@/components/marketing/TrustStrip";
 import { plans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 
@@ -13,81 +12,75 @@ export default function Home() {
   return (
     <>
       {/* ---------- hero ---------- */}
+      {/*
+        Everything that forms the first impression has to fit above the fold:
+        what this is, what it costs you to start, the product itself, and the
+        objection-killers. The old hero put a decorative card fan here and
+        pushed all four below 900px, which is the single most common way a
+        real product ends up reading like a brochure.
+      */}
       <section className="grain bloom relative overflow-hidden border-b border-line">
-        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-24 pt-20 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:pb-32 lg:pt-28">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-14 pt-14 sm:px-8 lg:grid-cols-[1fr_1.08fr] lg:pb-16 lg:pt-16">
           <div className="relative z-2">
             <Reveal>
-              <p className="label text-brass">Registrations · Licences · Compliance</p>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="label rounded-full border border-line-2 bg-surface/60 px-3 py-1.5 text-brass">
+                  {totalServices} services · {categories.length} categories
+                </span>
+                <span className="flex items-center gap-2 rounded-full border border-jade/30 bg-jade/5 px-3 py-1.5">
+                  <span className="size-1.5 rounded-full bg-jade" aria-hidden />
+                  <span className="label text-jade">Wallet & tracking live</span>
+                </span>
+              </div>
             </Reveal>
 
-            <Reveal delay={0.08}>
-              <h1 className="mt-6 font-display text-[clamp(38px,6.4vw,68px)] leading-[1.04] tracking-[-0.01em] text-bone">
-                The paperwork between you
-                <br className="hidden sm:block" /> and your business.
+            <Reveal delay={0.06}>
+              <h1 className="mt-6 font-display text-[clamp(34px,5vw,54px)] leading-[1.05] tracking-[-0.01em] text-bone">
+                Registrations and licences,
+                <br className="hidden sm:block" /> without the surprise invoice.
               </h1>
             </Reveal>
 
-            <Reveal delay={0.16}>
-              <p className="mt-7 max-w-lg text-[17px] leading-relaxed text-ash">
-                Udyam, GST, PAN and Aadhaar — prepared by people who know why applications get
-                rejected, filed in your name, and priced in the open. Government fee and our fee,
-                always as two separate lines.
+            <Reveal delay={0.12}>
+              <p className="mt-6 max-w-lg text-[16.5px] leading-relaxed text-ash">
+                Udyam, GST, PAN and Aadhaar — filed in your name by people who know why
+                applications get rejected. You see the government&apos;s fee and ours as two
+                separate lines, and you owe nothing until you have seen both.
               </p>
             </Reveal>
 
-            <Reveal delay={0.24}>
-              <div className="mt-9 flex flex-wrap items-center gap-3">
+            <Reveal delay={0.18}>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href="/services"
                   className="rounded-full bg-brass px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
                 >
-                  Explore services
+                  Start a filing — free
                 </Link>
                 <Link
-                  href="/about"
+                  href="/pricing"
                   className="rounded-full border border-line-2 px-6 py-3 text-sm text-bone transition-colors hover:border-brass-lo"
                 >
-                  Why LAWFIC
+                  See pricing
                 </Link>
               </div>
             </Reveal>
 
-            <Reveal delay={0.32}>
-              <dl className="mt-14 grid max-w-md grid-cols-3 gap-px overflow-hidden rounded border border-line bg-line">
-                {[
-                  ["Same day", "Udyam certificate"],
-                  ["48 hrs", "e-PAN issued"],
-                  ["₹0", "Hidden charges"],
-                ].map(([v, k]) => (
-                  <div key={k} className="bg-ink-2 px-4 py-4">
-                    <dt className="font-display text-[20px] text-brass tnum">{v}</dt>
-                    <dd className="label mt-1.5 text-slate">{k}</dd>
-                  </div>
-                ))}
-              </dl>
+            {/* In the fold, deliberately. A trust signal below it is one most
+                visitors never see. */}
+            <Reveal delay={0.24}>
+              <div className="mt-8 border-t border-line pt-6">
+                <TrustRow />
+              </div>
             </Reveal>
           </div>
 
+          {/* The product, not an abstract graphic. */}
           <div className="relative z-2">
-            <HeroStack />
+            <ProductShot />
           </div>
         </div>
-
-        <div className="relative z-2 mx-auto max-w-6xl px-5 pb-16 sm:px-8">
-          <Reveal delay={0.4}>
-            <TrustStrip />
-          </Reveal>
-        </div>
       </section>
-
-      {/* ---------- the product itself ---------- */}
-      <Section
-        eyebrow="Inside your account"
-        title="You can see the money and the filing, at every step"
-        deck="Most of this industry goes quiet after payment. Signing in gives you a wallet with an itemised statement and a filing you can watch move — with the department's own reference number on it."
-      >
-        <ProductShot />
-      </Section>
 
       {/* ---------- services ---------- */}
       <Section
@@ -186,6 +179,12 @@ export default function Home() {
           ))}
         </ol>
       </Section>
+
+      <section className="mx-auto max-w-6xl px-5 sm:px-8">
+        <Reveal>
+          <TrustStrip />
+        </Reveal>
+      </section>
 
       {/* ---------- wallet ---------- */}
       <Section

@@ -53,14 +53,41 @@ const signals = [
   },
 ];
 
-export default function TrustStrip({ compact = false }: { compact?: boolean }) {
+/**
+ * `inline` is the version that belongs inside the hero, above the fold.
+ * The full card is for pages where the reader has already committed to
+ * scrolling — a pricing page, say.
+ */
+export function TrustRow() {
+  return (
+    <ul className="flex flex-wrap items-center gap-x-6 gap-y-2.5">
+      {signals.slice(0, 3).map((s) => (
+        <li key={s.title} className="flex items-center gap-2 text-[13px] text-ash">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="shrink-0 text-brass"
+            aria-hidden
+          >
+            {s.icon}
+          </svg>
+          {s.title}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function TrustStrip() {
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-surface/30">
-      <ul
-        className={`grid gap-px bg-line ${
-          compact ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-4"
-        }`}
-      >
+      <ul className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
         {signals.map((s) => (
           <li key={s.title} className="flex gap-3.5 bg-ink-2 px-5 py-5">
             <svg

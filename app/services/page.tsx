@@ -9,6 +9,7 @@ import {
 import { services as livePages } from "@/lib/services";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import Reveal from "@/components/ui/Reveal";
+import HeroStack from "@/components/motion/HeroStack";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -29,7 +30,8 @@ export default function ServicesIndex() {
   return (
     <>
       <section className="grain bloom relative overflow-hidden border-b border-line">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:py-24">
+          <div>
           <Reveal>
             <p className="label text-brass">Services</p>
             <h1 className="mt-6 max-w-3xl font-display text-[clamp(34px,5.4vw,56px)] leading-[1.06] text-bone">
@@ -55,6 +57,13 @@ export default function ServicesIndex() {
               ))}
             </dl>
           </Reveal>
+          </div>
+
+          {/* The document fan lives here now — it previews the four live
+              services, which is what this page is about. */}
+          <div className="relative z-2 hidden lg:block">
+            <HeroStack />
+          </div>
         </div>
       </section>
 
