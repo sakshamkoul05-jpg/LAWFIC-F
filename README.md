@@ -24,7 +24,8 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Unit tests — money handling and Razorpay config (13) |
+| `npm test` | Unit tests — money handling, catalogue and Razorpay config (23) |
+| `npm run doctor` | Checks this app is actually wired to a live backend |
 | `npx tsc --noEmit` | Typecheck |
 
 Schema and webhook tests live in the backend repo (`npm test` there — 52 checks).
@@ -118,13 +119,36 @@ Not styling preferences — the constraints the business runs under:
    only after money is confirmed in the ledger, and not at all under
    `prefers-reduced-motion`.
 
+## Connecting to the backend
+
+```bash
+# in the backend repo (LAWFIC-B)
+npx supabase login                                 # opens a browser, once
+npm run deploy -- --project-ref YOUR-PROJECT-REF
+
+# back here
+cp .env.example .env.local                         # paste the three keys
+npm run doctor
+```
+
+`npm run doctor` talks to the real project over HTTP and asserts what matters:
+that the migrations ran, that an anonymous visitor **cannot** read or write the
+wallet ledger, that the webhook function is deployed with `verify_jwt` off and
+its HMAC check working, and that no secret has been given a `NEXT_PUBLIC_`
+prefix.
+
+Those RLS checks are the reason it exists. The backend's test suite runs on
+PGlite as superuser, which **bypasses row security** — it can prove the policies
+parse but never that they grant correctly. Only a real round trip through
+PostgREST can, and that is what `doctor` is.
+
 ## Going live
 
 In order, because two of these have external lead times:
 
 1. **Supabase project** — create it, then from the backend repo run
-   `npx supabase db push` (or paste its `supabase/setup.sql`). Add the three
-   keys here. Auth and the wallet come online. *(Same day.)*
+   `npm run deploy -- --project-ref YOUR-REF`. Add the three keys here and run
+   `npm run doctor`. Auth and the wallet come online. *(Same day.)*
 2. **Razorpay test keys** — issued on signup, before KYC. Add them and the whole
    top-up flow works end to end with test cards. The wallet shows a "Test mode"
    badge. *(Same day.)*

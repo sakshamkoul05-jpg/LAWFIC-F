@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --experimental-strip-types --test \"lib/**/*.test.ts\""
+    "test": "node --experimental-strip-types --test \"lib/**/*.test.ts\"",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
