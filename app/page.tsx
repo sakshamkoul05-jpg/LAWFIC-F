@@ -4,6 +4,10 @@ import { categories, totalServices } from "@/lib/catalogue";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import HeroStack from "@/components/motion/HeroStack";
 import Reveal from "@/components/ui/Reveal";
+import ProductShot from "@/components/marketing/ProductShot";
+import TrustStrip from "@/components/marketing/TrustStrip";
+import { plans } from "@/lib/pricing";
+import { formatPaise } from "@/lib/money";
 
 export default function Home() {
   return (
@@ -68,7 +72,22 @@ export default function Home() {
             <HeroStack />
           </div>
         </div>
+
+        <div className="relative z-2 mx-auto max-w-6xl px-5 pb-16 sm:px-8">
+          <Reveal delay={0.4}>
+            <TrustStrip />
+          </Reveal>
+        </div>
       </section>
+
+      {/* ---------- the product itself ---------- */}
+      <Section
+        eyebrow="Inside your account"
+        title="You can see the money and the filing, at every step"
+        deck="Most of this industry goes quiet after payment. Signing in gives you a wallet with an itemised statement and a filing you can watch move — with the department's own reference number on it."
+      >
+        <ProductShot />
+      </Section>
 
       {/* ---------- services ---------- */}
       <Section
@@ -224,6 +243,48 @@ export default function Home() {
             ))}
           </div>
         </Reveal>
+      </Section>
+
+      {/* ---------- pricing teaser ---------- */}
+      <Section
+        eyebrow="Pricing"
+        title="Start with no subscription at all"
+        deck="Pay per filing and owe nothing until you have seen a quote. Move to a monthly plan when the returns become routine. Government fees are always passed through at cost, on their own line."
+      >
+        <div className="grid gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-3">
+          {plans.map((plan, i) => (
+            <Reveal key={plan.id} delay={i * 0.06}>
+              <Link
+                href="/pricing"
+                className={`group flex h-full flex-col p-7 transition-colors ${
+                  plan.featured ? "bg-surface/70 hover:bg-surface" : "bg-ink-2 hover:bg-surface/50"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-display text-[21px] text-bone">{plan.name}</h3>
+                  {plan.featured && (
+                    <span className="label rounded-full border border-brass-lo bg-brass/10 px-2.5 py-1 text-brass">
+                      Most chosen
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-4 font-display text-[28px] leading-none text-brass tnum">
+                  {plan.monthlyPaise === null ? "₹0" : formatPaise(plan.monthlyPaise)}
+                </p>
+                <p className="label mt-2.5 text-slate">{plan.priceNote}</p>
+                <p className="mt-5 text-[14px] leading-relaxed text-ash">{plan.tagline}</p>
+
+                <span className="mt-auto flex items-center gap-2 pt-7 text-[13px] text-brass transition-transform duration-300 group-hover:translate-x-1">
+                  See what is included
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                    <path d="M2 7h9M7.5 3.5 11 7l-3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
       </Section>
 
       {/* ---------- closing ---------- */}

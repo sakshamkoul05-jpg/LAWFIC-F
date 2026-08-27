@@ -1,0 +1,96 @@
+import { company } from "@/lib/company";
+
+/**
+ * Objection-killers, placed next to the conversion point rather than in the
+ * footer — a trust signal below the fold is one most visitors never see.
+ *
+ * Every line here is a verifiable statement about how the system actually
+ * works, enforced in the schema or the payment flow. Nothing is a badge we
+ * awarded ourselves, and there is no third-party logo we have not earned.
+ */
+
+const signals = [
+  {
+    title: "Nothing charged until you are quoted",
+    body: "Send a request, see the number, then decide.",
+    icon: (
+      <>
+        <circle cx="10" cy="10" r="7.2" />
+        <path d="M10 6.4v3.8l2.4 1.6" />
+      </>
+    ),
+  },
+  {
+    title: "Payments handled by Razorpay",
+    body: "An RBI-authorised payment aggregator. We never see your card.",
+    icon: (
+      <>
+        <rect x="2.4" y="4.6" width="15.2" height="10.8" rx="2" />
+        <path d="M2.4 8.4h15.2" />
+        <path d="M5.6 12.4h3" />
+      </>
+    ),
+  },
+  {
+    title: "Refunds land back the same day",
+    body: "Credited to your wallet as a visible entry, not a promise to process.",
+    icon: (
+      <>
+        <path d="M3.4 10a6.6 6.6 0 1 0 1.9-4.6" />
+        <path d="M3 3.2v3.6h3.6" />
+      </>
+    ),
+  },
+  {
+    title: "We never store Aadhaar photocopies",
+    body: "Masked identifiers only, in a private store with short retention.",
+    icon: (
+      <>
+        <path d="M10 2.8 16 5v4.6c0 3.3-2.3 5.9-6 7.1-3.7-1.2-6-3.8-6-7.1V5l6-2.2Z" />
+        <path d="m7.6 10 1.8 1.8 3.2-3.4" />
+      </>
+    ),
+  },
+];
+
+export default function TrustStrip({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-line bg-surface/30">
+      <ul
+        className={`grid gap-px bg-line ${
+          compact ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-4"
+        }`}
+      >
+        {signals.map((s) => (
+          <li key={s.title} className="flex gap-3.5 bg-ink-2 px-5 py-5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mt-0.5 shrink-0 text-brass-lo"
+              aria-hidden
+            >
+              {s.icon}
+            </svg>
+            <div className="min-w-0">
+              <p className="text-[13.5px] leading-snug text-bone">{s.title}</p>
+              <p className="mt-1 text-[12.5px] leading-snug text-slate">{s.body}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {(company.supportPhone || company.whatsapp || company.supportEmail) && (
+        <p className="border-t border-line bg-ink/40 px-5 py-3 text-[12.5px] text-slate">
+          Stuck on any of it? {company.supportHours}.{" "}
+          {company.supportPhone && <span className="text-ash">{company.supportPhone}</span>}
+        </p>
+      )}
+    </div>
+  );
+}

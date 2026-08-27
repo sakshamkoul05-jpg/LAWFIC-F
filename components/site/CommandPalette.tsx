@@ -22,6 +22,8 @@ import { categories } from "@/lib/catalogue";
 
 const QUICK = [
   { label: "All services", href: "/services" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact & grievances", href: "/contact" },
   { label: "Your wallet", href: "/wallet" },
   { label: "Your filings", href: "/orders" },
   { label: "Jobs for you", href: "/jobs" },

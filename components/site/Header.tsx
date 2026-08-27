@@ -11,6 +11,7 @@ import Wordmark from "./Wordmark";
 
 /** Everything except Services, which is a mega-menu rather than a link. */
 const nav = [
+  { href: "/pricing", label: "Pricing" },
   { href: "/jobs", label: "Jobs" },
   { href: "/orders", label: "Your filings" },
   { href: "/about", label: "About" },
