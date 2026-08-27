@@ -3,6 +3,9 @@
 Registrations, licences and compliance for Indian businesses — a marketing site,
 a signed-in account area, and a closed-loop prepaid wallet.
 
+The database and the Razorpay webhook live in **[LAWFIC-B](https://github.com/sakshamkoul05-jpg/LAWFIC-B)**.
+Run its migrations before this app will do anything past the signed-out state.
+
 **Status: wired, awaiting credentials.** Auth, the wallet ledger and Razorpay
 top-ups are implemented and tested. With no keys set the site runs signed-out
 and says so; add the keys and it comes online. See [Going live](#going-live).
@@ -21,10 +24,10 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Unit tests — money handling and webhook signatures (17) |
-| `npm run test:db` | Applies the real schema to an in-process Postgres and attacks it (44) |
-| `npm run db:build` | Regenerates `supabase/setup.sql` from the migrations |
+| `npm test` | Unit tests — money handling and Razorpay config (13) |
 | `npx tsc --noEmit` | Typecheck |
+
+Schema and webhook tests live in the backend repo (`npm test` there — 52 checks).
 
 ## Stack
 
@@ -49,8 +52,12 @@ npm run dev
 | `/admin` | Back office. Staff only — quote, advance, close and refund |
 | `/api/wallet/topup` | Creates a Razorpay order and records an intent |
 | `/api/wallet/balance` | The signed-in user's balance, for post-payment polling |
-| `/api/razorpay/webhook` | The only thing that may credit a wallet |
 | `/auth/callback` `/auth/signout` | Session handling |
+
+The webhook is **not** here. It is a Supabase Edge Function in the backend repo:
+it has no user session, is authenticated by an HMAC rather than a cookie, and
+needs a public URL that exists before this app is deployed. These two routes
+stay because they read the session cookie.
 
 ## Layout
 
@@ -63,8 +70,6 @@ lib/services.ts         service copy: fees, documents, steps, FAQs
 lib/money.ts            paise ↔ rupees, formatting, amount validation
 lib/razorpay.ts         order creation and signature verification
 lib/supabase/           client / server / admin clients
-supabase/migrations/    the schema, one file per change
-supabase/setup.sql      generated — paste into a fresh Supabase project
 ```
 
 ## How the wallet works
@@ -117,14 +122,17 @@ Not styling preferences — the constraints the business runs under:
 
 In order, because two of these have external lead times:
 
-1. **Supabase project** — create it, run `supabase/setup.sql`, add the three
-   keys. Auth and the wallet come online. *(Same day.)*
+1. **Supabase project** — create it, then from the backend repo run
+   `npx supabase db push` (or paste its `supabase/setup.sql`). Add the three
+   keys here. Auth and the wallet come online. *(Same day.)*
 2. **Razorpay test keys** — issued on signup, before KYC. Add them and the whole
    top-up flow works end to end with test cards. The wallet shows a "Test mode"
    badge. *(Same day.)*
-3. **Razorpay webhook** — point it at `/api/razorpay/webhook`, subscribe to
-   `payment.captured` and `payment.failed`, set the secret. Without this,
-   payments succeed and balances never move.
+3. **Razorpay webhook** — deploy it from the backend repo
+   (`npx supabase functions deploy razorpay-webhook`) and point Razorpay at
+   `https://YOUR-PROJECT-REF.supabase.co/functions/v1/razorpay-webhook`.
+   Without this, payments succeed and balances never move. This step does not
+   need this app deployed anywhere.
 4. **Legal pages live on the domain** — Terms, Privacy, Refunds, Wallet Terms.
    Razorpay activation requires them. *(Blocks go-live, not development.)*
 5. **Razorpay KYC** — needs the entity, GST registration and current account.
@@ -133,8 +141,8 @@ In order, because two of these have external lead times:
    on a DLT portal, or operators drop the SMS. Email sign-in works throughout
    and stays as the fallback. *(Several days.)*
 
-Before real money moves, work through the live checklist in
-`supabase/README.md` — the PGlite suite cannot prove RLS.
+Before real money moves, work through the live checklist in the backend repo's
+README — no test suite can prove RLS.
 
 ## The order flow
 

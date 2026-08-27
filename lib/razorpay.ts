@@ -1,13 +1,17 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 /**
  * Razorpay, behind a config gate.
  *
- * Nothing here is reachable from the browser. The key secret and the webhook
- * secret are server-only by construction — no NEXT_PUBLIC_ prefix, and this
- * module is never imported into a client component. The key ID alone is public
- * (Checkout needs it in the page), which is why it is exposed through an API
- * response rather than by making the whole module client-safe.
+ * Order creation only. The WEBHOOK lives in the backend repo as a Supabase
+ * Edge Function — it has no user session, is authenticated by an HMAC rather
+ * than a cookie, and needs a public URL that exists before this app is
+ * deployed. Nothing in this file verifies a webhook; if you find yourself
+ * wanting that here, you are about to duplicate the one piece of code that
+ * must not be duplicated.
+ *
+ * The key secret is server-only by construction — no NEXT_PUBLIC_ prefix, and
+ * this module is never imported into a client component. The key ID alone is
+ * public (Checkout needs it in the page), which is why it is handed out
+ * through an API response rather than by making the whole module client-safe.
  *
  * ORDERS rather than payment links, deliberately: a wallet top-up happens with
  * the user present and waiting for the balance to move. Checkout in the page is
@@ -20,10 +24,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 const KEY_ID = process.env.RAZORPAY_KEY_ID ?? "";
 const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET ?? "";
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET ?? "";
 
 export const isRazorpayConfigured = Boolean(KEY_ID && KEY_SECRET);
-export const isRazorpayWebhookConfigured = Boolean(WEBHOOK_SECRET);
 export const razorpayKeyId = KEY_ID;
 
 /** Test keys are `rzp_test_…`. Worth surfacing so nobody demos live by accident. */
@@ -84,43 +86,4 @@ export async function createTopUpOrder(opts: {
     console.error("[razorpay] order creation threw", e);
     return { ok: false, error: "network" };
   }
-}
-
-/** Constant-time compare of two hex digests of the same length. */
-function safeEqualHex(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  try {
-    return timingSafeEqual(Buffer.from(a, "hex"), Buffer.from(b, "hex"));
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Verifies a webhook. The RAW request body must be passed — parsing and
- * re-serialising changes the bytes and the signature will never match.
- */
-export function verifyWebhookSignature(rawBody: string, signature: string): boolean {
-  if (!isRazorpayWebhookConfigured || !signature) return false;
-  const expected = createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
-  return safeEqualHex(expected, signature);
-}
-
-/**
- * Verifies the signature Checkout hands back to the browser.
- *
- * This is NOT what credits the wallet — the webhook is. It exists so the page
- * can tell "paid, waiting for the webhook" apart from "the user closed the
- * sheet", and show the right thing while polling.
- */
-export function verifyCheckoutSignature(opts: {
-  orderId: string;
-  paymentId: string;
-  signature: string;
-}): boolean {
-  if (!isRazorpayConfigured || !opts.signature) return false;
-  const expected = createHmac("sha256", KEY_SECRET)
-    .update(`${opts.orderId}|${opts.paymentId}`)
-    .digest("hex");
-  return safeEqualHex(expected, opts.signature);
 }
