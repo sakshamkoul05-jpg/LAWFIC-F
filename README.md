@@ -1,10 +1,11 @@
-# LAWFIC — frontend
+# LAWFIC
 
-Marketing and account frontend for LAWFIC, a private consultancy handling
-business registrations, licences and compliance in India.
+Registrations, licences and compliance for Indian businesses — a marketing site,
+a signed-in account area, and a closed-loop prepaid wallet.
 
-**Status: front-end preview.** Nothing is wired to a backend yet. The sign-in
-screen sends no OTP and the wallet takes no payment — both say so on screen.
+**Status: wired, awaiting credentials.** Auth, the wallet ledger and Razorpay
+top-ups are implemented and tested. With no keys set the site runs signed-out
+and says so; add the keys and it comes online. See [Going live](#going-live).
 
 ---
 
@@ -12,16 +13,18 @@ screen sends no OTP and the wallet takes no payment — both say so on screen.
 
 ```bash
 npm install
+cp .env.example .env.local   # then fill it in — see supabase/README.md
 npm run dev
 ```
 
-Then open <http://localhost:3000>.
-
-```bash
-npm run build     # production build
-npm run lint      # eslint
-npx tsc --noEmit  # typecheck
-```
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm test` | Unit tests — money handling and webhook signatures (17) |
+| `npm run test:db` | Applies the real schema to an in-process Postgres and attacks it (30) |
+| `npm run db:build` | Regenerates `supabase/setup.sql` from the migrations |
+| `npx tsc --noEmit` | Typecheck |
 
 ## Stack
 
@@ -29,63 +32,111 @@ npx tsc --noEmit  # typecheck
 |---|---|
 | Framework | Next.js 16 (App Router), React 19, TypeScript |
 | Styling | Tailwind 4 |
-| Motion | `motion` v12 |
-| Fonts | Marcellus, IBM Plex Sans, IBM Plex Mono |
+| Motion | `motion` v13 |
+| Data & auth | Supabase — Postgres, Auth, RLS |
+| Payments | Razorpay (RBI-authorised payment aggregator) |
+| Validation | Zod 4 |
+| DB tests | PGlite, in-process, no Docker |
 
 ## Routes
 
-| Route | What it is |
+| Route | |
 |---|---|
-| `/` | Home — hero, services, how it works, wallet, jobs |
-| `/about` | About us |
-| `/services` | Service index with fees |
-| `/services/[slug]` | Aadhaar, MSME/Udyam, GST, PAN — each with its signature animation |
-| `/login` | Phone + OTP sign-in (UI only) |
-| `/wallet` | Balance, top-up and statement (UI only) |
-| `/jobs` | Sample jobs feed |
+| `/` `/about` `/services` `/services/[slug]` `/jobs` | Static. Marketing and service content |
+| `/login` | Email magic link, or mobile OTP |
+| `/wallet` | Balance, top-up and statement. Signed-in only |
+| `/api/wallet/topup` | Creates a Razorpay order and records an intent |
+| `/api/wallet/balance` | The signed-in user's balance, for post-payment polling |
+| `/api/razorpay/webhook` | The only thing that may credit a wallet |
+| `/auth/callback` `/auth/signout` | Session handling |
 
 ## Layout
 
 ```
-app/                      routes
-components/site/          header, footer, wordmark
-components/motion/        the four signature animations
-components/ui/            Reveal — scroll reveal wrapper
-lib/services.ts           service content: fees, documents, steps, FAQs
+app/                    routes and API handlers
+components/site/        header, footer, wordmark, account chip
+components/motion/      the four signature service animations
+components/ui/          Reveal — scroll reveal wrapper
+lib/services.ts         service copy: fees, documents, steps, FAQs
+lib/money.ts            paise ↔ rupees, formatting, amount validation
+lib/razorpay.ts         order creation and signature verification
+lib/supabase/           client / server / admin clients
+supabase/migrations/    the schema, one file per change
+supabase/setup.sql      generated — paste into a fresh Supabase project
 ```
 
-Service copy lives in `lib/services.ts`, not in the page components. Adding a
-service means adding an entry there, and a case in
-`components/motion/ServiceVisual.tsx` if it gets its own animation.
+## How the wallet works
 
-## The animations
+**It is a closed prepaid ledger, not a payment instrument.** Money enters only
+from a verified Razorpay webhook and leaves only as payment for LAWFIC's own
+services. There is no transfer between users and no withdrawal to a bank. That
+is what keeps it inside the closed-system PPI exemption — a schema permitting
+user-to-user movement would put the business inside RBI authorisation whether
+or not the UI exposed it.
 
-One per service, each teaching something true rather than decorating:
+**Top-up.** The user picks an amount → the server creates a Razorpay order and
+records a `payment_intents` row → Checkout runs in the browser → Razorpay POSTs
+the webhook → the handler verifies the HMAC over the **raw** body, and only then
+writes a credit keyed by the Razorpay payment id. The browser polls
+`/api/wallet/balance` and never asserts a balance of its own.
 
-- **Aadhaar** — a specimen card flips front to back
-- **GST** — the 15 characters of a GSTIN assemble, then decode segment by segment
-- **PAN** — the 10 characters of a PAN decode, one group at a time
-- **MSME** — an Udyam certificate unrolls and the seal stamps down last
+**The ledger is append-only.** No UPDATE, no DELETE — enforced by triggers *and*
+revoked grants. A correction is a new reversing entry. Each row stores the
+balance it produced, computed under a per-user advisory lock, so the current
+balance is the newest row's value: derived from the ledger, immutable, O(1).
 
-All of them degrade completely under `prefers-reduced-motion: reduce`.
+**An overdraft is impossible at the database level.** The balance check lives in
+a trigger, not in application code — which matters because the webhook runs with
+the service role and bypasses RLS.
 
-## Ground rules baked into the UI
+Money is **paise, always, as `bigint`**. No float goes near a balance.
 
-These are not styling preferences — they are the constraints the business runs
-under, and they are enforced in the markup:
+## Ground rules baked into the code
 
-1. **Specimen cards carry no Government of India emblem, no UIDAI logo, and no
-   usable number format.** Masked digits, a SAMPLE watermark, LAWFIC's own
-   palette. They are illustrations, not reproductions.
-2. **Government fee and professional fee are always two separate lines.** Never
-   one blended number, anywhere.
-3. **The Aadhaar page states what LAWFIC does not do** — no authentication, no
+Not styling preferences — the constraints the business runs under:
+
+1. **No client role may ever write to `wallet_entries`.** Credits come from the
+   webhook (service role, after an HMAC check); debits come from a
+   security-definer function that validates the order first.
+2. **The wallet never pays out.** No withdrawal, no user-to-user transfer, no
+   third-party payment — including employers on the jobs board.
+3. **Government fee and professional fee are separate columns and separate
+   ledger entries.** The database will not store one blended figure.
+4. **Specimen cards carry no Government of India emblem, no UIDAI logo, and no
+   usable number format.** They are illustrations, not reproductions.
+5. **The Aadhaar page states what LAWFIC does not do** — no authentication, no
    eKYC, no database access, no affiliation with UIDAI.
-4. **The wallet is described as closed-loop everywhere it appears** — no
-   transfers between users, no withdrawal to a bank.
-5. **The jobs board is free**, and carries no payment rail.
+6. **The jobs board is free** and carries no payment rail.
+7. **Motion never runs during a payment decision.** The top-up animation plays
+   only after money is confirmed in the ledger, and not at all under
+   `prefers-reduced-motion`.
+
+## Going live
+
+In order, because two of these have external lead times:
+
+1. **Supabase project** — create it, run `supabase/setup.sql`, add the three
+   keys. Auth and the wallet come online. *(Same day.)*
+2. **Razorpay test keys** — issued on signup, before KYC. Add them and the whole
+   top-up flow works end to end with test cards. The wallet shows a "Test mode"
+   badge. *(Same day.)*
+3. **Razorpay webhook** — point it at `/api/razorpay/webhook`, subscribe to
+   `payment.captured` and `payment.failed`, set the secret. Without this,
+   payments succeed and balances never move.
+4. **Legal pages live on the domain** — Terms, Privacy, Refunds, Wallet Terms.
+   Razorpay activation requires them. *(Blocks go-live, not development.)*
+5. **Razorpay KYC** — needs the entity, GST registration and current account.
+   Swap test keys for live ones. *(3–7 days.)*
+6. **DLT registration** for mobile OTP — entity ID, sender header and templates
+   on a DLT portal, or operators drop the SMS. Email sign-in works throughout
+   and stays as the fallback. *(Several days.)*
+
+Before real money moves, work through the live checklist in
+`supabase/README.md` — the PGlite suite cannot prove RLS.
 
 ## Not built yet
 
-Supabase auth, the wallet ledger and Razorpay top-ups, service orders and the
-admin console, and the real jobs feed.
+The service order flow end to end (submit → quote → pay → track), the admin
+console for triaging and quoting, document upload, and the real jobs feed. The
+schema and the `pay_order_from_wallet` function for orders already exist and are
+tested; what is missing is the UI on both sides.

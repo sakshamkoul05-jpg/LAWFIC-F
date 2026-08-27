@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
@@ -37,7 +38,13 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <LoginForm />
+        <Suspense
+          fallback={
+            <div className="h-[420px] w-full max-w-md justify-self-center rounded-xl border border-line-2 bg-surface/40 lg:justify-self-end" />
+          }
+        >
+          <LoginForm />
+        </Suspense>
       </div>
     </section>
   );

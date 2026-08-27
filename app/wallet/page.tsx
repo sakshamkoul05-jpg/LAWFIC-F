@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { formatEntry } from "@/lib/money";
+import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
+import { createClient } from "@/lib/supabase/server";
 import Reveal from "@/components/ui/Reveal";
-import TopUp from "./TopUp";
+import WalletPanel from "./WalletPanel";
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -8,21 +12,57 @@ export const metadata: Metadata = {
     "A prepaid balance for LAWFIC services, with every debit itemised against the order it paid for.",
 };
 
-const ledger = [
-  { d: "26 Aug 2026", label: "Top-up · UPI", ref: "pay_RQ8kM2xVn", amt: "+ ₹2,000", credit: true },
-  { d: "24 Aug 2026", label: "GST registration — professional fee", ref: "ORD-2261", amt: "− ₹1,499", credit: false },
-  { d: "24 Aug 2026", label: "GST registration — government fee", ref: "ORD-2261", amt: "₹0", credit: false },
-  { d: "19 Aug 2026", label: "Udyam registration — professional fee", ref: "ORD-2244", amt: "− ₹499", credit: false },
-  { d: "19 Aug 2026", label: "Top-up · Card", ref: "pay_RP2bF9tQa", amt: "+ ₹2,000", credit: true },
-];
+// Balances must never be served from a cache.
+export const dynamic = "force-dynamic";
 
-export default function WalletPage() {
+type Entry = {
+  id: string;
+  direction: "credit" | "debit";
+  amount_paise: number;
+  reason: string;
+  created_at: string;
+  razorpay_payment_id: string | null;
+  order_id: string | null;
+};
+
+export default async function WalletPage() {
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return <NotConfigured />;
+  }
+
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    // proxy.ts normally redirects first; this is the belt to that pair of braces.
+    return <SignedOut />;
+  }
+
+  const [{ data: balanceData }, { data: entries }] = await Promise.all([
+    supabase.rpc("my_wallet_balance"),
+    supabase
+      .from("wallet_entries")
+      .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+      .order("seq", { ascending: false })
+      .limit(50),
+  ]);
+
+  const balancePaise = Number(balanceData ?? 0);
+  const rows = (entries ?? []) as Entry[];
+
   return (
     <>
       <section className="grain bloom relative overflow-hidden border-b border-line">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-20">
           <Reveal>
-            <p className="label text-brass">Wallet</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="label text-brass">Wallet</p>
+              {isRazorpayTestMode && (
+                <span className="label rounded-sm border border-line-3 px-2 py-1 text-slate">
+                  Test mode — no real money moves
+                </span>
+              )}
+            </div>
             <h1 className="mt-6 max-w-2xl font-display text-[clamp(32px,4.6vw,48px)] leading-[1.08] text-bone">
               Top up once. Pay for filings in a tap.
             </h1>
@@ -32,46 +72,102 @@ export default function WalletPage() {
 
       <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-start">
-          <Reveal>
-            <TopUp />
-          </Reveal>
+          <WalletPanel initialBalancePaise={balancePaise} paymentsReady={isRazorpayConfigured} />
 
-          <Reveal delay={0.08}>
-            <div className="overflow-hidden rounded-xl border border-line bg-ink-2">
-              <div className="flex items-center justify-between border-b border-line px-6 py-4">
-                <p className="label text-slate">Statement</p>
-                <p className="label text-slate">Last 30 days</p>
+          <div className="overflow-hidden rounded-xl border border-line bg-ink-2">
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+              <p className="label text-slate">Statement</p>
+              <p className="label text-slate">
+                {rows.length === 0 ? "No entries yet" : `${rows.length} entries`}
+              </p>
+            </div>
+
+            {rows.length === 0 ? (
+              <div className="px-6 py-14 text-center">
+                <p className="text-[14.5px] text-ash">Nothing here yet.</p>
+                <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-slate">
+                  Add money and every credit and debit will be listed here, with the order it
+                  paid for.
+                </p>
               </div>
-
+            ) : (
               <div className="divide-y divide-line">
-                {ledger.map((r, i) => (
-                  <div key={i} className="flex items-center gap-4 px-6 py-4">
+                {rows.map((r) => (
+                  <div key={r.id} className="flex items-center gap-4 px-6 py-4">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] text-bone">{r.label}</p>
+                      <p className="truncate text-[14px] text-bone">{r.reason}</p>
                       <p className="mt-1 font-mono text-[11px] tracking-[0.06em] text-slate">
-                        {r.d} · {r.ref}
+                        {new Date(r.created_at).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {r.razorpay_payment_id ? ` · ${r.razorpay_payment_id}` : ""}
                       </p>
                     </div>
                     <p
                       className={`shrink-0 font-mono text-[14px] tnum ${
-                        r.credit ? "text-jade" : "text-bone"
+                        r.direction === "credit" ? "text-jade" : "text-bone"
                       }`}
                     >
-                      {r.amt}
+                      {formatEntry(r.direction, r.amount_paise)}
                     </p>
                   </div>
                 ))}
               </div>
+            )}
 
-              <p className="border-t border-line px-6 py-4 text-[12px] leading-relaxed text-slate">
-                Every debit names the order it paid for. Government fees and professional fees stay
-                on separate lines. Balance is usable only for LAWFIC services — it cannot be
-                transferred to another user or withdrawn to a bank account.
-              </p>
-            </div>
-          </Reveal>
+            <p className="border-t border-line px-6 py-4 text-[12px] leading-relaxed text-slate">
+              Every debit names the order it paid for. Government fees and professional fees stay
+              on separate lines. Balance is usable only for LAWFIC services — it cannot be
+              transferred to another user or withdrawn to a bank account.
+            </p>
+          </div>
         </div>
       </section>
     </>
+  );
+}
+
+function Shell({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="grain bloom relative min-h-[70vh] overflow-hidden">
+      <div className="relative z-2 mx-auto max-w-6xl px-5 py-24 sm:px-8">
+        <p className="label text-brass">Wallet</p>
+        <h1 className="mt-6 max-w-xl font-display text-[clamp(30px,4.2vw,44px)] leading-[1.1] text-bone">
+          {title}
+        </h1>
+        <div className="mt-7 max-w-lg text-[16px] leading-relaxed text-ash">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function SignedOut() {
+  return (
+    <Shell title="Sign in to see your wallet">
+      <p>Your balance and statement are tied to your account.</p>
+      <Link
+        href="/login?next=/wallet"
+        className="mt-8 inline-block rounded-full bg-brass px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
+      >
+        Sign in
+      </Link>
+    </Shell>
+  );
+}
+
+function NotConfigured() {
+  return (
+    <Shell title="The wallet is not connected yet">
+      <p>
+        This build has no database configured, so there is no balance to show. Add the Supabase
+        keys to <code className="font-mono text-[14px] text-bone">.env.local</code> and the wallet
+        comes online — see{" "}
+        <code className="font-mono text-[14px] text-bone">supabase/README.md</code>.
+      </p>
+    </Shell>
   );
 }

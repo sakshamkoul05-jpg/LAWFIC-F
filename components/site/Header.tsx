@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { services } from "@/lib/services";
+import AccountChip from "./AccountChip";
 import Wordmark from "./Wordmark";
 
 const nav = [
@@ -55,21 +56,7 @@ export default function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <Link
-            href="/wallet"
-            className="hidden sm:flex items-center gap-2 rounded-full border border-line-2 bg-surface/60 px-3.5 py-1.5 transition-colors hover:border-brass-lo"
-          >
-            <span className="size-1.5 rounded-full bg-jade" aria-hidden />
-            <span className="label text-slate">Wallet</span>
-            <span className="font-mono text-xs text-bone tnum">₹0</span>
-          </Link>
-
-          <Link
-            href="/login"
-            className="rounded-full bg-brass px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
-          >
-            Sign in
-          </Link>
+          <AccountChip />
 
           <button
             type="button"
