@@ -1,0 +1,181 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { formatEntry, formatPaise } from "@/lib/money";
+import { orderTotalPaise, STATUS_META, type ServiceOrder } from "@/lib/orders";
+import { getService } from "@/lib/services";
+import { createClient } from "@/lib/supabase/server";
+import { FeeBreakdown, StatusPill, Timeline } from "@/components/orders/OrderBits";
+import PayButton from "./PayButton";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: PageProps<"/orders/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Filing ${id.slice(0, 8)}` };
+}
+
+export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
+  const { id } = await params;
+
+  const supabase = await createClient();
+  if (!supabase) notFound();
+
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) notFound();
+
+  // RLS restricts this to the caller's own orders, so no ownership check is
+  // needed here — a mistyped id simply returns nothing.
+  const { data } = await supabase.from("service_orders").select("*").eq("id", id).maybeSingle();
+  if (!data) notFound();
+
+  const order = data as ServiceOrder;
+  const service = getService(order.service_slug);
+  const total = orderTotalPaise(order);
+  const meta = STATUS_META[order.status];
+
+  const [{ data: balanceData }, { data: entries }] = await Promise.all([
+    supabase.rpc("my_wallet_balance"),
+    supabase
+      .from("wallet_entries")
+      .select("id, direction, amount_paise, reason, created_at")
+      .eq("order_id", order.id)
+      .order("seq", { ascending: false }),
+  ]);
+
+  const balancePaise = Number(balanceData ?? 0);
+  const ledger = (entries ?? []) as {
+    id: string;
+    direction: "credit" | "debit";
+    amount_paise: number;
+    reason: string;
+    created_at: string;
+  }[];
+
+  return (
+    <>
+      <section className="grain bloom relative overflow-hidden border-b border-line">
+        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/orders" className="label text-slate hover:text-bone">
+              Your filings
+            </Link>
+            <span className="label text-line-3">/</span>
+            <p className="label font-mono text-brass">{order.reference}</p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <h1 className="font-display text-[clamp(28px,4vw,42px)] leading-[1.08] text-bone">
+                {service?.name ?? order.service_slug}
+              </h1>
+              <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-ash">{meta.blurb}</p>
+            </div>
+            <StatusPill status={order.status} />
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr]">
+          <div className="flex flex-col gap-10">
+            {/* what it costs */}
+            <div>
+              <p className="label mb-4 text-brass">What it costs</p>
+              <FeeBreakdown
+                governmentPaise={order.government_fee_paise}
+                professionalPaise={order.professional_fee_paise}
+                format={formatPaise}
+              />
+
+              {order.status === "quoted" && (
+                <div className="mt-6">
+                  <PayButton
+                    orderId={order.id}
+                    amountLabel={formatPaise(total)}
+                    balancePaise={balancePaise}
+                    totalPaise={total}
+                  />
+                  <p className="mt-3 font-mono text-[12px] text-slate tnum">
+                    Wallet balance {formatPaise(balancePaise)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* what you told us */}
+            {order.details && (
+              <div>
+                <p className="label mb-4 text-brass">What you told us</p>
+                <p className="rounded border border-line bg-ink-2 px-5 py-4 text-[14px] leading-relaxed text-ash">
+                  {order.details}
+                </p>
+              </div>
+            )}
+
+            {/* notes from us */}
+            {order.admin_notes && (
+              <div>
+                <p className="label mb-4 text-brass">From LAWFIC</p>
+                <p className="rounded border border-line bg-ink-2 px-5 py-4 text-[14px] leading-relaxed text-ash">
+                  {order.admin_notes}
+                </p>
+              </div>
+            )}
+
+            {/* money moved on this order */}
+            {ledger.length > 0 && (
+              <div>
+                <p className="label mb-4 text-brass">Money moved on this filing</p>
+                <div className="flex flex-col gap-px overflow-hidden rounded border border-line bg-line">
+                  {ledger.map((e) => (
+                    <div key={e.id} className="flex items-center justify-between gap-4 bg-ink-2 px-5 py-3.5">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13.5px] text-bone">{e.reason}</p>
+                        <p className="mt-0.5 font-mono text-[11px] text-slate">
+                          {new Date(e.created_at).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <p
+                        className={`shrink-0 font-mono text-[13.5px] tnum ${
+                          e.direction === "credit" ? "text-jade" : "text-bone"
+                        }`}
+                      >
+                        {formatEntry(e.direction, e.amount_paise)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* progress */}
+          <div>
+            <p className="label mb-6 text-brass">Progress</p>
+            <Timeline status={order.status} />
+
+            {service && (
+              <div className="mt-10 rounded border border-line bg-surface/40 p-5">
+                <p className="label mb-3 text-slate">What we will need</p>
+                <ul className="flex flex-col gap-2.5">
+                  {service.documents.map((d) => (
+                    <li key={d} className="flex gap-2.5 text-[13.5px] leading-relaxed text-ash">
+                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-brass-lo" aria-hidden />
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

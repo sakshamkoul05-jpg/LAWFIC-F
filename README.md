@@ -22,7 +22,7 @@ npm run dev
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
 | `npm test` | Unit tests — money handling and webhook signatures (17) |
-| `npm run test:db` | Applies the real schema to an in-process Postgres and attacks it (30) |
+| `npm run test:db` | Applies the real schema to an in-process Postgres and attacks it (44) |
 | `npm run db:build` | Regenerates `supabase/setup.sql` from the migrations |
 | `npx tsc --noEmit` | Typecheck |
 
@@ -45,6 +45,8 @@ npm run dev
 | `/` `/about` `/services` `/services/[slug]` `/jobs` | Static. Marketing and service content |
 | `/login` | Email magic link, or mobile OTP |
 | `/wallet` | Balance, top-up and statement. Signed-in only |
+| `/orders` `/orders/[id]` | Your filings, with a status timeline and pay-from-wallet |
+| `/admin` | Back office. Staff only — quote, advance, close and refund |
 | `/api/wallet/topup` | Creates a Razorpay order and records an intent |
 | `/api/wallet/balance` | The signed-in user's balance, for post-payment polling |
 | `/api/razorpay/webhook` | The only thing that may credit a wallet |
@@ -134,9 +136,35 @@ In order, because two of these have external lead times:
 Before real money moves, work through the live checklist in
 `supabase/README.md` — the PGlite suite cannot prove RLS.
 
+## The order flow
+
+A filing is a **request, then a quote, then payment** — not a checkout.
+Government fees move with state, turnover and category, so a fixed price behind
+a button means either overcharging some customers or absorbing losses on others.
+
+```
+submitted ──quote_order──▶ quoted ──pay_order_from_wallet──▶ paid
+                                                              │
+                                              advance_order   ▼
+                                                        in_progress
+                                                              │
+                                                              ▼
+                                                          completed
+
+  reject_order (from any live state) ──▶ rejected, with every rupee
+                                          credited back in the same
+                                          transaction
+```
+
+Every transition is a security-definer function that re-checks who is calling.
+There is **no UPDATE policy on `service_orders` for anyone** — not customers,
+not staff — so a transition cannot be forged by a hand-crafted request. A
+customer cannot quote their own order, pay someone else's, or pay one twice.
+
+Staff membership is a row in `public.staff`, added by hand in the SQL editor.
+There is deliberately no UI for granting it.
+
 ## Not built yet
 
-The service order flow end to end (submit → quote → pay → track), the admin
-console for triaging and quoting, document upload, and the real jobs feed. The
-schema and the `pay_order_from_wallet` function for orders already exist and are
-tested; what is missing is the UI on both sides.
+Document upload, the real jobs feed, and email/WhatsApp notification on status
+change.

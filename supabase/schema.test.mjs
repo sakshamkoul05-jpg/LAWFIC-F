@@ -406,5 +406,201 @@ await check("an intent cannot be created for a non-positive amount", async () =>
   }
 });
 
+console.log("\nStaff — quoting, advancing, rejecting");
+
+// Bob becomes staff. Alice stays an ordinary customer.
+await db.query(`insert into public.staff (user_id, role) values ($1, 'owner')`, [bob]);
+
+/** A fresh submitted order belonging to Alice. */
+const newOrder = async (slug = "gst") =>
+  (
+    await one(
+      `insert into public.service_orders (user_id, service_slug) values ($1, $2) returning id`,
+      [alice, slug]
+    )
+  ).id;
+
+await check("a customer cannot quote an order", async () => {
+  const o = await newOrder();
+  await asUser(alice);
+  try {
+    await db.query(`select public.quote_order($1, 0, 100000, null)`, [o]);
+    throw new Error("a customer was allowed to quote");
+  } catch (e) {
+    if (e.code !== "42501") throw new Error(`expected 42501, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("a customer cannot advance or reject an order", async () => {
+  const o = await newOrder();
+  await asUser(alice);
+  for (const sql of [
+    `select public.advance_order($1, 'in_progress')`,
+    `select public.reject_order($1, 'because')`,
+  ]) {
+    try {
+      await db.query(sql, [o]);
+      throw new Error(`a customer was allowed: ${sql}`);
+    } catch (e) {
+      if (e.code !== "42501") throw new Error(`expected 42501, got ${e.code}: ${e.message}`);
+    }
+  }
+});
+
+await check("staff can quote a submitted order", async () => {
+  const o = await newOrder();
+  await asUser(bob);
+  const r = await one(`select * from public.quote_order($1, 10700, 29900, 'checked') as q`, [o]);
+  eq(r.status, "quoted", "status after quoting");
+  eq(r.government_fee_paise, 10700, "government fee");
+  eq(r.professional_fee_paise, 29900, "professional fee");
+});
+
+await rejects(
+  "a quote of zero is refused",
+  `select public.quote_order((select id from public.service_orders
+                               where status='submitted' limit 1), 0, 0, null)`,
+  [],
+  "22023"
+);
+
+await check("a negative fee is refused", async () => {
+  const o = await newOrder();
+  await asUser(bob);
+  try {
+    await db.query(`select public.quote_order($1, -1, 100, null)`, [o]);
+    throw new Error("a negative fee was accepted");
+  } catch (e) {
+    if (e.code !== "22023") throw new Error(`expected 22023, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("an order cannot be quoted twice", async () => {
+  const o = await newOrder();
+  await asUser(bob);
+  await db.query(`select public.quote_order($1, 0, 5000, null)`, [o]);
+  try {
+    await db.query(`select public.quote_order($1, 0, 9999, null)`, [o]);
+    throw new Error("a second quote was accepted");
+  } catch (e) {
+    if (e.code !== "22023") throw new Error(`expected 22023, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("an order cannot skip from submitted straight to completed", async () => {
+  const o = await newOrder();
+  await asUser(bob);
+  try {
+    await db.query(`select public.advance_order($1, 'completed')`, [o]);
+    throw new Error("an order skipped the whole flow");
+  } catch (e) {
+    if (e.code !== "22023") throw new Error(`expected 22023, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("the full lifecycle runs: submitted → quoted → paid → in_progress → completed", async () => {
+  const o = await newOrder("msme-udyam");
+
+  await asUser(bob);
+  await db.query(`select public.quote_order($1, 0, 49900, null)`, [o]);
+
+  await asUser(alice);
+  await credit(alice, 100000, `k-life-${o}`);
+  await db.query(`select public.pay_order_from_wallet($1)`, [o]);
+
+  await asUser(bob);
+  await db.query(`select public.advance_order($1, 'in_progress')`, [o]);
+  const done = await one(`select * from public.advance_order($1, 'completed') as a`, [o]);
+
+  eq(done.status, "completed", "final status");
+  if (!done.completed_at) throw new Error("completed_at was not stamped");
+});
+
+await check("rejecting a paid order credits every rupee back", async () => {
+  const o = await newOrder("pan");
+
+  await asUser(bob);
+  await db.query(`select public.quote_order($1, 10700, 29900, null)`, [o]);
+
+  await asUser(alice);
+  await credit(alice, 100000, `k-ref-${o}`);
+  const before = await balance(alice);
+  await db.query(`select public.pay_order_from_wallet($1)`, [o]);
+  const afterPay = await balance(alice);
+  eq(before - afterPay, 40600, "amount taken");
+
+  await asUser(bob);
+  const r = await one(`select * from public.reject_order($1, 'Address proof was not accepted') as r`, [o]);
+  eq(r.status, "rejected", "status after rejection");
+
+  eq(await balance(alice), before, "balance is restored exactly");
+});
+
+await check("a refund is written as new credits, not by editing the debits", async () => {
+  const r = await one(
+    `select count(*) filter (where direction='debit')  ::int as debits,
+            count(*) filter (where direction='credit') ::int as credits
+       from public.wallet_entries
+      where order_id = (select id from public.service_orders
+                         where status='rejected' order by created_at desc limit 1)`
+  );
+  eq(r.debits, 2, "the original debits are still there");
+  eq(r.credits, 2, "matching credits were added");
+});
+
+await check("rejecting twice does not refund twice", async () => {
+  const o = await newOrder("gst");
+  await asUser(bob);
+  await db.query(`select public.quote_order($1, 0, 20000, null)`, [o]);
+  await asUser(alice);
+  await credit(alice, 50000, `k-dbl-${o}`);
+  await db.query(`select public.pay_order_from_wallet($1)`, [o]);
+  const paid = await balance(alice);
+
+  await asUser(bob);
+  await db.query(`select public.reject_order($1, 'first reason')`, [o]);
+  const refunded = await balance(alice);
+  eq(refunded - paid, 20000, "refunded once");
+
+  try {
+    await db.query(`select public.reject_order($1, 'second attempt')`, [o]);
+  } catch {
+    // Already rejected — refusing is fine too. What must not happen is a
+    // second credit.
+  }
+  eq(await balance(alice), refunded, "balance did not move again");
+});
+
+await check("a rejection without a reason is refused", async () => {
+  const o = await newOrder();
+  await asUser(bob);
+  try {
+    await db.query(`select public.reject_order($1, '   ')`, [o]);
+    throw new Error("a blank reason was accepted");
+  } catch (e) {
+    if (e.code !== "22023") throw new Error(`expected 22023, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("a completed order cannot be rejected afterwards", async () => {
+  const done = await one(
+    `select id from public.service_orders where status = 'completed' limit 1`
+  );
+  await asUser(bob);
+  try {
+    await db.query(`select public.reject_order($1, 'changed my mind')`, [done.id]);
+    throw new Error("a completed order was rejected");
+  } catch (e) {
+    if (e.code !== "22023") throw new Error(`expected 22023, got ${e.code}: ${e.message}`);
+  }
+});
+
+await check("is_staff distinguishes the two users", async () => {
+  await asUser(bob);
+  eq((await one(`select public.is_staff() as s`)).s, true, "bob is staff");
+  await asUser(alice);
+  eq((await one(`select public.is_staff() as s`)).s, false, "alice is not");
+});
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail > 0 ? 1 : 0);

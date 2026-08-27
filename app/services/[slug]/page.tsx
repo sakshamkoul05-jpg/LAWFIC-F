@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getService, services } from "@/lib/services";
 import ServiceVisual from "@/components/motion/ServiceVisual";
+import StartFiling from "./StartFiling";
 import Reveal from "@/components/ui/Reveal";
 
 export function generateStaticParams() {
@@ -69,16 +70,8 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
             </Reveal>
 
             <Reveal delay={0.24}>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link
-                  href="/login"
-                  className="rounded-full bg-brass px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
-                >
-                  Start this filing
-                </Link>
-                <span className="text-[13px] text-slate">
-                  {service.turnaround} · nothing charged until we quote
-                </span>
+              <div className="mt-8">
+                <StartFiling slug={service.slug} turnaround={service.turnaround} />
               </div>
             </Reveal>
           </div>

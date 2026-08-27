@@ -1,0 +1,166 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { formatPaise } from "@/lib/money";
+import { orderTotalPaise, type OrderStatus, type ServiceOrder } from "@/lib/orders";
+import { getService } from "@/lib/services";
+import { createClient } from "@/lib/supabase/server";
+import OrderRow from "./OrderRow";
+
+export const metadata: Metadata = { title: "Back office", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
+
+/** Work comes first, finished work last. */
+const GROUPS: { status: OrderStatus; heading: string; note: string }[] = [
+  { status: "submitted", heading: "Needs a quote", note: "The customer is waiting to hear a price." },
+  { status: "paid", heading: "Paid — start work", note: "Money is in. File these." },
+  { status: "in_progress", heading: "With the registry", note: "Filed, awaiting the certificate." },
+  { status: "quoted", heading: "Awaiting payment", note: "Quoted. Nothing to do until they pay." },
+  { status: "completed", heading: "Completed", note: "" },
+  { status: "rejected", heading: "Closed", note: "" },
+];
+
+export default async function AdminPage() {
+  const supabase = await createClient();
+  if (!supabase) return <Locked title="Not connected" body="This build has no database configured." />;
+
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    return <Locked title="Sign in" body="The back office needs a staff account." signIn />;
+  }
+
+  const { data: staff } = await supabase.rpc("is_staff");
+  if (!staff) {
+    return (
+      <Locked
+        title="Not a staff account"
+        body="This area is for LAWFIC staff. If that should be you, ask an owner to add your user id to the staff table."
+      />
+    );
+  }
+
+  // RLS lets staff see every order; a customer sees only their own.
+  const { data: orderData } = await supabase
+    .from("service_orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const orders = (orderData ?? []) as ServiceOrder[];
+
+  // Names for the header line. A missing profile is not an error.
+  const userIds = [...new Set(orders.map((o) => o.user_id))];
+  const { data: profileData } = userIds.length
+    ? await supabase.from("profiles").select("id, full_name, phone").in("id", userIds)
+    : { data: [] };
+
+  const profiles = new Map(
+    (profileData ?? []).map((p: { id: string; full_name: string | null; phone: string | null }) => [
+      p.id,
+      p,
+    ])
+  );
+
+  const rows = orders.map((o) => {
+    const service = getService(o.service_slug);
+    const p = profiles.get(o.user_id);
+    return {
+      ...o,
+      customer_name: p?.full_name ?? null,
+      customer_phone: p?.phone ?? null,
+      service_name: service?.name ?? o.service_slug,
+      suggested_government_rupees: 0,
+      suggested_professional_rupees: Math.round(
+        Number((service?.fee.professional ?? "0").replace(/[^\d]/g, "")) || 0
+      ),
+    };
+  });
+
+  const needsAction = rows.filter((r) =>
+    ["submitted", "paid", "in_progress"].includes(r.status)
+  ).length;
+
+  const takenPaise = rows
+    .filter((r) => ["paid", "in_progress", "completed"].includes(r.status))
+    .reduce((sum, r) => sum + orderTotalPaise(r), 0);
+
+  return (
+    <>
+      <section className="border-b border-line bg-ink-2">
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="label text-brass">Back office</p>
+              <h1 className="mt-4 font-display text-[32px] leading-tight text-bone">
+                {needsAction === 0 ? "Nothing waiting on you" : `${needsAction} waiting on you`}
+              </h1>
+            </div>
+
+            <dl className="flex gap-8">
+              <Stat label="Orders" value={String(rows.length)} />
+              <Stat label="Collected" value={formatPaise(takenPaise)} />
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+        {rows.length === 0 ? (
+          <p className="rounded-lg border border-line bg-ink-2 px-6 py-16 text-center text-[15px] text-ash">
+            No orders yet.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-12">
+            {GROUPS.map((g) => {
+              const group = rows.filter((r) => r.status === g.status);
+              if (group.length === 0) return null;
+              return (
+                <div key={g.status}>
+                  <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <h2 className="font-display text-[21px] text-bone">{g.heading}</h2>
+                    <span className="font-mono text-[12px] text-brass tnum">{group.length}</span>
+                    {g.note && <span className="text-[13px] text-slate">{g.note}</span>}
+                  </div>
+                  <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-line bg-line">
+                    {group.map((r) => (
+                      <OrderRow key={r.id} order={r} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="label text-slate">{label}</dt>
+      <dd className="mt-1.5 font-mono text-[18px] text-bone tnum">{value}</dd>
+    </div>
+  );
+}
+
+function Locked({ title, body, signIn }: { title: string; body: string; signIn?: boolean }) {
+  return (
+    <section className="grain relative min-h-[70vh] overflow-hidden">
+      <div className="relative z-2 mx-auto max-w-6xl px-5 py-24 sm:px-8">
+        <p className="label text-brass">Back office</p>
+        <h1 className="mt-6 font-display text-[clamp(28px,4vw,40px)] leading-[1.1] text-bone">
+          {title}
+        </h1>
+        <p className="mt-6 max-w-lg text-[16px] leading-relaxed text-ash">{body}</p>
+        {signIn && (
+          <Link
+            href="/login?next=/admin"
+            className="mt-8 inline-block rounded-full bg-brass px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+}

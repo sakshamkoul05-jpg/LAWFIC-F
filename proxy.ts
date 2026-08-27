@@ -12,7 +12,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/sup
  * out of the database and into here.
  */
 
-const PROTECTED = ["/wallet", "/account", "/orders"];
+const PROTECTED = ["/wallet", "/account", "/orders", "/admin"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
