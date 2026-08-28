@@ -107,8 +107,12 @@ const anon = createClient(base, ANON, { auth: { persistSession: false } });
 section("Backend");
 
 try {
-  const res = await fetch(`${base}/rest/v1/`, { headers: { apikey: ANON } });
-  if (res.ok || res.status === 404) pass("Project is reachable");
+  const res = await fetch(`${base}/rest/v1/`, {
+    headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+  });
+  const ref = res.headers.get("sb-project-ref");
+  if (ref) pass("Project is reachable", ref);
+  else if (res.ok || res.status === 404) pass("Project is reachable");
   else fix(`Project responded ${res.status}`, "Check the URL and that the project is not paused.");
 } catch (e) {
   fix("Cannot reach the project", `${e.message}. Check the URL and your connection.`);
@@ -162,6 +166,31 @@ else fix("ANONYMOUS CAN MINT BALANCE", "Critical. INSERT must be revoked from an
 const { error: ordErr } = await anon.from("service_orders").select("id").limit(1);
 if (ordErr) pass("Anonymous cannot read service_orders", ordErr.code ?? "");
 else pass("Anonymous reads no service_orders", "empty result");
+
+// Supabase's default privileges grant EXECUTE to `anon` on every new function
+// in `public`. A `revoke from public` does NOT undo a direct grant to a named
+// role, so this has to be asserted against the live project — the offline suite
+// runs as superuser, where grants do not apply.
+const NIL = "00000000-0000-0000-0000-000000000000";
+const moneyFns = [
+  ["pay_order_from_wallet", { p_order_id: NIL }],
+  ["quote_order", { p_order_id: NIL, p_government_fee_paise: 0, p_professional_fee_paise: 100, p_admin_notes: null }],
+  ["advance_order", { p_order_id: NIL, p_status: "in_progress" }],
+  ["reject_order", { p_order_id: NIL, p_reason: "doctor probe" }],
+];
+
+for (const [fn, args] of moneyFns) {
+  const { error } = await anon.rpc(fn, args);
+  if (!error) {
+    fix(`anon can execute ${fn}`, "Revoke EXECUTE from anon. This is a money function.");
+  } else if (error.code === "42501" || /permission denied/i.test(error.message)) {
+    pass(`anon cannot execute ${fn}`, "permission denied");
+  } else if (error.code === "PGRST202") {
+    warn(`${fn} was not found`, "Migrations may be out of date — re-run the deploy.");
+  } else {
+    warn(`anon reached ${fn} and was refused inside it`, `${error.code ?? ""} — the guard held, but EXECUTE should be revoked too.`);
+  }
+}
 
 const { error: rpcErr } = await anon.rpc("my_wallet_balance");
 if (rpcErr) pass("my_wallet_balance is not callable anonymously", rpcErr.code ?? "");
