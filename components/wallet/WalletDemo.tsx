@@ -20,8 +20,6 @@ export default function WalletDemo() {
   const [cardOut, setCardOut] = useState(false);
   const [customSeed, setCustomSeed] = useState("");
 
-  const ct = CARD_TYPES.find((c) => c.id === draft.cardType) ?? CARD_TYPES[0];
-
   const applySeed = (seed: string) => {
     setCustomSeed(seed);
     setDraft((d) => ({ ...d, avatarSeed: seed }));
@@ -32,11 +30,11 @@ export default function WalletDemo() {
   };
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-xl" style={{ color: "var(--wallet-fg)" }}>
       {/* ─── Header ─────────────────────────────────────────────── */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-[13px] opacity-60">Welcome to</p>
+          <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>Welcome to</p>
           <h1 className="text-[22px] font-bold">LAWFiC Wallet</h1>
         </div>
         <DiceBearAvatar seed={draft.avatarSeed} size={44} />
@@ -48,7 +46,8 @@ export default function WalletDemo() {
         <div className="mt-4 flex items-center gap-3">
           <Link
             href="/login?next=/wallet"
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/20 py-3.5 text-[13px] font-semibold text-white transition-all hover:bg-white/30"
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-semibold transition-all"
+            style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M8 3v10M3 8h10" />
@@ -58,7 +57,8 @@ export default function WalletDemo() {
           <button
             type="button"
             onClick={() => document.getElementById("demo-customize")?.scrollIntoView({ behavior: "smooth" })}
-            className="flex items-center justify-center rounded-2xl bg-white/15 px-4 py-3.5 text-[13px] font-medium text-white transition-colors hover:bg-white/25"
+            className="flex items-center justify-center rounded-2xl px-4 py-3.5 text-[13px] font-medium transition-colors"
+            style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12.5 1.5l2 2-9 9H3.5v-2l9-9z" />
@@ -78,10 +78,14 @@ export default function WalletDemo() {
           <button
             key={a.label}
             type="button"
-            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium opacity-80 transition-all hover:opacity-100 hover:scale-105"
+            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium transition-all hover:scale-105"
+            style={{ color: "var(--wallet-fg)" }}
           >
-            <div className="flex size-10 items-center justify-center rounded-full bg-white/15">
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div
+              className="flex size-10 items-center justify-center rounded-full"
+              style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d={a.icon} />
               </svg>
             </div>
@@ -100,7 +104,7 @@ export default function WalletDemo() {
             See more
           </button>
         </div>
-        <ul className="divide-y divide-white/5">
+        <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
           {DEMO_TXNS.map((t) => (
             <li key={t.id} className="flex items-center gap-4 px-5 py-4">
               <DiceBearAvatar seed={t.avatar} size={40} />
@@ -138,11 +142,11 @@ export default function WalletDemo() {
                   key={c.id}
                   type="button"
                   onClick={() => pickCardType(c.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all ${
-                    draft.cardType === c.id
-                      ? "border-[#7c3aed] bg-[#7c3aed]/15"
-                      : "border-white/10 bg-white/5 hover:border-[#7c3aed]/40"
-                  }`}
+                  className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all"
+                  style={{
+                    borderColor: draft.cardType === c.id ? "#7c3aed" : "var(--wallet-input-border)",
+                    background: draft.cardType === c.id ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                  }}
                 >
                   <div className="h-8 w-12 shrink-0 rounded-md" style={{ background: c.gradient }} />
                   <div>
@@ -165,27 +169,30 @@ export default function WalletDemo() {
                   key={seed}
                   type="button"
                   onClick={() => applySeed(seed)}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all ${
-                    draft.avatarSeed === seed
-                      ? "border-[#7c3aed] bg-[#7c3aed]/15 text-[#c4b5fd]"
-                      : "border-white/10 bg-white/5 text-white/60 hover:border-[#7c3aed]/40"
-                  }`}
+                  className="flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all"
+                  style={{
+                    borderColor: draft.avatarSeed === seed && !customSeed ? "#7c3aed" : "var(--wallet-input-border)",
+                    background: draft.avatarSeed === seed && !customSeed ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                    color: draft.avatarSeed === seed && !customSeed ? "#c4b5fd" : "var(--wallet-fg-muted)",
+                  }}
                 >
                   <DiceBearAvatar seed={seed} size={24} />
                   {seed}
                 </button>
               ))}
             </div>
-            {/* Custom seed input */}
-            <div className="mt-3">
-              <input
-                type="text"
-                value={customSeed}
-                onChange={(e) => applySeed(e.target.value)}
-                placeholder="Or type your name…"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-[12px] text-white placeholder:text-white/30 focus:border-[#7c3aed] focus:outline-none"
-              />
-            </div>
+            <input
+              type="text"
+              value={customSeed}
+              onChange={(e) => applySeed(e.target.value)}
+              placeholder="Or type your name…"
+              className="mt-3 w-full rounded-xl border px-4 py-2.5 text-[12px] focus:border-[#7c3aed] focus:outline-none"
+              style={{
+                borderColor: "var(--wallet-input-border)",
+                background: "var(--wallet-input-bg)",
+                color: "var(--wallet-input-text)",
+              }}
+            />
           </div>
         </div>
 

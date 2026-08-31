@@ -7,10 +7,6 @@ import { CARD_TYPES, AVATAR_SEEDS, normalizePrefs, type WalletPrefs, type CardTy
 import WalletCard from "@/components/wallet/WalletCard";
 import DiceBearAvatar from "@/components/wallet/DiceBearAvatar";
 
-/**
- * The customization studio. Pick a card type, create your avatar,
- * watch the live card respond, then save.
- */
 export default function CustomizePanel({
   initial,
   balancePaise,
@@ -59,7 +55,7 @@ export default function CustomizePanel({
     draft.avatarSeed !== initial.avatarSeed;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+    <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start" style={{ color: "var(--wallet-fg)" }}>
       {/* Live preview */}
       <div className="wallet-glass order-2 rounded-3xl p-6 sm:p-8 lg:order-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a78bfa]">
@@ -88,11 +84,11 @@ export default function CustomizePanel({
                 key={c.id}
                 type="button"
                 onClick={() => pickCardType(c.id)}
-                className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all ${
-                  draft.cardType === c.id
-                    ? "border-[#7c3aed] bg-[#7c3aed]/15"
-                    : "border-white/10 bg-white/5 hover:border-[#7c3aed]/40"
-                }`}
+                className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all"
+                style={{
+                  borderColor: draft.cardType === c.id ? "#7c3aed" : "var(--wallet-input-border)",
+                  background: draft.cardType === c.id ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                }}
               >
                 <div className="h-8 w-12 shrink-0 rounded-md" style={{ background: c.gradient }} />
                 <div>
@@ -113,11 +109,12 @@ export default function CustomizePanel({
                 key={seed}
                 type="button"
                 onClick={() => applySeed(seed)}
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all ${
-                  draft.avatarSeed === seed && !customSeed
-                    ? "border-[#7c3aed] bg-[#7c3aed]/15 text-[#c4b5fd]"
-                    : "border-white/10 bg-white/5 text-white/60 hover:border-[#7c3aed]/40"
-                }`}
+                className="flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all"
+                style={{
+                  borderColor: draft.avatarSeed === seed && !customSeed ? "#7c3aed" : "var(--wallet-input-border)",
+                  background: draft.avatarSeed === seed && !customSeed ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                  color: draft.avatarSeed === seed && !customSeed ? "#c4b5fd" : "var(--wallet-fg-muted)",
+                }}
               >
                 <DiceBearAvatar seed={seed} size={24} />
                 {seed}
@@ -129,7 +126,12 @@ export default function CustomizePanel({
             value={customSeed}
             onChange={(e) => applySeed(e.target.value)}
             placeholder="Or type your name…"
-            className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-[12px] text-white placeholder:text-white/30 focus:border-[#7c3aed] focus:outline-none"
+            className="mt-3 w-full rounded-xl border px-4 py-2.5 text-[12px] focus:border-[#7c3aed] focus:outline-none"
+            style={{
+              borderColor: "var(--wallet-input-border)",
+              background: "var(--wallet-input-bg)",
+              color: "var(--wallet-input-text)",
+            }}
           />
         </div>
 

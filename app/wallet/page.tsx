@@ -48,7 +48,7 @@ export default async function WalletPage() {
   const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-xl" style={{ color: "var(--wallet-fg)" }}>
       {isRazorpayTestMode && (
         <p className="mb-5 text-center text-[12.5px] opacity-50">
           Test mode — no real money moves
@@ -58,7 +58,7 @@ export default async function WalletPage() {
       {/* ─── Header ─────────────────────────────────────────────── */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-[13px] opacity-60">Hi, {displayName}!</p>
+          <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>Hi, {displayName}!</p>
           <h1 className="text-[22px] font-bold">My Wallet</h1>
         </div>
         <DiceBearAvatar seed={prefs.avatarSeed} size={44} />
@@ -72,7 +72,8 @@ export default async function WalletPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/wallet/topup"
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/20 py-3.5 text-[13px] font-semibold text-white transition-all hover:bg-white/30"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-semibold transition-all"
+              style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10" />
@@ -81,7 +82,8 @@ export default async function WalletPage() {
             </Link>
             <Link
               href="/wallet/customize"
-              className="flex items-center justify-center rounded-2xl bg-white/15 px-4 py-3.5 text-[13px] font-medium text-white transition-colors hover:bg-white/25"
+              className="flex items-center justify-center rounded-2xl px-4 py-3.5 text-[13px] font-medium transition-colors"
+              style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12.5 1.5l2 2-9 9H3.5v-2l9-9z" />
@@ -104,10 +106,14 @@ export default async function WalletPage() {
           <Link
             key={a.label}
             href={a.href}
-            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium opacity-80 transition-all hover:opacity-100 hover:scale-105"
+            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium transition-all hover:scale-105"
+            style={{ color: "var(--wallet-fg)" }}
           >
-            <div className="flex size-10 items-center justify-center rounded-full bg-white/15">
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div
+              className="flex size-10 items-center justify-center rounded-full"
+              style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d={a.icon} />
               </svg>
             </div>
@@ -144,14 +150,18 @@ export default async function WalletPage() {
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
             {rows.map((r) => (
               <li key={r.id}>
                 <Link
                   href={`/wallet/transactions/${r.id}`}
-                  className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/5"
+                  className="flex items-center gap-4 px-5 py-4 transition-colors"
+                  style={{ color: "var(--wallet-fg)" }}
                 >
-                  <div className="flex size-10 items-center justify-center rounded-full bg-white/10">
+                  <div
+                    className="flex size-10 items-center justify-center rounded-full"
+                    style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+                  >
                     <span className="text-[13px] font-semibold opacity-70">
                       {r.direction === "credit" ? "+" : "−"}
                     </span>
@@ -179,7 +189,7 @@ export default async function WalletPage() {
           </ul>
         )}
 
-        <p className="border-t border-white/5 px-5 py-3.5 text-[11px] leading-relaxed opacity-35">
+        <p className="border-t px-5 py-3.5 text-[11px] leading-relaxed opacity-35" style={{ borderColor: "var(--wallet-divider)" }}>
           Balance is usable only for LAWFIC services — it cannot be transferred or withdrawn.
         </p>
       </div>

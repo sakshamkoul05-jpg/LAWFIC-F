@@ -5,10 +5,6 @@ import { formatPaise, MIN_TOPUP_PAISE } from "@/lib/money";
 import WalletCelebration from "@/components/wallet/WalletCelebration";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
 
-/**
- * The amount + complete UI for a top-up, in CRED-style dark glass. Driving the
- * whole lifecycle through `useTopUp` keeps this and the balance home consistent.
- */
 export default function TopUpForm({
   initialBalancePaise,
   paymentsReady,
@@ -51,7 +47,7 @@ export default function TopUpForm({
             : `Minimum ${formatPaise(MIN_TOPUP_PAISE)}`;
 
   return (
-    <div className="glass-panel relative overflow-hidden rounded-3xl p-6 sm:p-8">
+    <div className="glass-panel relative overflow-hidden rounded-3xl p-6 sm:p-8" style={{ color: "var(--wallet-fg)" }}>
       <WalletCelebration playing={phase === "landed"} />
 
       <AnimatePresence>
@@ -65,10 +61,10 @@ export default function TopUpForm({
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f4e3a8]">
               Top-up complete
             </p>
-            <p className="mt-1 text-[14px] text-[#f4f4ee]">
+            <p className="mt-1 text-[14px]" style={{ color: "var(--wallet-fg)" }}>
               <span className="font-mono text-[#f4e3a8]">+ {formatPaise(credited)}</span> added.
               New balance{" "}
-              <span className="font-mono text-[#f4f4ee]">{formatPaise(balance)}</span>.
+              <span className="font-mono">{formatPaise(balance)}</span>.
             </p>
           </motion.div>
         )}
@@ -88,11 +84,12 @@ export default function TopUpForm({
               disabled={busy}
               onClick={() => select(p)}
               aria-pressed={active}
-              className={`rounded-xl border px-3 py-3.5 font-mono text-[14px] tabular-nums transition-all disabled:opacity-40 ${
-                active
-                  ? "border-[#d4af37] bg-[#d4af37]/15 text-[#f4e3a8]"
-                  : "border-white/10 bg-white/5 text-[#f4f4ee]/75 hover:border-[#d4af37]/50 hover:bg-white/10"
-              }`}
+              className="rounded-xl border px-3 py-3.5 font-mono text-[14px] tabular-nums transition-all disabled:opacity-40"
+              style={{
+                borderColor: active ? "#d4af37" : "var(--wallet-input-border)",
+                background: active ? "rgba(212,175,55,0.15)" : "var(--wallet-input-bg)",
+                color: active ? "#f4e3a8" : "var(--wallet-fg)",
+              }}
             >
               ₹{p.toLocaleString("en-IN")}
             </button>
@@ -100,7 +97,10 @@ export default function TopUpForm({
         })}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 focus-within:border-[#d4af37]/70">
+      <div
+        className="mt-3 flex items-center gap-2 rounded-xl border px-4 focus-within:border-[#d4af37]/70"
+        style={{ borderColor: "var(--wallet-input-border)", background: "var(--wallet-input-bg)" }}
+      >
         <span className="font-mono text-[15px] text-[#f4e3a8]">₹</span>
         <input
           inputMode="numeric"
@@ -111,19 +111,21 @@ export default function TopUpForm({
             setCustom(e.target.value.replace(/\D/g, "").slice(0, 7));
             clearMessage();
           }}
-          className="w-full bg-transparent py-3.5 font-mono text-[15px] text-[#f4f4ee] outline-none placeholder:text-[#f4f4ee]/35 tabular-nums"
+          className="w-full bg-transparent py-3.5 font-mono text-[15px] outline-none placeholder:opacity-35 tabular-nums"
+          style={{ color: "var(--wallet-input-text)" }}
         />
       </div>
 
       {!check.ok && (custom !== "" || chosen > 0) && (
-        <p className="mt-3 text-[12.5px] text-[#f4f4ee]/55">{check.error}</p>
+        <p className="mt-3 text-[12.5px]" style={{ color: "var(--wallet-fg-muted)" }}>{check.error}</p>
       )}
 
       <button
         type="button"
         onClick={startTopUp}
         disabled={!check.ok || busy || !paymentsReady}
-        className="mt-6 w-full rounded-full bg-[#d4af37] py-4 text-sm font-semibold text-[#0b0b0b] transition-all hover:bg-[#e8c86a] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.5)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-[#f4f4ee]/40 disabled:shadow-none"
+        className="mt-6 w-full rounded-full bg-[#d4af37] py-4 text-sm font-semibold text-[#0b0b0b] transition-all hover:bg-[#e8c86a] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.5)] disabled:cursor-not-allowed disabled:shadow-none"
+        style={{ opacity: undefined }}
       >
         {label}
       </button>
@@ -135,8 +137,9 @@ export default function TopUpForm({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className={`mt-4 text-[13px] leading-relaxed ${
-              phase === "error" ? "text-[#f2665f]" : "text-[#f4f4ee]/60"
+              phase === "error" ? "text-[#f2665f]" : ""
             }`}
+            style={phase !== "error" ? { color: "var(--wallet-fg-muted)" } : undefined}
           >
             {message}
           </motion.p>
@@ -147,7 +150,7 @@ export default function TopUpForm({
         {["UPI", "Card", "Net banking"].map((m) => (
           <span
             key={m}
-            className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#f4f4ee]/45"
+            className="text-[11px] font-medium uppercase tracking-[0.18em] opacity-45"
           >
             {m}
           </span>
@@ -155,7 +158,7 @@ export default function TopUpForm({
       </div>
 
       {!paymentsReady && (
-        <p className="mt-6 rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/10 px-4 py-3 text-[12px] leading-relaxed text-[#f4f4ee]/70">
+        <p className="mt-6 rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/10 px-4 py-3 text-[12px] leading-relaxed opacity-70">
           Payments are not switched on yet. Add the Razorpay keys and top-ups go live — nothing
           else changes.
         </p>

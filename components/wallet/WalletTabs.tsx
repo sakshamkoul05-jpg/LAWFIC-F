@@ -16,6 +16,7 @@ export default function WalletTabs() {
     <nav
       aria-label="Wallet sections"
       className="mx-auto flex w-full max-w-3xl items-center justify-center gap-1.5 px-4"
+      style={{ color: "var(--wallet-fg)" }}
     >
       {items.map((it) => {
         const active =
@@ -24,11 +25,11 @@ export default function WalletTabs() {
           <Link
             key={it.href}
             href={it.href}
-            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-              active
-                ? "bg-[#d4af37] text-[#0b0b0b]"
-                : "text-[#f4f4ee]/70 hover:bg-white/5 hover:text-[#f4f4ee]"
-            }`}
+            className="rounded-full px-4 py-2 text-[13px] font-medium transition-colors"
+            style={{
+              background: active ? "#7c3aed" : "var(--wallet-btn-bg)",
+              color: active ? "#ffffff" : "var(--wallet-fg-muted)",
+            }}
           >
             {it.label}
           </Link>

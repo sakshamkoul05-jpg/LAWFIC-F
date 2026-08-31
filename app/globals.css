@@ -440,6 +440,18 @@
     inset 0 2px 6px rgba(0, 0, 0, 0.04),
     0 4px 16px -4px rgba(124, 58, 237, 0.12);
   --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.08), transparent);
+  /* Interactive element colors — light mode */
+  --wallet-fg: #1a0a2e;
+  --wallet-fg-muted: rgba(26, 10, 46, 0.55);
+  --wallet-btn-bg: rgba(0, 0, 0, 0.06);
+  --wallet-btn-bg-hover: rgba(0, 0, 0, 0.1);
+  --wallet-btn-text: #1a0a2e;
+  --wallet-input-bg: rgba(0, 0, 0, 0.04);
+  --wallet-input-border: rgba(0, 0, 0, 0.1);
+  --wallet-input-text: #1a0a2e;
+  --wallet-divider: rgba(0, 0, 0, 0.06);
+  --wallet-icon-circle: rgba(124, 58, 237, 0.1);
+  --wallet-icon-fg: #7c3aed;
 }
 
 [data-theme="dark"] {
@@ -462,6 +474,18 @@
     inset 0 2px 6px rgba(0, 0, 0, 0.2),
     0 4px 20px -4px rgba(0, 0, 0, 0.4);
   --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.12), transparent);
+  /* Interactive element colors — dark mode */
+  --wallet-fg: #f4f0ff;
+  --wallet-fg-muted: rgba(244, 240, 255, 0.5);
+  --wallet-btn-bg: rgba(255, 255, 255, 0.12);
+  --wallet-btn-bg-hover: rgba(255, 255, 255, 0.2);
+  --wallet-btn-text: #f4f0ff;
+  --wallet-input-bg: rgba(255, 255, 255, 0.06);
+  --wallet-input-border: rgba(255, 255, 255, 0.1);
+  --wallet-input-text: #f4f0ff;
+  --wallet-divider: rgba(255, 255, 255, 0.06);
+  --wallet-icon-circle: rgba(255, 255, 255, 0.12);
+  --wallet-icon-fg: #f4f0ff;
 }
 
 /* Pocket / cardholder */
