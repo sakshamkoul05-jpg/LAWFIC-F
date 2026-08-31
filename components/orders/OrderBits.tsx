@@ -1,10 +1,10 @@
 import { STATUS_META, TIMELINE, timelineIndex, type OrderStatus } from "@/lib/orders";
 
 const TONE: Record<string, string> = {
-  neutral: "border-line-3 text-ash",
-  action: "border-brass bg-brass/12 text-brass-hi",
-  good: "border-jade/40 bg-jade/10 text-jade",
-  bad: "border-rust/40 bg-rust/10 text-rust",
+  neutral: "border-border text-muted",
+  action: "border-primary bg-primary-light text-primary",
+  good: "border-success/30 bg-success-light text-success",
+  bad: "border-destructive/30 bg-destructive-light text-destructive",
 };
 
 export function StatusPill({ status }: { status: OrderStatus }) {
@@ -24,9 +24,9 @@ export function StatusPill({ status }: { status: OrderStatus }) {
 export function Timeline({ status }: { status: OrderStatus }) {
   if (status === "rejected") {
     return (
-      <div className="rounded border border-rust/30 bg-rust/5 px-5 py-4">
-        <p className="label text-rust">Closed</p>
-        <p className="mt-2 text-[14px] leading-relaxed text-ash">
+      <div className="rounded border border-destructive/30 bg-destructive-light px-5 py-4">
+        <p className="label text-destructive">Closed</p>
+        <p className="mt-2 text-[14px] leading-relaxed text-muted">
           {STATUS_META.rejected.blurb}
         </p>
       </div>
@@ -47,21 +47,21 @@ export function Timeline({ status }: { status: OrderStatus }) {
             key={s}
             className={`relative grid gap-1 pb-6 pl-7 last:pb-0 ${
               i === TIMELINE.length - 1 ? "" : "border-l"
-            } ${done || now ? "border-brass-dim" : "border-line"}`}
+            } ${done || now ? "border-primary/30" : "border-border"}`}
             style={{ marginLeft: 4 }}
           >
             <span
               className="absolute left-0 top-1 size-2.5 -translate-x-1/2 rounded-full border-2"
               style={{
-                background: now ? "var(--color-brass)" : "var(--color-ink)",
-                borderColor: done || now ? "var(--color-brass)" : "var(--color-line-3)",
+                background: now ? "var(--color-primary)" : "var(--color-surface)",
+                borderColor: done || now ? "var(--color-primary)" : "var(--color-border)",
               }}
               aria-hidden
             />
-            <p className={`text-[14.5px] ${now ? "text-bone" : done ? "text-ash" : "text-slate"}`}>
+            <p className={`text-[14.5px] ${now ? "text-foreground" : done ? "text-muted" : "text-subtle"}`}>
               {meta.label}
             </p>
-            {now && <p className="text-[13px] leading-relaxed text-ash">{meta.blurb}</p>}
+            {now && <p className="text-[13px] leading-relaxed text-muted">{meta.blurb}</p>}
           </li>
         );
       })}
@@ -81,7 +81,7 @@ export function FeeBreakdown({
 }) {
   if (professionalPaise === null) {
     return (
-      <p className="text-[14px] leading-relaxed text-ash">
+      <p className="text-[14px] leading-relaxed text-muted">
         Not priced yet. We will send a quote before anything is charged.
       </p>
     );
@@ -91,7 +91,7 @@ export function FeeBreakdown({
   const total = govt + professionalPaise;
 
   return (
-    <dl className="flex flex-col gap-px overflow-hidden rounded border border-line bg-line">
+    <dl className="flex flex-col gap-px overflow-hidden rounded border border-border">
       <Row label="Government fee" value={format(govt)} note={govt === 0 ? "Free at source" : undefined} />
       <Row label="LAWFIC professional fee" value={format(professionalPaise)} />
       <Row label="Total" value={format(total)} strong />
@@ -111,12 +111,12 @@ function Row({
   strong?: boolean;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 bg-ink-2 px-4 py-3">
-      <dt className={`text-[13.5px] ${strong ? "text-bone" : "text-ash"}`}>
+    <div className="flex items-baseline justify-between gap-4 bg-surface-2 px-4 py-3">
+      <dt className={`text-[13.5px] ${strong ? "text-foreground" : "text-muted"}`}>
         {label}
-        {note && <span className="ml-2 text-[12px] text-slate">{note}</span>}
+        {note && <span className="ml-2 text-[12px] text-subtle">{note}</span>}
       </dt>
-      <dd className={`shrink-0 font-mono text-[14px] tnum ${strong ? "text-brass" : "text-bone"}`}>
+      <dd className={`shrink-0 font-mono text-[14px] tabular-nums ${strong ? "text-primary" : "text-foreground"}`}>
         {value}
       </dd>
     </div>

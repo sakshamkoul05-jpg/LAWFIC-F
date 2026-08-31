@@ -62,7 +62,7 @@ export function TrustRow() {
   return (
     <ul className="flex flex-wrap items-center gap-x-6 gap-y-2.5">
       {signals.slice(0, 3).map((s) => (
-        <li key={s.title} className="flex items-center gap-2 text-[13px] text-ash">
+        <li key={s.title} className="flex items-center gap-2 text-[13px] text-muted">
           <svg
             width="15"
             height="15"
@@ -72,7 +72,7 @@ export function TrustRow() {
             strokeWidth="1.4"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="shrink-0 text-brass"
+            className="shrink-0 text-primary"
             aria-hidden
           >
             {s.icon}
@@ -86,10 +86,10 @@ export function TrustRow() {
 
 export default function TrustStrip() {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface/30">
-      <ul className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+    <div className="overflow-hidden rounded-lg border border-border bg-surface">
+      <ul className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
         {signals.map((s) => (
-          <li key={s.title} className="flex gap-3.5 bg-ink-2 px-5 py-5">
+          <li key={s.title} className="flex gap-3.5 bg-surface px-5 py-5">
             <svg
               width="20"
               height="20"
@@ -99,23 +99,23 @@ export default function TrustStrip() {
               strokeWidth="1.3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mt-0.5 shrink-0 text-brass-lo"
+              className="mt-0.5 shrink-0 text-primary"
               aria-hidden
             >
               {s.icon}
             </svg>
             <div className="min-w-0">
-              <p className="text-[13.5px] leading-snug text-bone">{s.title}</p>
-              <p className="mt-1 text-[12.5px] leading-snug text-slate">{s.body}</p>
+              <p className="text-[13.5px] leading-snug text-foreground">{s.title}</p>
+              <p className="mt-1 text-[12.5px] leading-snug text-muted">{s.body}</p>
             </div>
           </li>
         ))}
       </ul>
 
       {(company.supportPhone || company.whatsapp || company.supportEmail) && (
-        <p className="border-t border-line bg-ink/40 px-5 py-3 text-[12.5px] text-slate">
+        <p className="border-t border-border bg-surface-2 px-5 py-3 text-[12.5px] text-muted">
           Stuck on any of it? {company.supportHours}.{" "}
-          {company.supportPhone && <span className="text-ash">{company.supportPhone}</span>}
+          {company.supportPhone && <span className="text-foreground">{company.supportPhone}</span>}
         </p>
       )}
     </div>

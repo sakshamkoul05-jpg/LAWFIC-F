@@ -100,12 +100,12 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md justify-self-center lg:justify-self-end">
-      <div className="overflow-hidden rounded-xl border border-line-2 bg-gradient-to-b from-surface-2 to-ink-2 shadow-2xl shadow-black/60">
-        <div className="border-b border-line px-7 py-5">
-          <p className="label text-slate">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
+        <div className="border-b border-border px-7 py-5">
+          <p className="label text-muted">
             {stage === "enter" ? "Step 1 of 2" : stage === "otp" ? "Step 2 of 2" : "Check your inbox"}
           </p>
-          <h2 className="mt-2 font-display text-[22px] text-bone">
+          <h2 className="mt-2 font-display text-[22px] text-foreground">
             {stage === "sent" ? "Link sent" : stage === "otp" ? "Enter the code" : "Sign in or create an account"}
           </h2>
         </div>
@@ -122,14 +122,14 @@ export default function LoginForm() {
                 onSubmit={send}
               >
                 {/* method toggle */}
-                <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded border border-line-2 bg-line">
+                <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded border border-border">
                   {(["email", "phone"] as Method[]).map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => { setMethod(m); setError(""); }}
                       className={`py-2.5 text-[13px] transition-colors ${
-                        method === m ? "bg-brass/12 text-brass-hi" : "bg-ink/50 text-ash hover:text-bone"
+                        method === m ? "bg-primary-light text-primary" : "bg-surface-2 text-muted hover:text-foreground"
                       }`}
                     >
                       {m === "email" ? "Email link" : "Mobile OTP"}
@@ -139,7 +139,7 @@ export default function LoginForm() {
 
                 {method === "email" ? (
                   <>
-                    <label htmlFor="email" className="label text-slate">Email address</label>
+                    <label htmlFor="email" className="label text-muted">Email address</label>
                     <input
                       id="email"
                       type="email"
@@ -147,15 +147,15 @@ export default function LoginForm() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="mt-2.5 w-full rounded border border-line-2 bg-ink/60 px-3.5 py-3.5 text-[15px] text-bone outline-none transition-colors focus:border-brass-lo placeholder:text-slate/60"
+                      className="mt-2.5 w-full rounded border border-border bg-surface-2 px-3.5 py-3.5 text-[15px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle"
                     />
                   </>
                 ) : (
                   <>
-                    <label htmlFor="phone" className="label text-slate">Mobile number</label>
-                    <div className="mt-2.5 flex items-center gap-2 rounded border border-line-2 bg-ink/60 px-3 focus-within:border-brass-lo">
-                      <span className="font-mono text-[15px] text-slate">+91</span>
-                      <span className="h-5 w-px bg-line-2" aria-hidden />
+                    <label htmlFor="phone" className="label text-muted">Mobile number</label>
+                    <div className="mt-2.5 flex items-center gap-2 rounded border border-border bg-surface-2 px-3 focus-within:border-primary">
+                      <span className="font-mono text-[15px] text-muted">+91</span>
+                      <span className="h-5 w-px bg-border" aria-hidden />
                       <input
                         id="phone"
                         inputMode="numeric"
@@ -163,23 +163,23 @@ export default function LoginForm() {
                         placeholder="98765 43210"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                        className="w-full bg-transparent py-3.5 font-mono text-[15px] tracking-[0.08em] text-bone outline-none placeholder:text-slate/60"
+                        className="w-full bg-transparent py-3.5 font-mono text-[15px] tracking-[0.08em] text-foreground outline-none placeholder:text-subtle"
                       />
                     </div>
                   </>
                 )}
 
-                {error && <p className="mt-4 text-[13px] leading-relaxed text-rust">{error}</p>}
+                {error && <p className="mt-4 text-[13px] leading-relaxed text-destructive">{error}</p>}
 
                 <button
                   type="submit"
                   disabled={!canSend || busy}
-                  className="mt-6 w-full rounded-full bg-brass py-3.5 text-sm font-medium text-ink transition-all hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-slate"
+                  className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
                   {busy ? "Sending…" : method === "email" ? "Email me a link" : "Send code"}
                 </button>
 
-                <p className="mt-5 text-[12px] leading-relaxed text-slate">
+                <p className="mt-5 text-[12px] leading-relaxed text-subtle">
                   By continuing you agree to our Terms and Privacy Policy. We use your details to
                   sign you in and to update you on your filings.
                 </p>
@@ -195,18 +195,18 @@ export default function LoginForm() {
               >
                 <div className="flex items-start gap-3.5">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="mt-0.5 shrink-0" aria-hidden>
-                    <rect x="2" y="4.5" width="16" height="11" rx="2" stroke="var(--color-brass)" strokeWidth="1.2" />
-                    <path d="m2.8 5.5 7.2 5 7.2-5" stroke="var(--color-brass)" strokeWidth="1.2" strokeLinecap="round" />
+                    <rect x="2" y="4.5" width="16" height="11" rx="2" stroke="var(--color-primary)" strokeWidth="1.2" />
+                    <path d="m2.8 5.5 7.2 5 7.2-5" stroke="var(--color-primary)" strokeWidth="1.2" strokeLinecap="round" />
                   </svg>
-                  <p className="text-[14.5px] leading-relaxed text-ash">
+                  <p className="text-[14.5px] leading-relaxed text-muted">
                     We sent a sign-in link to{" "}
-                    <span className="text-bone">{email}</span>. Open it on this device and you are in.
+                    <span className="text-foreground">{email}</span>. Open it on this device and you are in.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStage("enter")}
-                  className="mt-6 text-[13px] text-ash hover:text-bone"
+                  className="mt-6 text-[13px] text-muted hover:text-foreground"
                 >
                   Use a different address
                 </button>
@@ -221,8 +221,8 @@ export default function LoginForm() {
                 exit={{ opacity: 0, x: 12 }}
                 transition={{ duration: 0.22 }}
               >
-                <p className="text-[14px] text-ash">
-                  Sent to <span className="font-mono text-bone">+91 {phone}</span>
+                <p className="text-[14px] text-muted">
+                  Sent to <span className="font-mono text-foreground">+91 {phone}</span>
                 </p>
 
                 <div className="mt-5 flex gap-2">
@@ -238,18 +238,18 @@ export default function LoginForm() {
                         if (e.key === "Backspace" && !otp[i] && i > 0) boxes.current[i - 1]?.focus();
                       }}
                       aria-label={`Digit ${i + 1}`}
-                      className="h-13 w-full rounded border border-line-2 bg-ink/60 text-center font-mono text-[19px] text-bone outline-none transition-colors focus:border-brass"
+                      className="h-13 w-full rounded border border-border bg-surface-2 text-center font-mono text-[19px] text-foreground outline-none transition-colors focus:border-primary"
                     />
                   ))}
                 </div>
 
-                {error && <p className="mt-4 text-[13px] leading-relaxed text-rust">{error}</p>}
+                {error && <p className="mt-4 text-[13px] leading-relaxed text-destructive">{error}</p>}
 
                 <button
                   type="button"
                   onClick={verify}
                   disabled={busy || otp.join("").length !== 6}
-                  className="mt-6 w-full rounded-full bg-brass py-3.5 text-sm font-medium text-ink transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-slate"
+                  className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
                   {busy ? "Checking…" : "Verify and continue"}
                 </button>
@@ -257,7 +257,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => { setStage("enter"); setOtp(["", "", "", "", "", ""]); }}
-                  className="mt-5 text-[13px] text-ash hover:text-bone"
+                  className="mt-5 text-[13px] text-muted hover:text-foreground"
                 >
                   Change number
                 </button>
@@ -267,7 +267,7 @@ export default function LoginForm() {
         </div>
 
         {!isSupabaseConfigured && (
-          <p className="border-t border-line bg-ink/40 px-7 py-3.5 text-[11.5px] text-slate">
+          <p className="border-t border-border bg-surface-2 px-7 py-3.5 text-[11.5px] text-subtle">
             Sign-in is not connected yet — add the Supabase keys to switch it on.
           </p>
         )}

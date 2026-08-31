@@ -7,19 +7,6 @@ import { liveServices, searchServices, totalServices } from "@/lib/catalogue";
 import CategoryIcon from "./CategoryIcon";
 import { categories } from "@/lib/catalogue";
 
-/**
- * ⌘K search over the whole catalogue.
- *
- * At thirty-nine services this is the honest answer to "where is X" — a menu
- * is for browsing when you do not know what you want, and search is for the
- * far more common case where you do. Someone who knows they need FSSAI should
- * not have to work out which category it lives in.
- *
- * Keyboard-first: ⌘K or Ctrl+K opens, arrows move, Enter opens, Escape closes.
- * A `soon` result is selectable but explains itself rather than navigating,
- * because silently doing nothing on Enter reads as a broken app.
- */
-
 const QUICK = [
   { label: "All services", href: "/services" },
   { label: "Pricing", href: "/pricing" },
@@ -66,7 +53,6 @@ export default function CommandPalette() {
     [results, quick]
   );
 
-  // Open with ⌘K / Ctrl+K from anywhere, and close with the same chord.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -83,14 +69,12 @@ export default function CommandPalette() {
       setQuery("");
       setIndex(0);
       setNote("");
-      // Wait for the panel to mount before reaching for the field.
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 
   useEffect(() => setIndex(0), [query]);
 
-  // Keep the highlighted row in view when arrowing past the fold.
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>(`[data-row="${index}"]`);
     el?.scrollIntoView({ block: "nearest" });
@@ -128,19 +112,18 @@ export default function CommandPalette() {
 
   return (
     <>
-      {/* The trigger doubles as the discoverability hint for the shortcut. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search services"
-        className="hidden items-center gap-2.5 rounded-full border border-line-2 bg-surface/50 py-1.5 pl-3.5 pr-2 text-slate transition-colors hover:border-brass-lo hover:text-ash lg:flex"
+        className="hidden items-center gap-2 rounded border border-border bg-surface-2 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border-2 hover:text-foreground lg:flex"
       >
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
           <circle cx="6.2" cy="6.2" r="4.2" stroke="currentColor" strokeWidth="1.3" />
           <path d="m9.4 9.4 2.6 2.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
-        <span className="text-[13px]">Search</span>
-        <kbd className="rounded border border-line-3 bg-ink/60 px-1.5 py-0.5 font-mono text-[10px]">
+        <span>Search services</span>
+        <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-subtle">
           ⌘K
         </kbd>
       </button>
@@ -155,7 +138,7 @@ export default function CommandPalette() {
             transition={{ duration: 0.15 }}
           >
             <div
-              className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
               onClick={() => setOpen(false)}
               aria-hidden
             />
@@ -168,13 +151,11 @@ export default function CommandPalette() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.99 }}
               transition={{ duration: 0.18, ease: [0.2, 0.7, 0.3, 1] }}
-              className="relative z-2 w-full max-w-xl overflow-hidden rounded-xl border border-line-2 bg-ink-2 shadow-2xl shadow-black/70"
+              className="relative z-2 w-full max-w-xl overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
               onKeyDown={onKeyDown}
             >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent" />
-
-              <div className="flex items-center gap-3 border-b border-line px-5">
-                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="shrink-0 text-slate" aria-hidden>
+              <div className="flex items-center gap-3 border-b border-border px-4">
+                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="shrink-0 text-muted-foreground" aria-hidden>
                   <circle cx="6.2" cy="6.2" r="4.2" stroke="currentColor" strokeWidth="1.3" />
                   <path d="m9.4 9.4 2.6 2.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                 </svg>
@@ -183,9 +164,9 @@ export default function CommandPalette() {
                   value={query}
                   onChange={(e) => { setQuery(e.target.value); setNote(""); }}
                   placeholder={`Search ${totalServices} services — try "gst", "trademark", "food licence"`}
-                  className="w-full bg-transparent py-4 text-[15px] text-bone outline-none placeholder:text-slate/70"
+                  className="w-full bg-transparent py-3.5 text-[15px] text-foreground outline-none placeholder:text-subtle"
                 />
-                <kbd className="shrink-0 rounded border border-line-3 bg-surface px-1.5 py-0.5 font-mono text-[10px] text-slate">
+                <kbd className="shrink-0 rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-subtle">
                   ESC
                 </kbd>
               </div>
@@ -193,8 +174,8 @@ export default function CommandPalette() {
               <ul ref={listRef} className="max-h-[52vh] overflow-y-auto p-2">
                 {rows.length === 0 && (
                   <li className="px-4 py-10 text-center">
-                    <p className="text-[14px] text-ash">Nothing matches “{query}”.</p>
-                    <p className="mt-2 text-[13px] text-slate">
+                    <p className="text-[14px] text-muted">Nothing matches &ldquo;{query}&rdquo;.</p>
+                    <p className="mt-2 text-[13px] text-subtle">
                       We may still handle it — ask and we will tell you.
                     </p>
                   </li>
@@ -210,13 +191,13 @@ export default function CommandPalette() {
                         type="button"
                         onMouseEnter={() => setIndex(i)}
                         onClick={() => choose(row)}
-                        className={`flex w-full items-center gap-3.5 rounded-md px-3 py-2.5 text-left transition-colors ${
-                          on ? "bg-brass/10" : ""
+                        className={`flex w-full items-center gap-3 rounded px-3 py-2.5 text-left transition-colors ${
+                          on ? "bg-primary-light" : ""
                         }`}
                       >
                         <span
                           className={`grid size-8 shrink-0 place-items-center rounded border ${
-                            on ? "border-brass-lo text-brass" : "border-line-2 text-slate"
+                            on ? "border-primary text-primary" : "border-border text-muted-foreground"
                           }`}
                         >
                           {isService ? (
@@ -230,24 +211,24 @@ export default function CommandPalette() {
 
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
-                            <span className={`truncate text-[14px] ${on ? "text-brass-hi" : "text-bone"}`}>
+                            <span className={`truncate text-[14px] ${on ? "text-primary" : "text-foreground"}`}>
                               {isService ? row.name : row.label}
                             </span>
                             {isService && row.status === "soon" && (
-                              <span className="label shrink-0 rounded-sm border border-line-3 px-1.5 py-0.5 text-[9px] text-slate">
+                              <span className="label shrink-0 rounded-sm border border-border px-1.5 py-0.5 text-[9px] text-subtle">
                                 Soon
                               </span>
                             )}
                           </span>
                           {isService && (
-                            <span className="mt-0.5 block truncate text-[12.5px] text-slate">
+                            <span className="mt-0.5 block truncate text-[12.5px] text-subtle">
                               {row.categoryName} · {row.blurb}
                             </span>
                           )}
                         </span>
 
                         {on && (
-                          <kbd className="hidden shrink-0 rounded border border-line-3 bg-surface px-1.5 py-0.5 font-mono text-[10px] text-slate sm:block">
+                          <kbd className="hidden shrink-0 rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-subtle sm:block">
                             ↵
                           </kbd>
                         )}
@@ -257,11 +238,11 @@ export default function CommandPalette() {
                 })}
               </ul>
 
-              <div className="flex items-center justify-between gap-4 border-t border-line bg-ink/50 px-5 py-3">
+              <div className="flex items-center justify-between gap-4 border-t border-border bg-surface-2 px-4 py-2.5">
                 {note ? (
-                  <p className="text-[12.5px] leading-snug text-brass">{note}</p>
+                  <p className="text-[12.5px] leading-snug text-primary">{note}</p>
                 ) : (
-                  <p className="flex items-center gap-3 text-[11.5px] text-slate">
+                  <p className="flex items-center gap-3 text-[11.5px] text-subtle">
                     <span className="flex items-center gap-1.5">
                       <Key>↑</Key>
                       <Key>↓</Key> move
@@ -271,7 +252,7 @@ export default function CommandPalette() {
                     </span>
                   </p>
                 )}
-                <p className="shrink-0 font-mono text-[11px] text-slate tnum">
+                <p className="shrink-0 font-mono text-[11px] text-subtle tabular-nums">
                   {results.length}/{totalServices}
                 </p>
               </div>
@@ -285,7 +266,7 @@ export default function CommandPalette() {
 
 function Key({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-line-3 bg-surface px-1.5 py-0.5 font-mono text-[10px] text-ash">
+    <kbd className="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-muted">
       {children}
     </kbd>
   );

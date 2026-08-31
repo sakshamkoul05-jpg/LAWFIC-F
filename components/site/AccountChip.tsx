@@ -55,7 +55,7 @@ export default function AccountChip() {
     return (
       <Link
         href="/login"
-        className="rounded-full bg-brass px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
+        className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
       >
         Sign in
       </Link>
@@ -66,11 +66,11 @@ export default function AccountChip() {
     <div className="flex items-center gap-2.5">
       <Link
         href="/wallet"
-        className="flex items-center gap-2 rounded-full border border-line-2 bg-surface/60 px-3.5 py-1.5 transition-colors hover:border-brass-lo"
+        className="flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 transition-colors hover:border-primary"
       >
-        <span className="size-1.5 rounded-full bg-jade" aria-hidden />
-        <span className="label hidden text-slate sm:inline">Wallet</span>
-        <span className="font-mono text-xs text-bone tnum">
+        <span className="size-1.5 rounded-full bg-success" aria-hidden />
+        <span className="label hidden text-muted sm:inline">Wallet</span>
+        <span className="font-mono text-xs text-foreground tabular-nums">
           {balance === null ? "—" : formatPaise(balance)}
         </span>
       </Link>
@@ -78,7 +78,7 @@ export default function AccountChip() {
       <form action="/auth/signout" method="post">
         <button
           type="submit"
-          className="rounded-full border border-line-2 px-3.5 py-1.5 text-[13px] text-ash transition-colors hover:border-line-3 hover:text-bone"
+          className="rounded-full border border-border px-3.5 py-1.5 text-[13px] text-muted transition-colors hover:border-border-2 hover:text-foreground"
         >
           Sign out
         </button>

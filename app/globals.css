@@ -1,133 +1,198 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LAWFIC — rich black
-   A committed single-theme design. Not #000: the ground carries
-   a cool blue bias so brass reads warm against it, and every
-   raised surface is a measured step up, never a grey wash.
+   LAWFIC — Professional Indian Business Portal
+   Light theme with structured grid, thin borders, and
+   utility-first typography. Satoshi for UI, Overpass Mono
+   for financial/numerical data.
    ============================================================ */
 
 @theme {
-  /* ground + elevation */
-  --color-ink: #08090b;
-  --color-ink-2: #0c0e12;
-  --color-surface: #111419;
-  --color-surface-2: #171b22;
-  --color-surface-3: #1e232b;
+  /* Background & surfaces */
+  --color-background: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f3f5;
+  --color-surface-3: #e9ecef;
 
-  /* hairlines */
-  --color-line: #212630;
-  --color-line-2: #2c333f;
-  --color-line-3: #3a4250;
+  /* Borders / hairlines */
+  --color-border: #dee2e6;
+  --color-border-2: #ced4da;
+  --color-border-3: #adb5bd;
 
-  /* type */
-  --color-bone: #eceef1;
-  --color-ash: #99a2ae;
-  --color-slate: #6b7482;
+  /* Text */
+  --color-foreground: #1a1a2e;
+  --color-muted: #495057;
+  --color-muted-foreground: #6c757d;
+  --color-subtle: #868e96;
 
-  /* brass — the single accent */
-  --color-brass: #c9a961;
-  --color-brass-hi: #e8d5a3;
-  --color-brass-lo: #8a7440;
-  --color-brass-dim: #4a3f22;
+  /* Brand — LAWFIC brass/gold */
+  --color-primary: #b8860b;
+  --color-primary-hover: #996f09;
+  --color-primary-light: #f5e6c8;
+  --color-primary-lighter: #faf3e5;
 
-  /* semantic, kept apart from the accent */
-  --color-jade: #4fa882;
-  --color-rust: #c4664a;
+  /* Accent — teal for status/links */
+  --color-accent: #0c8599;
+  --color-accent-light: #e6f7fb;
 
-  --font-display: var(--font-marcellus), "Times New Roman", serif;
-  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  /* Semantic */
+  --color-success: #2f9e44;
+  --color-success-light: #ebfbee;
+  --color-destructive: #e03131;
+  --color-destructive-light: #fff5f5;
+
+  /* Grid background */
+  --color-grid: rgba(0, 0, 0, 0.04);
+
+  /* Fonts */
+  --font-sans: "Satoshi", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-overpass-mono), "Overpass Mono", ui-monospace, monospace;
+  --font-display: "Satoshi", system-ui, sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    background: var(--color-ink);
+    background: var(--color-background);
   }
 
   body {
-    background: var(--color-ink);
-    color: var(--color-bone);
+    background: var(--color-background);
+    color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-size: 15px;
+    line-height: 1.6;
   }
 
   ::selection {
-    background: var(--color-brass);
-    color: var(--color-ink);
+    background: var(--color-primary);
+    color: #fff;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brass);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
     border-radius: 2px;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--color-foreground);
+  }
+
+  /* Tabular nums for financial data */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer utilities {
-  /* Fine film grain. This is what stops a black page reading flat. */
-  .grain::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.035;
-    z-index: 1;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Subtle grid background for business portal feel */
+  .grid-bg {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent calc(100% - 1px),
+        var(--color-grid) calc(100% - 1px),
+        var(--color-grid) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent calc(100% - 1px),
+        var(--color-grid) calc(100% - 1px),
+        var(--color-grid) 100%
+      );
+    background-size: 40px 40px;
   }
 
-  /* A slow brass bloom behind hero content. */
-  .bloom {
-    background:
-      radial-gradient(60% 50% at 50% 0%, rgba(201, 169, 97, 0.09), transparent 70%),
-      radial-gradient(40% 40% at 85% 20%, rgba(201, 169, 97, 0.05), transparent 70%);
+  .grid-bg-fine {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent calc(100% - 1px),
+        var(--color-grid) calc(100% - 1px),
+        var(--color-grid) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent calc(100% - 1px),
+        var(--color-grid) calc(100% - 1px),
+        var(--color-grid) 100%
+      );
+    background-size: 24px 24px;
   }
 
+  /* Thin-bordered card for business portal */
+  .portal-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .portal-card:hover {
+    border-color: var(--color-border-2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Label style — compact uppercase */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+  }
+
+  /* Financial number style */
+  .financial {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  /* Horizontal rule */
   .rule-x {
     background: linear-gradient(
       to right,
       transparent,
-      var(--color-line-2) 15%,
-      var(--color-line-2) 85%,
+      var(--color-border) 15%,
+      var(--color-border) 85%,
       transparent
     );
   }
+}
 
-  .brass-text {
-    background: linear-gradient(135deg, var(--color-brass-hi), var(--color-brass) 55%, var(--color-brass-lo));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+/* Marquee animation for promotional banner belt */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
   }
-
-  /* Hairline card that lifts on hover without moving the layout. */
-  .card {
-    background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-ink-2) 100%);
-    border: 1px solid var(--color-line);
-    transition: border-color 0.35s ease, background 0.35s ease;
+  100% {
+    transform: translateX(-50%);
   }
+}
 
-  .card:hover {
-    border-color: var(--color-line-3);
-    background: linear-gradient(180deg, var(--color-surface-2) 0%, var(--color-surface) 100%);
-  }
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
 
-  .label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
+.marquee-track:hover {
+  animation-play-state: paused;
+}
 
-  .tnum {
-    font-variant-numeric: tabular-nums;
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation-play-state: paused;
   }
 }
 

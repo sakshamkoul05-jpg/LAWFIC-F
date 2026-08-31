@@ -1,27 +1,13 @@
 import type { Metadata } from "next";
-import { Marcellus, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Overpass_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
 
-const marcellus = Marcellus({
-  variable: "--font-marcellus",
+const overpassMono = Overpass_Mono({
+  variable: "--font-overpass-mono",
   subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -38,9 +24,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${marcellus.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${overpassMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-ink text-bone">
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

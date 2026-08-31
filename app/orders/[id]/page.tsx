@@ -54,22 +54,22 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
 
   return (
     <>
-      <section className="grain bloom relative overflow-hidden border-b border-line">
+      <section className="relative overflow-hidden border-b border-border bg-surface">
         <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/orders" className="label text-slate hover:text-bone">
+            <Link href="/orders" className="label text-muted hover:text-foreground">
               Your filings
             </Link>
-            <span className="label text-line-3">/</span>
-            <p className="label font-mono text-brass">{order.reference}</p>
+            <span className="label text-border">/</span>
+            <p className="label font-mono text-primary">{order.reference}</p>
           </div>
 
           <div className="mt-6 flex flex-wrap items-start justify-between gap-5">
             <div>
-              <h1 className="font-display text-[clamp(28px,4vw,42px)] leading-[1.08] text-bone">
+              <h1 className="font-display text-[clamp(28px,4vw,42px)] leading-[1.08] text-foreground">
                 {service?.name ?? order.service_slug}
               </h1>
-              <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-ash">{meta.blurb}</p>
+              <p className="mt-4 max-w-xl text-[15.5px] leading-relaxed text-muted">{meta.blurb}</p>
             </div>
             <StatusPill status={order.status} />
           </div>
@@ -81,7 +81,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           <div className="flex flex-col gap-10">
             {/* what it costs */}
             <div>
-              <p className="label mb-4 text-brass">What it costs</p>
+              <p className="label mb-4 text-primary">What it costs</p>
               <FeeBreakdown
                 governmentPaise={order.government_fee_paise}
                 professionalPaise={order.professional_fee_paise}
@@ -96,7 +96,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                     balancePaise={balancePaise}
                     totalPaise={total}
                   />
-                  <p className="mt-3 font-mono text-[12px] text-slate tnum">
+                  <p className="mt-3 font-mono text-[12px] text-muted tabular-nums">
                     Wallet balance {formatPaise(balancePaise)}
                   </p>
                 </div>
@@ -106,8 +106,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             {/* what you told us */}
             {order.details && (
               <div>
-                <p className="label mb-4 text-brass">What you told us</p>
-                <p className="rounded border border-line bg-ink-2 px-5 py-4 text-[14px] leading-relaxed text-ash">
+                <p className="label mb-4 text-primary">What you told us</p>
+                <p className="rounded border border-border bg-surface-2 px-5 py-4 text-[14px] leading-relaxed text-muted">
                   {order.details}
                 </p>
               </div>
@@ -116,8 +116,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             {/* notes from us */}
             {order.admin_notes && (
               <div>
-                <p className="label mb-4 text-brass">From LAWFIC</p>
-                <p className="rounded border border-line bg-ink-2 px-5 py-4 text-[14px] leading-relaxed text-ash">
+                <p className="label mb-4 text-primary">From LAWFIC</p>
+                <p className="rounded border border-border bg-surface-2 px-5 py-4 text-[14px] leading-relaxed text-muted">
                   {order.admin_notes}
                 </p>
               </div>
@@ -126,13 +126,13 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             {/* money moved on this order */}
             {ledger.length > 0 && (
               <div>
-                <p className="label mb-4 text-brass">Money moved on this filing</p>
-                <div className="flex flex-col gap-px overflow-hidden rounded border border-line bg-line">
+                <p className="label mb-4 text-primary">Money moved on this filing</p>
+                <div className="flex flex-col gap-px overflow-hidden rounded border border-border">
                   {ledger.map((e) => (
-                    <div key={e.id} className="flex items-center justify-between gap-4 bg-ink-2 px-5 py-3.5">
+                    <div key={e.id} className="flex items-center justify-between gap-4 bg-surface px-5 py-3.5">
                       <div className="min-w-0">
-                        <p className="truncate text-[13.5px] text-bone">{e.reason}</p>
-                        <p className="mt-0.5 font-mono text-[11px] text-slate">
+                        <p className="truncate text-[13.5px] text-foreground">{e.reason}</p>
+                        <p className="mt-0.5 font-mono text-[11px] text-subtle">
                           {new Date(e.created_at).toLocaleString("en-IN", {
                             day: "2-digit",
                             month: "short",
@@ -142,8 +142,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                         </p>
                       </div>
                       <p
-                        className={`shrink-0 font-mono text-[13.5px] tnum ${
-                          e.direction === "credit" ? "text-jade" : "text-bone"
+                        className={`shrink-0 font-mono text-[13.5px] tabular-nums ${
+                          e.direction === "credit" ? "text-success" : "text-foreground"
                         }`}
                       >
                         {formatEntry(e.direction, e.amount_paise)}
@@ -157,16 +157,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
 
           {/* progress */}
           <div>
-            <p className="label mb-6 text-brass">Progress</p>
+            <p className="label mb-6 text-primary">Progress</p>
             <Timeline status={order.status} />
 
             {service && (
-              <div className="mt-10 rounded border border-line bg-surface/40 p-5">
-                <p className="label mb-3 text-slate">What we will need</p>
+              <div className="mt-10 rounded border border-border bg-surface p-5">
+                <p className="label mb-3 text-muted">What we will need</p>
                 <ul className="flex flex-col gap-2.5">
                   {service.documents.map((d) => (
-                    <li key={d} className="flex gap-2.5 text-[13.5px] leading-relaxed text-ash">
-                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-brass-lo" aria-hidden />
+                    <li key={d} className="flex gap-2.5 text-[13.5px] leading-relaxed text-muted">
+                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" aria-hidden />
                       {d}
                     </li>
                   ))}

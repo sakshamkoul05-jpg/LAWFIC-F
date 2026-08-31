@@ -157,7 +157,7 @@ export default function WalletPanel({
         currency: data.currency,
         name: "LAWFIC",
         description: "Wallet top-up",
-        theme: { color: "#c9a961", backdrop_color: "#08090b" },
+        theme: { color: "#b8860b", backdrop_color: "#f8f9fa" },
         prefill: { email: data.email, contact: data.phone },
         handler: () => waitForCredit(before),
         modal: {
@@ -176,12 +176,12 @@ export default function WalletPanel({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-line-2 bg-gradient-to-b from-surface-2 to-ink-2 shadow-2xl shadow-black/60">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
       <CoinBurst playing={phase === "landed"} />
 
       {/* balance */}
-      <div className="relative border-b border-line px-6 py-6">
-        {/* brass sweep when money lands */}
+      <div className="relative border-b border-border px-6 py-6">
+        {/* primary sweep when money lands */}
         <AnimatePresence>
           {phase === "landed" && !reduced && (
             <motion.div
@@ -192,7 +192,7 @@ export default function WalletPanel({
               transition={{ duration: 1.4, times: [0, 0.3, 1] }}
               style={{
                 background:
-                  "radial-gradient(120% 90% at 50% 100%, rgba(201,169,97,0.16), transparent 70%)",
+                  "radial-gradient(120% 90% at 50% 100%, rgba(184,134,11,0.16), transparent 70%)",
               }}
               aria-hidden
             />
@@ -201,8 +201,8 @@ export default function WalletPanel({
 
         <div className="relative z-2 flex items-start justify-between gap-4">
           <div>
-            <p className="label text-slate">Available balance</p>
-            <p className="mt-2 font-display text-[42px] leading-none text-bone tnum">{shownText}</p>
+            <p className="label text-muted">Available balance</p>
+            <p className="mt-2 font-display text-[42px] leading-none text-foreground tabular-nums">{shownText}</p>
           </div>
 
           <AnimatePresence>
@@ -212,7 +212,7 @@ export default function WalletPanel({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="rounded-full border border-jade/40 bg-jade/10 px-3 py-1 font-mono text-[13px] text-jade tnum"
+                className="rounded-full border border-success/30 bg-success-light px-3 py-1 font-mono text-[13px] text-success tabular-nums"
               >
                 + {formatPaise(credited)}
               </motion.span>
@@ -232,7 +232,7 @@ export default function WalletPanel({
 
       {/* top-up */}
       <div className="relative z-2 p-6">
-        <p className="label mb-3 text-slate">Add money</p>
+        <p className="label mb-3 text-muted">Add money</p>
 
         <div className="grid grid-cols-2 gap-2">
           {PRESETS.map((p) => (
@@ -241,10 +241,10 @@ export default function WalletPanel({
               type="button"
               disabled={busy}
               onClick={() => { setAmount(p); setCustom(""); setMessage(""); }}
-              className={`rounded border py-3 font-mono text-[14px] transition-colors tnum disabled:opacity-50 ${
+              className={`rounded border py-3 font-mono text-[14px] transition-colors tabular-nums disabled:opacity-50 ${
                 custom === "" && amount === p
-                  ? "border-brass bg-brass/12 text-brass-hi"
-                  : "border-line-2 bg-ink/50 text-ash hover:border-line-3"
+                  ? "border-primary bg-primary-light text-primary"
+                  : "border-border bg-surface-2 text-muted hover:border-border-2"
               }`}
             >
               ₹{p.toLocaleString("en-IN")}
@@ -252,27 +252,27 @@ export default function WalletPanel({
           ))}
         </div>
 
-        <div className="mt-3 flex items-center gap-2 rounded border border-line-2 bg-ink/50 px-3 focus-within:border-brass-lo">
-          <span className="font-mono text-[14px] text-slate">₹</span>
+        <div className="mt-3 flex items-center gap-2 rounded border border-border bg-surface-2 px-3 focus-within:border-primary">
+          <span className="font-mono text-[14px] text-muted">₹</span>
           <input
             inputMode="numeric"
             placeholder="Other amount"
             value={custom}
             disabled={busy}
             onChange={(e) => { setCustom(e.target.value.replace(/\D/g, "").slice(0, 7)); setMessage(""); }}
-            className="w-full bg-transparent py-3 font-mono text-[14px] text-bone outline-none placeholder:text-slate/60 tnum"
+            className="w-full bg-transparent py-3 font-mono text-[14px] text-foreground outline-none placeholder:text-subtle tabular-nums"
           />
         </div>
 
         {!check.ok && (custom !== "" || chosen > 0) && (
-          <p className="mt-3 text-[12.5px] text-slate">{check.error}</p>
+          <p className="mt-3 text-[12.5px] text-subtle">{check.error}</p>
         )}
 
         <button
           type="button"
           onClick={startTopUp}
           disabled={!check.ok || busy || !paymentsReady}
-          className="mt-5 w-full rounded-full bg-brass py-3.5 text-sm font-medium text-ink transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-slate"
+          className="mt-5 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
         >
           {phase === "creating" && "Starting…"}
           {phase === "checkout" && "Complete the payment"}
@@ -282,20 +282,20 @@ export default function WalletPanel({
         </button>
 
         {message && (
-          <p className={`mt-4 text-[13px] leading-relaxed ${phase === "error" ? "text-rust" : "text-ash"}`}>
+          <p className={`mt-4 text-[13px] leading-relaxed ${phase === "error" ? "text-destructive" : "text-muted"}`}>
             {message}
           </p>
         )}
 
         <div className="mt-5 flex items-center justify-center gap-3">
           {["UPI", "Card", "Net banking"].map((m) => (
-            <span key={m} className="label text-slate">{m}</span>
+            <span key={m} className="label text-subtle">{m}</span>
           ))}
         </div>
       </div>
 
       {!paymentsReady && (
-        <p className="border-t border-line bg-ink/40 px-6 py-3.5 text-[11.5px] leading-relaxed text-slate">
+        <p className="border-t border-border bg-surface-2 px-6 py-3.5 text-[11.5px] leading-relaxed text-subtle">
           Payments are not switched on yet. Add the Razorpay keys and top-ups go live —
           nothing else changes.
         </p>
