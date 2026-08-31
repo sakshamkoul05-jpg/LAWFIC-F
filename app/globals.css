@@ -240,29 +240,8 @@
 /* Classic theme — tab navigation */
 .classic-tabs-nav {
   background: var(--color-surface);
-}
-
-.classic-tab-item {
-  position: relative;
-}
-
-.classic-tab-item::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: transparent;
-  transition: background-color 0.2s ease;
-}
-
-.classic-tab-item:hover::after {
-  background: var(--color-primary);
-}
-
-.classic-tab-item[href="/"] {
-  background: var(--color-primary-light);
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
 }
 
 /* Hide scrollbar on tabs and banners */

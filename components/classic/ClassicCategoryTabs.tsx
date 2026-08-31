@@ -59,7 +59,7 @@ export default function ClassicCategoryTabs() {
         className="classic-tabs-nav overflow-x-auto border-b border-border bg-surface"
         aria-label="Classic navigation"
       >
-        <div className="mx-auto flex min-w-max items-stretch">
+        <div className="mx-auto flex min-w-max items-stretch gap-1 sm:justify-center sm:pr-4">
           {classicTabs.map((tab) => {
             const active =
               pathname === tab.href ||
@@ -71,18 +71,14 @@ export default function ClassicCategoryTabs() {
                 href={tab.href}
                 data-tab-id={tab.id}
                 onMouseEnter={(e) => handleEnter(tab.id, e.currentTarget)}
-                className={`classic-tab-item group flex flex-col items-center border-r border-border px-3 py-2 text-center transition-colors ${
+                className={`classic-tab-item group flex items-center rounded-full px-3.5 py-1.5 text-center transition-colors ${
                   active
                     ? "bg-primary-light text-primary"
                     : "text-foreground hover:bg-surface-2"
                 }`}
-                style={{ minWidth: 64 }}
               >
-                <span className="text-[11px] font-semibold leading-tight whitespace-nowrap">
+                <span className="text-[12.5px] font-medium leading-tight whitespace-nowrap">
                   {tab.label}
-                </span>
-                <span className="mt-0.5 text-[8px] font-medium leading-tight text-success whitespace-nowrap">
-                  {tab.sublabel}
                 </span>
               </Link>
             );
