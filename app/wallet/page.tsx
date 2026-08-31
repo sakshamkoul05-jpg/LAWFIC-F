@@ -38,7 +38,7 @@ export default async function WalletPage() {
       .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
       .order("seq", { ascending: false })
       .limit(6),
-    supabase.from("wallet_prefs").select("skin, flairs").eq("user_id", auth.user.id).maybeSingle(),
+    supabase.from("wallet_prefs").select("skin, flairs, avatar").eq("user_id", auth.user.id).maybeSingle(),
   ]);
 
   const balancePaise = Number(balanceData ?? 0);

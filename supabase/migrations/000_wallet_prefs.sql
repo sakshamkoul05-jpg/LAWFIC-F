@@ -1,4 +1,4 @@
--- wallet_prefs: per-user wallet card customization (skin + pinned flairs).
+-- wallet_prefs: per-user wallet card customization (skin + avatar).
 --
 -- Cosmetic only. Never touches balances, the ledger, or orders. Scoped to the
 -- owner via RLS so a user can only read and write their own row.
@@ -10,6 +10,7 @@ create table if not exists public.wallet_prefs (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   skin       text not null default 'gilded',
   flairs     text[] not null default '{}',
+  avatar     jsonb not null default '{"skinTone":"medium","hairStyle":"short","hairColor":"black","eyeStyle":"round","mouthStyle":"smile","clothes":"suit","accessory":"none"}'::jsonb,
   updated_at timestamptz not null default now()
 );
 

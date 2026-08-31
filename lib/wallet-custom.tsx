@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
+import { normalizeAvatar, DEFAULT_AVATAR, type AvatarPrefs } from "./wallet-avatar";
 
 /**
  * The LAWFIC wallet "collector card" customization kit.
  *
  * A wallet feels owned when it can become yours: a material (skin) you choose
- * for the card face, and a few pinned badges (flairs) that say who you are in
- * the system. Everything here is cosmetic — a skin or a flair never touches a
- * balance, the ledger, or an order. That boundary is the point of the feature.
+ * for the card face, and an avatar that represents you on the card. Everything
+ * here is cosmetic — a skin or an avatar never touches a balance, the ledger,
+ * or an order. That boundary is the point of the feature.
  *
  * Validation lives here because the server route, the customize form, and the
  * card all need the same idea of what is a valid choice.
@@ -31,6 +32,7 @@ export type FlairId =
 export type WalletPrefs = {
   skin: SkinId;
   flairs: FlairId[];
+  avatar: AvatarPrefs;
 };
 
 export type Skin = {
@@ -172,7 +174,7 @@ export const FLAIRS: Flair[] = [
   },
 ];
 
-export const DEFAULT_PREFS: WalletPrefs = { skin: "gilded", flairs: [] };
+export const DEFAULT_PREFS: WalletPrefs = { skin: "gilded", flairs: [], avatar: DEFAULT_AVATAR };
 
 export function getSkin(id: string): Skin | undefined {
   return SKINS.find((s) => s.id === id);
@@ -186,7 +188,7 @@ export function getFlair(id: string): Flair | undefined {
  * Accepts unknown input from the wire and returns a valid WalletPrefs, or null
  * if it is irredeemably malformed. Used by the PUT route so the browser can
  * never plant a bogus skin. `flairs` are de-duplicated, trimmed to MAX_FLAIRS,
- * and only valid ids are kept.
+ * and only valid ids are kept. `avatar` is normalised via normalizeAvatar.
  */
 export function normalizePrefs(input: unknown): WalletPrefs | null {
   if (!input || typeof input !== "object") return null;
@@ -202,5 +204,7 @@ export function normalizePrefs(input: unknown): WalletPrefs | null {
     if (f && !seen.has(f.id) && seen.size < MAX_FLAIRS) seen.add(f.id);
   }
 
-  return { skin, flairs: [...seen] };
+  const avatar = normalizeAvatar(obj.avatar as Partial<AvatarPrefs> | null | undefined);
+
+  return { skin, flairs: [...seen], avatar };
 }

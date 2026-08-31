@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 async function getPrefs(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, userId: string) {
   const { data } = await supabase
     .from("wallet_prefs")
-    .select("skin, flairs")
+    .select("skin, flairs, avatar")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -58,6 +58,7 @@ export async function PUT(request: Request) {
       user_id: auth.user.id,
       skin: prefs.skin,
       flairs: prefs.flairs,
+      avatar: prefs.avatar,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" }
