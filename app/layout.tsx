@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Overpass_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/site/Header";
-import Footer from "@/components/site/Footer";
+import ThemeShell from "@/components/theme/ThemeShell";
 
 const overpassMono = Overpass_Mono({
   variable: "--font-overpass-mono",
@@ -25,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${overpassMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" />
@@ -34,9 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ThemeShell>{children}</ThemeShell>
       </body>
     </html>
   );

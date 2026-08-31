@@ -8,6 +8,7 @@ import CommandPalette from "./CommandPalette";
 import MegaMenu from "./MegaMenu";
 import MobileNav from "./MobileNav";
 import Wordmark from "./Wordmark";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const nav = [
   { href: "/pricing", label: "Pricing" },
@@ -54,6 +55,7 @@ export default function Header() {
           <div className="ml-auto flex items-center gap-2">
             <CommandPalette />
             <AccountChip />
+            <ThemeToggle />
           </div>
 
           {/* Mobile hamburger */}

@@ -204,3 +204,17 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Portal theme — additional styles */
+.portal-nav-item {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.portal-nav-item:hover {
+  background-color: var(--color-surface-2);
+}
+
+.portal-search:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
