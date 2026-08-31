@@ -47,23 +47,57 @@ export default function ClassicCategoryTabs() {
 
               {/* Hover sub-tab dropdown */}
               {open && tab.sub.length > 0 && (
-                <div className="classic-tabs-dropdown absolute left-0 top-full z-40 w-60 border border-border border-t-0 bg-surface shadow-lg">
+                <div className="classic-tabs-dropdown absolute left-0 top-full z-40 max-h-[72vh] w-64 overflow-y-auto border border-border border-t-0 bg-surface shadow-lg">
                   <p className="border-b border-border px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-primary">
                     {tab.label}
                   </p>
-                  {tab.sub.map((st) => (
-                    <Link
-                      key={st.href}
-                      href={st.href}
-                      onClick={() => setOpenId(null)}
-                      className="flex items-center justify-between gap-2 px-4 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
-                    >
-                      {st.label}
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-subtle" aria-hidden>
-                        <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Link>
-                  ))}
+
+                  {/* If sub-tabs carry a group, render each group under a header. */}
+                  {tab.sub.some((s) => s.group) ? (
+                    (() => {
+                      const groups: { name: string; items: typeof tab.sub }[] = [];
+                      for (const st of tab.sub) {
+                        const g = groups.find((x) => x.name === (st.group ?? "Other"));
+                        if (g) g.items.push(st);
+                        else groups.push({ name: st.group ?? "Other", items: [st] });
+                      }
+                      return groups.map((g) => (
+                        <div key={g.name}>
+                          <p className="px-4 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-wider text-subtle">
+                            {g.name}
+                          </p>
+                          {g.items.map((st) => (
+                            <Link
+                              key={st.href + st.label}
+                              href={st.href}
+                              onClick={() => setOpenId(null)}
+                              className="flex items-center justify-between gap-2 px-4 py-[7px] text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                            >
+                              {st.label}
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-subtle" aria-hidden>
+                                <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </Link>
+                          ))}
+                        </div>
+                      ));
+                    })()
+                  ) : (
+                    tab.sub.map((st) => (
+                      <Link
+                        key={st.href}
+                        href={st.href}
+                        onClick={() => setOpenId(null)}
+                        className="flex items-center justify-between gap-2 px-4 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                      >
+                        {st.label}
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-subtle" aria-hidden>
+                          <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </Link>
+                    ))
+                  )}
+
                   {!tab.live && (
                     <p className="border-t border-border px-4 py-2 text-[10px] text-subtle">
                       More soon…

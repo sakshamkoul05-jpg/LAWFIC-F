@@ -1,7 +1,11 @@
+import { documents } from "./documents";
+
 export type SubTab = {
   label: string;
   href: string;
   blurb?: string;
+  /** optional group header shown above the tab in a dropdown */
+  group?: string;
 };
 
 export type NavTab = {
@@ -17,6 +21,12 @@ export type NavTab = {
 };
 
 const serviceHref = (slug: string) => `/services/${slug}`;
+
+const documentSub: SubTab[] = documents.map((d) => ({
+  label: d.label,
+  href: d.href,
+  group: d.group,
+}));
 
 export const classicTabs: NavTab[] = [
   {
@@ -53,15 +63,8 @@ export const classicTabs: NavTab[] = [
     sublabel: "Tab 3",
     href: "/document",
     live: true,
-    tagline: "Aadhaar, PAN, GST and more — your identity and compliance documents.",
-    sub: [
-      { label: "Aadhaar", href: serviceHref("aadhaar") },
-      { label: "PAN", href: serviceHref("pan") },
-      { label: "GST", href: serviceHref("gst") },
-      { label: "TAN", href: "/document#tan" },
-      { label: "Digital Signature (DSC)", href: "/document#dsc" },
-      { label: "Voter ID", href: "/document#voter-id" },
-    ],
+    tagline: "Every identity card, certificate, agreement and registration we prepare.",
+    sub: documentSub,
   },
   {
     id: "admission",
