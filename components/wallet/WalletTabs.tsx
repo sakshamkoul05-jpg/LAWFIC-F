@@ -15,8 +15,8 @@ export default function WalletTabs() {
   return (
     <nav
       aria-label="Wallet sections"
-      className="mx-auto flex w-full max-w-3xl items-center justify-center gap-1.5 px-4"
-      style={{ color: "var(--wallet-fg)" }}
+      className="mx-auto flex w-full max-w-md items-center justify-center gap-1 rounded-full p-1"
+      style={{ background: "var(--wallet-btn-bg)" }}
     >
       {items.map((it) => {
         const active =
@@ -25,10 +25,11 @@ export default function WalletTabs() {
           <Link
             key={it.href}
             href={it.href}
-            className="rounded-full px-4 py-2 text-[13px] font-medium transition-colors"
+            className="flex-1 rounded-full px-3 py-2 text-center text-[13px] font-medium transition-all duration-200"
             style={{
-              background: active ? "#7c3aed" : "var(--wallet-btn-bg)",
-              color: active ? "#ffffff" : "var(--wallet-fg-muted)",
+              background: active ? "var(--wallet-glass-bg)" : "transparent",
+              color: active ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
+              boxShadow: active ? "var(--wallet-glass-shadow)" : "none",
             }}
           >
             {it.label}

@@ -8,14 +8,6 @@ import DiceBearAvatar from "./DiceBearAvatar";
 
 export type CardPhase = "idle" | "forming" | "settled";
 
-/**
- * The LAWFIC collector card — physical card with layered depth, material
- * texture, and a DiceBear avatar. Each card type has its own gradient,
- * accent, and chip style. Reveals itself like a card pulled from a wallet
- * and morphs through top-up states.
- *
- * All motion honours prefers-reduced-motion.
- */
 export default function WalletCard({
   prefs,
   balancePaise,
@@ -41,43 +33,42 @@ export default function WalletCard({
   useEffect(() => {
     if (!animateBalance || reduced) { shown.set(balancePaise); return; }
     shown.set(0);
-    const c = animate(shown, balancePaise, { duration: 1.1, ease: [0.22, 0.8, 0.3, 1], delay: 0.45 });
+    const c = animate(shown, balancePaise, { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.5 });
     return () => c.stop();
   }, [balancePaise, animateBalance, reduced, shown]);
   const balanceLabel = animateBalance ? shownText : formatPaise(balancePaise);
 
   return (
     <motion.div
-      className={`relative aspect-[1.586] w-full max-w-md select-none ${className}`}
-      style={{ perspective: 1600 }}
-      initial={reduced ? false : { opacity: 0, y: 60, rotateX: -24, rotateY: -6 }}
-      animate={{ opacity: 1, y: 0, rotateX: 0, rotateY: 0 }}
-      transition={{ type: "spring", stiffness: 120, damping: 18, mass: 1 }}
+      className={`relative aspect-[1.586] w-full max-w-sm select-none ${className}`}
+      style={{ perspective: 1200 }}
+      initial={reduced ? false : { opacity: 0, y: 40, rotateX: -12 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ type: "spring", stiffness: 100, damping: 20, mass: 1 }}
     >
-      {/* Card body */}
       <motion.div
-        className="absolute inset-0 overflow-hidden rounded-[1.25rem]"
+        className="absolute inset-0 overflow-hidden rounded-2xl"
         style={{ background: ct.gradient }}
         animate={
           phase === "forming"
-            ? { boxShadow: `0 30px 90px -28px ${ct.accent}55, inset 0 0 0 2px ${ct.accent}60` }
+            ? { boxShadow: `0 24px 80px -20px ${ct.accent}40, inset 0 0 0 1px ${ct.accent}30` }
             : phase === "settled"
-              ? { scale: 1.015, boxShadow: `0 34px 90px -28px ${ct.accent}60, inset 0 1px 0 ${ct.accent}18` }
-              : { scale: 1, boxShadow: "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.12), 0 24px 56px -12px rgba(0,0,0,0.18)" }
+              ? { scale: 1.01, boxShadow: `0 28px 80px -20px ${ct.accent}50` }
+              : { scale: 1, boxShadow: "var(--wallet-card-shadow)" }
         }
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* Material vein — subtle texture overlay */}
+        {/* Subtle texture overlay */}
         <div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: `radial-gradient(120% 90% at 85% 0%, ${ct.accent}12, transparent 60%)` }}
+          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
           aria-hidden
         />
 
-        {/* Inner edge shadow */}
+        {/* Inner edge — very subtle */}
         <div
-          className="pointer-events-none absolute inset-0 rounded-[1.25rem]"
-          style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.12), inset 0 -1px 2px rgba(255,255,255,0.08)" }}
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.1)" }}
           aria-hidden
         />
 
@@ -85,12 +76,12 @@ export default function WalletCard({
         <AnimatePresence>
           {phase === "settled" && !reduced && (
             <motion.div
-              className="pointer-events-none absolute inset-y-0 left-0 w-1/3"
-              style={{ background: "linear-gradient(100deg, transparent, rgba(255,255,255,0.22), transparent)" }}
-              initial={{ x: "-120%" }}
-              animate={{ x: "420%" }}
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/4"
+              style={{ background: "linear-gradient(100deg, transparent, rgba(255,255,255,0.18), transparent)" }}
+              initial={{ x: "-150%" }}
+              animate={{ x: "500%" }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.1, ease: "easeInOut" }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
               aria-hidden
             />
           )}
@@ -98,26 +89,25 @@ export default function WalletCard({
 
         {/* Card content */}
         <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
-          {/* Top row: chip + card type label */}
+          {/* Top: chip + type */}
           <div className="flex items-start justify-between">
-            {/* Chip */}
             <div
-              className="h-8 w-11 rounded-[6px]"
+              className="h-7 w-10 rounded-md"
               style={{
                 background: ct.chipGradient,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.2)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.15)",
               }}
               aria-hidden
             >
-              <div className="flex h-full flex-col justify-center gap-[3px] px-1.5">
-                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
-                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
-                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
+              <div className="flex h-full flex-col justify-center gap-[2px] px-1.5">
+                <div className="h-px rounded-full bg-black/20" />
+                <div className="h-px rounded-full bg-black/20" />
+                <div className="h-px rounded-full bg-black/20" />
               </div>
             </div>
             <span
-              className="font-display text-[11px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: ct.accent }}
+              className="text-[10px] font-semibold uppercase tracking-[0.2em]"
+              style={{ color: ct.accentSub }}
             >
               {ct.name}
             </span>
@@ -126,37 +116,37 @@ export default function WalletCard({
           {/* Center: avatar + brand */}
           <div className="flex flex-1 items-center gap-4">
             <motion.div
-              initial={reduced ? false : { opacity: 0, scale: 0.8 }}
+              initial={reduced ? false : { opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 18, delay: 0.2 }}
+              transition={{ type: "spring", stiffness: 180, damping: 18, delay: 0.25 }}
               className="rounded-full"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}
             >
-              <DiceBearAvatar seed={prefs.avatarSeed} size={56} />
+              <DiceBearAvatar seed={prefs.avatarSeed} size={52} />
             </motion.div>
             <div>
-              <span
-                className="font-display text-[15px] font-semibold tracking-tight"
-                style={{ color: ct.accent }}
-              >
+              <span className="text-[14px] font-semibold tracking-tight" style={{ color: ct.accent }}>
                 LAWFiC
               </span>
               <p className="text-[10px]" style={{ color: ct.accentSub }}>
-                {prefs.cardType === "advocate" ? "Advocate" : prefs.cardType === "business" ? "Business" : prefs.cardType === "student" ? "Student" : "Member"}
+                {prefs.cardType === "advocate"
+                  ? "Advocate"
+                  : prefs.cardType === "business"
+                    ? "Business"
+                    : prefs.cardType === "student"
+                      ? "Student"
+                      : "Member"}
               </p>
             </div>
           </div>
 
           {/* Bottom: balance */}
           <div>
-            <p
-              className="text-[10px] uppercase tracking-[0.18em]"
-              style={{ color: ct.accentSub }}
-            >
-              Total Balance
+            <p className="text-[9px] uppercase tracking-[0.2em]" style={{ color: ct.accentSub }}>
+              Balance
             </p>
             <p
-              className="mt-1 font-display text-[clamp(26px,6vw,38px)] font-semibold leading-none tabular-nums"
+              className="mt-0.5 text-[clamp(28px,6vw,36px)] font-semibold leading-none tabular-nums tracking-tight"
               style={{ color: ct.accent }}
             >
               {balanceLabel}

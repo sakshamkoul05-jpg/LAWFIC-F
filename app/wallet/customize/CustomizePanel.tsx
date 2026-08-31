@@ -55,45 +55,44 @@ export default function CustomizePanel({
     draft.avatarSeed !== initial.avatarSeed;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-start" style={{ color: "var(--wallet-fg)" }}>
+    <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-start" style={{ color: "var(--wallet-fg)" }}>
       {/* Live preview */}
-      <div className="wallet-glass order-2 rounded-3xl p-6 sm:p-8 lg:order-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a78bfa]">
+      <div className="wallet-glass order-2 rounded-2xl p-6 sm:p-8 lg:order-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
           Your card
         </p>
         <div className="mt-8 flex justify-center pb-4">
           <WalletCard prefs={draft} balancePaise={balancePaise} />
         </div>
-        <p className="mt-7 text-center text-[12.5px] opacity-50">
+        <p className="mt-6 text-center text-[12px] opacity-40">
           {CARD_TYPES.find((c) => c.id === draft.cardType)?.desc}
         </p>
       </div>
 
       {/* Controls */}
-      <div className="wallet-glass order-1 rounded-3xl p-6 sm:p-8 lg:order-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a78bfa]">
+      <div className="wallet-glass order-1 rounded-2xl p-6 sm:p-8 lg:order-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
           Customize
         </p>
 
         {/* Card type picker */}
         <div className="mt-6">
-          <p className="mb-3 text-[13px] font-medium opacity-90">Card type</p>
+          <p className="mb-3 text-[13px] font-medium">Card type</p>
           <div className="space-y-2">
             {CARD_TYPES.map((c) => (
               <button
                 key={c.id}
                 type="button"
                 onClick={() => pickCardType(c.id)}
-                className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all"
+                className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all duration-200"
                 style={{
-                  borderColor: draft.cardType === c.id ? "#7c3aed" : "var(--wallet-input-border)",
-                  background: draft.cardType === c.id ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                  background: draft.cardType === c.id ? "var(--wallet-btn-bg-hover)" : "transparent",
                 }}
               >
-                <div className="h-8 w-12 shrink-0 rounded-md" style={{ background: c.gradient }} />
+                <div className="h-8 w-12 shrink-0 rounded-lg" style={{ background: c.gradient }} />
                 <div>
-                  <p className="text-[12px] font-medium opacity-90">{c.name}</p>
-                  <p className="text-[10px] opacity-50">{c.desc}</p>
+                  <p className="text-[12px] font-medium">{c.name}</p>
+                  <p className="text-[10px] opacity-40">{c.desc}</p>
                 </div>
               </button>
             ))}
@@ -102,21 +101,20 @@ export default function CustomizePanel({
 
         {/* Avatar seed picker */}
         <div className="mt-8">
-          <p className="mb-3 text-[13px] font-medium opacity-90">Your avatar</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="mb-3 text-[13px] font-medium">Your avatar</p>
+          <div className="flex flex-wrap gap-1.5">
             {AVATAR_SEEDS.map((seed) => (
               <button
                 key={seed}
                 type="button"
                 onClick={() => applySeed(seed)}
-                className="flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200"
                 style={{
-                  borderColor: draft.avatarSeed === seed && !customSeed ? "#7c3aed" : "var(--wallet-input-border)",
-                  background: draft.avatarSeed === seed && !customSeed ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
-                  color: draft.avatarSeed === seed && !customSeed ? "#c4b5fd" : "var(--wallet-fg-muted)",
+                  background: draft.avatarSeed === seed && !customSeed ? "var(--wallet-btn-bg-hover)" : "var(--wallet-btn-bg)",
+                  color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
                 }}
               >
-                <DiceBearAvatar seed={seed} size={24} />
+                <DiceBearAvatar seed={seed} size={20} />
                 {seed}
               </button>
             ))}
@@ -126,7 +124,7 @@ export default function CustomizePanel({
             value={customSeed}
             onChange={(e) => applySeed(e.target.value)}
             placeholder="Or type your name…"
-            className="mt-3 w-full rounded-xl border px-4 py-2.5 text-[12px] focus:border-[#7c3aed] focus:outline-none"
+            className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-[#5856d6]/40"
             style={{
               borderColor: "var(--wallet-input-border)",
               background: "var(--wallet-input-bg)",
@@ -140,7 +138,7 @@ export default function CustomizePanel({
           type="button"
           onClick={save}
           disabled={pending || !dirty}
-          className="mt-8 w-full rounded-full bg-[#7c3aed] py-4 text-sm font-semibold text-white transition-all hover:bg-[#6d28d9] hover:shadow-[0_10px_40px_-10px_rgba(124,58,237,0.5)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40 disabled:shadow-none"
+          className="mt-8 w-full rounded-full bg-[#5856d6] py-3.5 text-[13px] font-medium text-white transition-all duration-200 hover:bg-[#4a49b8] disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "Saving…" : "Save to wallet"}
         </button>
@@ -148,24 +146,24 @@ export default function CustomizePanel({
         <AnimatePresence>
           {status === "saved" && (
             <motion.p
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               role="status"
-              className="mt-4 text-center text-[13px] text-[#4cc38a]"
+              className="mt-3 text-center text-[12px] text-[#34c759]"
             >
-              Saved. Your card is updated across your account.
+              Saved.
             </motion.p>
           )}
           {status === "error" && (
             <motion.p
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               role="alert"
-              className="mt-4 text-center text-[13px] text-[#f2635f]"
+              className="mt-3 text-center text-[12px] text-[#ff3b30]"
             >
-              Could not save. Try again.
+              Could not save.
             </motion.p>
           )}
         </AnimatePresence>

@@ -320,9 +320,7 @@
 }
 
 /* ============================================================
-   Wallet — Purple gradient theme
-   A self-contained purple backdrop with glass panels, used under
-   the /wallet routes. Matches the reference fintech UI style.
+   Wallet scene — clean Apple/CRED backdrop
    ============================================================ */
 .wallet-scene {
   color: var(--wallet-scene-fg);
@@ -330,19 +328,13 @@
 
 [data-theme="dark"] .wallet-scene,
 :root:not([data-theme="light"]) .wallet-scene {
-  background:
-    radial-gradient(90% 60% at 20% 0%, rgba(124, 58, 237, 0.15), transparent 55%),
-    radial-gradient(80% 60% at 85% 15%, rgba(109, 40, 217, 0.12), transparent 50%),
-    linear-gradient(to bottom, #0f051a, #1a0a2e);
-  --wallet-scene-fg: #f4f0ff;
+  background: #000000;
+  --wallet-scene-fg: #f5f5f7;
 }
 
 [data-theme="light"] .wallet-scene {
-  background:
-    radial-gradient(90% 60% at 20% 0%, rgba(124, 58, 237, 0.08), transparent 55%),
-    radial-gradient(80% 60% at 85% 15%, rgba(109, 40, 217, 0.06), transparent 50%),
-    linear-gradient(to bottom, #f5f0ff, #ede4fa);
-  --wallet-scene-fg: #1a0a2e;
+  background: #f5f5f7;
+  --wallet-scene-fg: #1d1d1f;
 }
 
 .wallet-scene a,
@@ -355,8 +347,8 @@
   position: relative;
   border: 1px solid var(--wallet-glass-border);
   background: var(--wallet-glass-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
   box-shadow: var(--wallet-glass-shadow);
 }
 
@@ -409,83 +401,87 @@
 }
 
 /* ============================================================
-   Wallet — Purple pocket + glass
+   Wallet — Apple/CRED-level clean aesthetic
    ============================================================ */
 
-/* Glass panel — adapts to light/dark via CSS vars */
+/* Glass panel — frosted, almost invisible borders */
 .wallet-glass {
   background: var(--wallet-glass-bg);
   border: 1px solid var(--wallet-glass-border);
   box-shadow: var(--wallet-glass-shadow);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
 }
 
+/* ─── Light mode — Apple clean ─────────────────────────────── */
 :root,
 [data-theme="light"] {
-  --wallet-glass-bg: rgba(255, 255, 255, 0.7);
-  --wallet-glass-border: rgba(124, 58, 237, 0.08);
+  --wallet-glass-bg: rgba(255, 255, 255, 0.72);
+  --wallet-glass-border: rgba(0, 0, 0, 0.04);
   --wallet-glass-shadow:
-    0 2px 8px rgba(124, 58, 237, 0.06),
-    0 12px 32px -8px rgba(0, 0, 0, 0.08);
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 24px -4px rgba(0, 0, 0, 0.06);
   --wallet-card-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 24px -4px rgba(124, 58, 237, 0.12),
-    0 24px 56px -12px rgba(0, 0, 0, 0.18);
+    0 2px 6px rgba(0, 0, 0, 0.03),
+    0 12px 28px -6px rgba(0, 0, 0, 0.08),
+    0 28px 64px -12px rgba(0, 0, 0, 0.12);
   --wallet-card-shadow-hover:
-    0 4px 8px rgba(0, 0, 0, 0.06),
-    0 16px 40px -4px rgba(124, 58, 237, 0.16),
-    0 32px 72px -12px rgba(0, 0, 0, 0.22);
-  --wallet-pocket-bg: rgba(76, 29, 149, 0.12);
-  --wallet-pocket-border: rgba(124, 58, 237, 0.1);
+    0 4px 10px rgba(0, 0, 0, 0.05),
+    0 20px 40px -6px rgba(0, 0, 0, 0.12),
+    0 40px 80px -12px rgba(0, 0, 0, 0.16);
+  --wallet-pocket-bg: rgba(0, 0, 0, 0.025);
+  --wallet-pocket-border: rgba(0, 0, 0, 0.04);
   --wallet-pocket-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.04),
-    0 4px 16px -4px rgba(124, 58, 237, 0.12);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.08), transparent);
-  /* Interactive element colors — light mode */
-  --wallet-fg: #1a0a2e;
-  --wallet-fg-muted: rgba(26, 10, 46, 0.55);
-  --wallet-btn-bg: rgba(0, 0, 0, 0.06);
-  --wallet-btn-bg-hover: rgba(0, 0, 0, 0.1);
-  --wallet-btn-text: #1a0a2e;
-  --wallet-input-bg: rgba(0, 0, 0, 0.04);
-  --wallet-input-border: rgba(0, 0, 0, 0.1);
-  --wallet-input-text: #1a0a2e;
-  --wallet-divider: rgba(0, 0, 0, 0.06);
-  --wallet-icon-circle: rgba(124, 58, 237, 0.1);
-  --wallet-icon-fg: #7c3aed;
+    inset 0 1px 3px rgba(0, 0, 0, 0.03),
+    0 2px 12px -2px rgba(0, 0, 0, 0.06);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+  --wallet-fg: #1d1d1f;
+  --wallet-fg-muted: rgba(29, 29, 31, 0.5);
+  --wallet-btn-bg: rgba(0, 0, 0, 0.04);
+  --wallet-btn-bg-hover: rgba(0, 0, 0, 0.07);
+  --wallet-btn-text: #1d1d1f;
+  --wallet-input-bg: rgba(0, 0, 0, 0.03);
+  --wallet-input-border: rgba(0, 0, 0, 0.06);
+  --wallet-input-text: #1d1d1f;
+  --wallet-divider: rgba(0, 0, 0, 0.05);
+  --wallet-icon-circle: rgba(88, 86, 214, 0.08);
+  --wallet-icon-fg: #5856d6;
+  --wallet-scene-bg: #f5f5f7;
 }
 
+/* ─── Dark mode — Apple/pro dark ───────────────────────────── */
 [data-theme="dark"] {
-  --wallet-glass-bg: rgba(124, 58, 237, 0.06);
-  --wallet-glass-border: rgba(124, 58, 237, 0.12);
+  --wallet-glass-bg: rgba(44, 44, 46, 0.6);
+  --wallet-glass-border: rgba(255, 255, 255, 0.06);
   --wallet-glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 40px -24px rgba(0, 0, 0, 0.7);
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 12px 32px -8px rgba(0, 0, 0, 0.5);
   --wallet-card-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    0 20px 56px -12px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(124, 58, 237, 0.12);
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    0 16px 40px -8px rgba(0, 0, 0, 0.45),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06);
   --wallet-card-shadow-hover:
-    0 6px 12px rgba(0, 0, 0, 0.4),
-    0 28px 72px -12px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(124, 58, 237, 0.18);
-  --wallet-pocket-bg: rgba(76, 29, 149, 0.2);
-  --wallet-pocket-border: rgba(124, 58, 237, 0.15);
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 24px 56px -8px rgba(0, 0, 0, 0.55),
+    0 0 0 0.5px rgba(255, 255, 255, 0.1);
+  --wallet-pocket-bg: rgba(58, 58, 60, 0.5);
+  --wallet-pocket-border: rgba(255, 255, 255, 0.05);
   --wallet-pocket-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.2),
-    0 4px 20px -4px rgba(0, 0, 0, 0.4);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.12), transparent);
-  /* Interactive element colors — dark mode */
-  --wallet-fg: #f4f0ff;
-  --wallet-fg-muted: rgba(244, 240, 255, 0.5);
-  --wallet-btn-bg: rgba(255, 255, 255, 0.12);
-  --wallet-btn-bg-hover: rgba(255, 255, 255, 0.2);
-  --wallet-btn-text: #f4f0ff;
-  --wallet-input-bg: rgba(255, 255, 255, 0.06);
-  --wallet-input-border: rgba(255, 255, 255, 0.1);
-  --wallet-input-text: #f4f0ff;
+    inset 0 1px 4px rgba(0, 0, 0, 0.2),
+    0 2px 16px -2px rgba(0, 0, 0, 0.35);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
+  --wallet-fg: #f5f5f7;
+  --wallet-fg-muted: rgba(245, 245, 247, 0.5);
+  --wallet-btn-bg: rgba(255, 255, 255, 0.08);
+  --wallet-btn-bg-hover: rgba(255, 255, 255, 0.14);
+  --wallet-btn-text: #f5f5f7;
+  --wallet-input-bg: rgba(255, 255, 255, 0.05);
+  --wallet-input-border: rgba(255, 255, 255, 0.08);
+  --wallet-input-text: #f5f5f7;
   --wallet-divider: rgba(255, 255, 255, 0.06);
-  --wallet-icon-circle: rgba(255, 255, 255, 0.12);
-  --wallet-icon-fg: #f4f0ff;
+  --wallet-icon-circle: rgba(124, 181, 255, 0.1);
+  --wallet-icon-fg: #7cb3ff;
+  --wallet-scene-bg: #000000;
 }
 
 /* Pocket / cardholder */
@@ -493,33 +489,33 @@
   position: relative;
   background: var(--wallet-pocket-bg);
   border: 1px solid var(--wallet-pocket-border);
-  border-radius: 1.5rem;
+  border-radius: 20px;
   box-shadow: var(--wallet-pocket-shadow);
   overflow: visible;
 }
 
-/* Inner rim highlight on pocket top edge */
 .wallet-pocket::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  border-radius: 1.5rem 1.5rem 0 0;
+  height: 1px;
+  border-radius: 20px 20px 0 0;
   background: var(--wallet-pocket-rim);
   pointer-events: none;
 }
 
-/* Skeuomorphic card face — physical depth */
+/* Card face */
 .wallet-card-skeuo {
-  border-radius: 1rem;
+  border-radius: 14px;
   box-shadow: var(--wallet-card-shadow);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition: box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .wallet-card-skeuo:hover {
   box-shadow: var(--wallet-card-shadow-hover);
+  transform: translateY(-2px) scale(1.005);
 }
 
 /* Transaction card — subtle paper feel */

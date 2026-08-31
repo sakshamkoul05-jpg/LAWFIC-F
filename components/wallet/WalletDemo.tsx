@@ -30,26 +30,26 @@ export default function WalletDemo() {
   };
 
   return (
-    <div className="mx-auto max-w-xl" style={{ color: "var(--wallet-fg)" }}>
-      {/* ─── Header ─────────────────────────────────────────────── */}
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>Welcome to</p>
-          <h1 className="text-[22px] font-bold">LAWFiC Wallet</h1>
+          <h1 className="text-[20px] font-semibold tracking-tight">LAWFiC Wallet</h1>
         </div>
-        <DiceBearAvatar seed={draft.avatarSeed} size={44} />
+        <DiceBearAvatar seed={draft.avatarSeed} size={40} />
       </div>
 
-      {/* ─── Pocket with card ──────────────────────────────────── */}
+      {/* Card in pocket */}
       <WalletPocket cardOut={cardOut} onToggleCard={() => setCardOut((v) => !v)}>
         <WalletCard prefs={draft} balancePaise={DEMO_BALANCE_PAISE} animateBalance />
         <div className="mt-4 flex items-center gap-3">
           <Link
             href="/login?next=/wallet"
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-semibold transition-all"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-medium transition-all duration-200"
             style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
           >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
               <path d="M8 3v10M3 8h10" />
             </svg>
             Add Balance
@@ -57,7 +57,7 @@ export default function WalletDemo() {
           <button
             type="button"
             onClick={() => document.getElementById("demo-customize")?.scrollIntoView({ behavior: "smooth" })}
-            className="flex items-center justify-center rounded-2xl px-4 py-3.5 text-[13px] font-medium transition-colors"
+            className="flex items-center justify-center rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-200"
             style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -67,8 +67,8 @@ export default function WalletDemo() {
         </div>
       </WalletPocket>
 
-      {/* ─── Quick actions ──────────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-4 gap-3">
+      {/* Quick actions */}
+      <div className="mt-8 grid grid-cols-4 gap-3">
         {[
           { label: "Add money", icon: "M8 3v10M3 8h10" },
           { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4" },
@@ -78,14 +78,14 @@ export default function WalletDemo() {
           <button
             key={a.label}
             type="button"
-            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium transition-all hover:scale-105"
+            className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
             style={{ color: "var(--wallet-fg)" }}
           >
             <div
-              className="flex size-10 items-center justify-center rounded-full"
+              className="flex size-9 items-center justify-center rounded-full"
               style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d={a.icon} />
               </svg>
             </div>
@@ -94,27 +94,27 @@ export default function WalletDemo() {
         ))}
       </div>
 
-      {/* ─── Recent transactions ────────────────────────────────── */}
-      <div className="wallet-glass mt-6 overflow-hidden rounded-3xl">
+      {/* Recent transactions */}
+      <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
         <div className="flex items-center justify-between px-5 py-4">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#a78bfa]">
-            Latest Transactions
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-50">
+            Recent
           </p>
-          <button type="button" className="text-[12px] font-medium opacity-50 hover:opacity-80 transition-opacity">
+          <button type="button" className="text-[12px] font-medium opacity-40 hover:opacity-70 transition-opacity">
             See more
           </button>
         </div>
         <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
           {DEMO_TXNS.map((t) => (
-            <li key={t.id} className="flex items-center gap-4 px-5 py-4">
-              <DiceBearAvatar seed={t.avatar} size={40} />
+            <li key={t.id} className="flex items-center gap-4 px-5 py-3.5">
+              <DiceBearAvatar seed={t.avatar} size={36} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium opacity-90">{t.reason}</p>
-                <p className="mt-0.5 font-mono text-[11px] opacity-40">{t.date}</p>
+                <p className="truncate text-[13px] font-medium">{t.reason}</p>
+                <p className="mt-0.5 font-mono text-[11px] opacity-35">{t.date}</p>
               </div>
               <p
-                className={`shrink-0 font-mono text-[14px] tabular-nums font-medium ${
-                  t.dir === "credit" ? "text-[#4cc38a]" : "opacity-70"
+                className={`shrink-0 font-mono text-[13px] tabular-nums ${
+                  t.dir === "credit" ? "text-[#34c759]" : "opacity-50"
                 }`}
               >
                 {t.dir === "credit" ? "+" : "−"}₹{Math.abs(t.amount / 100).toLocaleString("en-IN")}
@@ -124,16 +124,16 @@ export default function WalletDemo() {
         </ul>
       </div>
 
-      {/* ─── Customize section ──────────────────────────────────── */}
-      <div id="demo-customize" className="mt-8 scroll-mt-24">
-        <p className="mb-4 text-center text-[13px] font-medium opacity-60">
+      {/* Customize section */}
+      <div id="demo-customize" className="mt-10 scroll-mt-24">
+        <p className="mb-5 text-center text-[13px] opacity-45">
           Create your card — pick a type and your avatar.
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           {/* Card type picker */}
           <div className="wallet-glass rounded-2xl p-5">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a78bfa]">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
               Card type
             </p>
             <div className="space-y-2">
@@ -142,16 +142,15 @@ export default function WalletDemo() {
                   key={c.id}
                   type="button"
                   onClick={() => pickCardType(c.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all"
+                  className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200"
                   style={{
-                    borderColor: draft.cardType === c.id ? "#7c3aed" : "var(--wallet-input-border)",
-                    background: draft.cardType === c.id ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
+                    background: draft.cardType === c.id ? "var(--wallet-btn-bg-hover)" : "transparent",
                   }}
                 >
-                  <div className="h-8 w-12 shrink-0 rounded-md" style={{ background: c.gradient }} />
+                  <div className="h-7 w-10 shrink-0 rounded-lg" style={{ background: c.gradient }} />
                   <div>
-                    <p className="text-[12px] font-medium opacity-90">{c.name}</p>
-                    <p className="text-[10px] opacity-50">{c.desc}</p>
+                    <p className="text-[12px] font-medium">{c.name}</p>
+                    <p className="text-[10px] opacity-40">{c.desc}</p>
                   </div>
                 </button>
               ))}
@@ -160,23 +159,22 @@ export default function WalletDemo() {
 
           {/* Avatar seed picker */}
           <div className="wallet-glass rounded-2xl p-5">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a78bfa]">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
               Your avatar
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {AVATAR_SEEDS.map((seed) => (
                 <button
                   key={seed}
                   type="button"
                   onClick={() => applySeed(seed)}
-                  className="flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-medium transition-all"
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200"
                   style={{
-                    borderColor: draft.avatarSeed === seed && !customSeed ? "#7c3aed" : "var(--wallet-input-border)",
-                    background: draft.avatarSeed === seed && !customSeed ? "rgba(124,58,237,0.15)" : "var(--wallet-input-bg)",
-                    color: draft.avatarSeed === seed && !customSeed ? "#c4b5fd" : "var(--wallet-fg-muted)",
+                    background: draft.avatarSeed === seed && !customSeed ? "var(--wallet-btn-bg-hover)" : "var(--wallet-btn-bg)",
+                    color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
                   }}
                 >
-                  <DiceBearAvatar seed={seed} size={24} />
+                  <DiceBearAvatar seed={seed} size={20} />
                   {seed}
                 </button>
               ))}
@@ -186,7 +184,7 @@ export default function WalletDemo() {
               value={customSeed}
               onChange={(e) => applySeed(e.target.value)}
               placeholder="Or type your name…"
-              className="mt-3 w-full rounded-xl border px-4 py-2.5 text-[12px] focus:border-[#7c3aed] focus:outline-none"
+              className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-[#5856d6]/40"
               style={{
                 borderColor: "var(--wallet-input-border)",
                 background: "var(--wallet-input-bg)",
@@ -196,15 +194,15 @@ export default function WalletDemo() {
           </div>
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-8 text-center">
           <Link
             href="/login?next=/wallet"
-            className="inline-flex items-center gap-2 rounded-full bg-[#7c3aed] px-6 py-3 text-[13px] font-semibold text-white transition-all hover:bg-[#6d28d9] hover:shadow-[0_10px_40px_-10px_rgba(124,58,237,0.5)]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#5856d6] px-7 py-3 text-[13px] font-medium text-white transition-all duration-200 hover:bg-[#4a49b8]"
           >
             Sign in to keep this card
           </Link>
-          <p className="mt-3 text-[11px] opacity-40">
-            Your card and avatar stay attached to your account across devices.
+          <p className="mt-3 text-[11px] opacity-30">
+            Your card and avatar stay attached to your account.
           </p>
         </div>
       </div>

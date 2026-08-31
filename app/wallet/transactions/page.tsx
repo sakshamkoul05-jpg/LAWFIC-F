@@ -21,11 +21,11 @@ export default async function TransactionsPage() {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
     return (
-      <div className="glass-panel mx-auto max-w-xl rounded-3xl p-8 text-center">
-        <p className="text-[15px] text-[#f4f4ee]">Sign in to see your statement.</p>
+      <div className="glass-panel mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+        <p className="text-[14px] opacity-60">Sign in to see your statement.</p>
         <Link
           href="/login?next=/wallet/transactions"
-          className="mt-6 inline-block rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b]"
+          className="mt-5 inline-block rounded-full bg-[#5856d6] px-6 py-2.5 text-[13px] font-medium text-white"
         >
           Sign in
         </Link>
@@ -42,14 +42,13 @@ export default async function TransactionsPage() {
   const rows = (entries ?? []) as WalletEntry[];
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <p className="mb-6 text-center text-[15px] leading-relaxed text-[#f4f4ee]/70">
-        Every credit and debit, itemised against the order or payment it relates to.
+    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+      <p className="mb-6 text-center text-[14px] leading-relaxed opacity-40">
+        Every credit and debit, itemised.
       </p>
       <TransactionList rows={rows} />
-      <p className="mt-6 text-center text-[12px] leading-relaxed text-[#f4f4ee]/40">
-        Balance is usable only for LAWFiC services — it cannot be transferred to another user or
-        withdrawn to a bank account.
+      <p className="mt-5 text-center text-[11px] leading-relaxed opacity-25">
+        Balance is usable only for LAWFIC services.
       </p>
     </div>
   );
@@ -57,8 +56,8 @@ export default async function TransactionsPage() {
 
 function Empty({ title }: { title: string }) {
   return (
-    <div className="glass-panel mx-auto max-w-xl rounded-3xl p-8 text-center">
-      <p className="text-[15px] text-[#f4f4ee]">{title}</p>
+    <div className="glass-panel mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+      <p className="text-[14px] opacity-60">{title}</p>
     </div>
   );
 }

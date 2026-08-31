@@ -48,23 +48,25 @@ export default async function WalletPage() {
   const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
 
   return (
-    <div className="mx-auto max-w-xl" style={{ color: "var(--wallet-fg)" }}>
+    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
       {isRazorpayTestMode && (
-        <p className="mb-5 text-center text-[12.5px] opacity-50">
+        <p className="mb-6 text-center text-[12px] opacity-40">
           Test mode — no real money moves
         </p>
       )}
 
-      {/* ─── Header ─────────────────────────────────────────────── */}
-      <div className="mb-6 flex items-center justify-between">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>Hi, {displayName}!</p>
-          <h1 className="text-[22px] font-bold">My Wallet</h1>
+          <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>
+            Hi, {displayName}
+          </p>
+          <h1 className="text-[20px] font-semibold tracking-tight">My Wallet</h1>
         </div>
-        <DiceBearAvatar seed={prefs.avatarSeed} size={44} />
+        <DiceBearAvatar seed={prefs.avatarSeed} size={40} />
       </div>
 
-      {/* ─── Pocket with card ──────────────────────────────────── */}
+      {/* Card in pocket */}
       <WalletPocket
         cardOut={false}
         onToggleCard={() => {}}
@@ -72,17 +74,17 @@ export default async function WalletPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/wallet/topup"
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-semibold transition-all"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-medium transition-all duration-200"
               style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
             >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                 <path d="M8 3v10M3 8h10" />
               </svg>
               Add Balance
             </Link>
             <Link
               href="/wallet/customize"
-              className="flex items-center justify-center rounded-2xl px-4 py-3.5 text-[13px] font-medium transition-colors"
+              className="flex items-center justify-center rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-200"
               style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -95,8 +97,8 @@ export default async function WalletPage() {
         <WalletCard prefs={prefs} balancePaise={balancePaise} animateBalance />
       </WalletPocket>
 
-      {/* ─── Quick actions ──────────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-4 gap-3">
+      {/* Quick actions */}
+      <div className="mt-8 grid grid-cols-4 gap-3">
         {[
           { label: "Add money", icon: "M8 3v10M3 8h10", href: "/wallet/topup" },
           { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4", href: "#" },
@@ -106,14 +108,14 @@ export default async function WalletPage() {
           <Link
             key={a.label}
             href={a.href}
-            className="wallet-glass flex flex-col items-center gap-2 rounded-2xl py-4 text-[11px] font-medium transition-all hover:scale-105"
+            className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
             style={{ color: "var(--wallet-fg)" }}
           >
             <div
-              className="flex size-10 items-center justify-center rounded-full"
+              className="flex size-9 items-center justify-center rounded-full"
               style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d={a.icon} />
               </svg>
             </div>
@@ -122,29 +124,29 @@ export default async function WalletPage() {
         ))}
       </div>
 
-      {/* ─── Recent transactions ────────────────────────────────── */}
-      <div className="wallet-glass mt-6 overflow-hidden rounded-3xl">
+      {/* Recent transactions */}
+      <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
         <div className="flex items-center justify-between px-5 py-4">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#a78bfa]">
-            Latest Transactions
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-50">
+            Recent
           </p>
           <Link
             href="/wallet/transactions"
-            className="text-[12px] font-medium opacity-50 hover:opacity-80 transition-opacity"
+            className="text-[12px] font-medium opacity-40 hover:opacity-70 transition-opacity"
           >
-            See more →
+            See all
           </Link>
         </div>
 
         {rows.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-[14px] opacity-60">Nothing here yet.</p>
-            <p className="mx-auto mt-2 max-w-xs text-[12px] leading-relaxed opacity-40">
-              Add money and every credit and debit will be listed here.
+          <div className="px-5 py-12 text-center">
+            <p className="text-[14px] opacity-50">Nothing here yet.</p>
+            <p className="mx-auto mt-2 max-w-xs text-[12px] leading-relaxed opacity-35">
+              Add money and every credit and debit will appear here.
             </p>
             <Link
               href="/wallet/topup"
-              className="mt-5 inline-block rounded-full bg-[#7c3aed] px-5 py-2.5 text-[13px] font-semibold text-white"
+              className="mt-5 inline-block rounded-full bg-[#5856d6] px-5 py-2.5 text-[13px] font-medium text-white"
             >
               Add money
             </Link>
@@ -155,20 +157,12 @@ export default async function WalletPage() {
               <li key={r.id}>
                 <Link
                   href={`/wallet/transactions/${r.id}`}
-                  className="flex items-center gap-4 px-5 py-4 transition-colors"
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150"
                   style={{ color: "var(--wallet-fg)" }}
                 >
-                  <div
-                    className="flex size-10 items-center justify-center rounded-full"
-                    style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
-                  >
-                    <span className="text-[13px] font-semibold opacity-70">
-                      {r.direction === "credit" ? "+" : "−"}
-                    </span>
-                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium opacity-90">{r.reason}</p>
-                    <p className="mt-0.5 font-mono text-[11px] opacity-40">
+                    <p className="truncate text-[13px] font-medium">{r.reason}</p>
+                    <p className="mt-0.5 font-mono text-[11px] opacity-35">
                       {new Date(r.created_at).toLocaleDateString("en-IN", {
                         day: "2-digit",
                         month: "short",
@@ -177,8 +171,8 @@ export default async function WalletPage() {
                     </p>
                   </div>
                   <p
-                    className={`shrink-0 font-mono text-[14px] tabular-nums font-medium ${
-                      r.direction === "credit" ? "text-[#4cc38a]" : "opacity-70"
+                    className={`shrink-0 font-mono text-[13px] tabular-nums ${
+                      r.direction === "credit" ? "text-[#34c759]" : "opacity-50"
                     }`}
                   >
                     {formatEntry(r.direction, r.amount_paise)}
@@ -189,14 +183,14 @@ export default async function WalletPage() {
           </ul>
         )}
 
-        <p className="border-t px-5 py-3.5 text-[11px] leading-relaxed opacity-35" style={{ borderColor: "var(--wallet-divider)" }}>
-          Balance is usable only for LAWFIC services — it cannot be transferred or withdrawn.
+        <p className="border-t px-5 py-3 text-[11px] leading-relaxed opacity-25" style={{ borderColor: "var(--wallet-divider)" }}>
+          Balance is usable only for LAWFIC services.
         </p>
       </div>
 
       {!isRazorpayConfigured && (
-        <p className="mt-5 text-center text-[12px] opacity-40">
-          Payments are not switched on yet. Add the Razorpay keys and top-ups go live.
+        <p className="mt-4 text-center text-[12px] opacity-30">
+          Payments are not switched on yet.
         </p>
       )}
     </div>

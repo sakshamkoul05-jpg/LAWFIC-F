@@ -24,26 +24,26 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
   ];
 
   return (
-    <div className="glass-panel overflow-hidden rounded-3xl" style={{ color: "var(--wallet-fg)" }}>
+    <div className="glass-panel overflow-hidden rounded-2xl" style={{ color: "var(--wallet-fg)" }}>
       <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "var(--wallet-divider)" }}>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a78bfa]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
           Statement
         </p>
-        <p className="text-[12px]" style={{ color: "var(--wallet-fg-muted)" }}>
+        <p className="text-[12px] opacity-40">
           {rows.length === 0 ? "No entries yet" : `${rows.length} entries`}
         </p>
       </div>
 
-      <div className="flex gap-1.5 border-b px-5 py-3" style={{ borderColor: "var(--wallet-divider)" }}>
+      <div className="flex gap-1 border-b px-5 py-3" style={{ borderColor: "var(--wallet-divider)" }}>
         {filters.map((f) => (
           <button
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
             aria-pressed={filter === f.key}
-            className="rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-colors"
+            className="rounded-full px-3 py-1.5 text-[12px] font-medium transition-all duration-200"
             style={{
-              background: filter === f.key ? "#7c3aed" : "var(--wallet-btn-bg)",
+              background: filter === f.key ? "#5856d6" : "var(--wallet-btn-bg)",
               color: filter === f.key ? "#ffffff" : "var(--wallet-fg-muted)",
             }}
           >
@@ -54,12 +54,11 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
 
       {filtered.length === 0 ? (
         <div className="px-5 py-14 text-center">
-          <p className="text-[14.5px] opacity-65">
+          <p className="text-[14px] opacity-50">
             {rows.length === 0 ? "Nothing here yet." : "No entries in this view."}
           </p>
-          <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed opacity-45">
-            Add money and every credit and debit will be listed here, each opening into its own
-            detail.
+          <p className="mx-auto mt-2 max-w-xs text-[12px] leading-relaxed opacity-30">
+            Add money and every credit and debit will appear here.
           </p>
         </div>
       ) : (
@@ -68,18 +67,18 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
             {filtered.map((r, i) => (
               <motion.li
                 key={r.id}
-                initial={reduced ? false : { opacity: 0, y: 12 }}
+                initial={reduced ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.5), ease: [0.2, 0.7, 0.3, 1] }}
+                transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.4), ease: [0.16, 1, 0.3, 1] }}
               >
                 <Link
                   href={`/wallet/transactions/${r.id}`}
-                  className="flex items-center gap-4 px-5 py-4 transition-colors"
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150"
                   style={{ color: "var(--wallet-fg)" }}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px]">{r.reason}</p>
-                    <p className="mt-1 font-mono text-[11px] tracking-[0.04em] opacity-40">
+                    <p className="truncate text-[13px] font-medium">{r.reason}</p>
+                    <p className="mt-0.5 font-mono text-[11px] opacity-35">
                       {new Date(r.created_at).toLocaleString("en-IN", {
                         day: "2-digit",
                         month: "short",
@@ -90,8 +89,8 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
                     </p>
                   </div>
                   <p
-                    className={`shrink-0 font-mono text-[14px] tabular-nums ${
-                      r.direction === "credit" ? "text-[#4cc38a]" : ""
+                    className={`shrink-0 font-mono text-[13px] tabular-nums ${
+                      r.direction === "credit" ? "text-[#34c759]" : ""
                     }`}
                   >
                     {formatEntry(r.direction, r.amount_paise)}

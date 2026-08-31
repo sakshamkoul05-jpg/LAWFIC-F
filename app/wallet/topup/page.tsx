@@ -16,8 +16,8 @@ export default async function TopUpPage() {
 
   if (!supabase) {
     return (
-      <div className="glass-panel mx-auto max-w-xl rounded-3xl p-8 text-center">
-        <p className="text-[15px] text-[#f4f4ee]">The wallet is not connected yet.</p>
+      <div className="glass-panel mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+        <p className="text-[14px] opacity-60">The wallet is not connected yet.</p>
       </div>
     );
   }
@@ -25,11 +25,11 @@ export default async function TopUpPage() {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
     return (
-      <div className="glass-panel mx-auto max-w-xl rounded-3xl p-8 text-center">
-        <p className="text-[15px] text-[#f4f4ee]">Sign in to top up your wallet.</p>
+      <div className="glass-panel mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+        <p className="text-[14px] opacity-60">Sign in to top up your wallet.</p>
         <Link
           href="/login?next=/wallet/topup"
-          className="mt-6 inline-block rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b]"
+          className="mt-5 inline-block rounded-full bg-[#5856d6] px-6 py-2.5 text-[13px] font-medium text-white"
         >
           Sign in
         </Link>
@@ -41,15 +41,11 @@ export default async function TopUpPage() {
   const balancePaise = Number(balanceData ?? 0);
 
   return (
-    <div className="mx-auto max-w-xl">
-      <p className="mb-6 text-center text-[15px] leading-relaxed text-[#f4f4ee]/70">
-        Top up once with UPI, card or net banking. The money lands in your wallet and pays for
-        filings with nothing more to type.
+    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+      <p className="mb-6 text-center text-[14px] leading-relaxed opacity-40">
+        Top up with UPI, card or net banking. The money lands in your wallet and pays for filings.
       </p>
-      <TopUpForm
-        initialBalancePaise={balancePaise}
-        paymentsReady={isRazorpayConfigured}
-      />
+      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isRazorpayConfigured} />
     </div>
   );
 }

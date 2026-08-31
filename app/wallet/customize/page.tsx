@@ -16,8 +16,8 @@ export default async function CustomizePage() {
 
   if (!supabase) {
     return (
-      <div className="wallet-glass mx-auto max-w-xl rounded-3xl p-8 text-center">
-        <p className="text-[15px] opacity-80">The wallet is not connected yet.</p>
+      <div className="wallet-glass mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+        <p className="text-[14px] opacity-60">The wallet is not connected yet.</p>
       </div>
     );
   }
@@ -25,11 +25,11 @@ export default async function CustomizePage() {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
     return (
-      <div className="wallet-glass mx-auto max-w-xl rounded-3xl p-8 text-center">
-        <p className="text-[15px] opacity-80">Sign in to customize your wallet card.</p>
+      <div className="wallet-glass mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
+        <p className="text-[14px] opacity-60">Sign in to customize your wallet card.</p>
         <Link
           href="/login?next=/wallet/customize"
-          className="mt-6 inline-block rounded-full bg-[#7c3aed] px-6 py-3 text-sm font-semibold text-white"
+          className="mt-5 inline-block rounded-full bg-[#5856d6] px-6 py-2.5 text-[13px] font-medium text-white"
         >
           Sign in
         </Link>
@@ -47,8 +47,8 @@ export default async function CustomizePage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <p className="mb-6 text-center text-[15px] leading-relaxed opacity-60">
-        Pick your card type and create your avatar — your card becomes yours wherever you sign in.
+      <p className="mb-8 text-center text-[14px] leading-relaxed opacity-40">
+        Pick your card type and create your avatar.
       </p>
       <CustomizePanel initial={prefs} balancePaise={balancePaise} />
     </div>
