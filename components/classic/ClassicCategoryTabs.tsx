@@ -25,19 +25,14 @@ const classicTabs: TabItem[] = [
   { label: "New Idea", sublabel: "Tab 13", href: "/about" },
   { label: "Blogs", sublabel: "Tab 14", href: "/about" },
   { label: "Professionalism", sublabel: "Tab 15", href: "/about" },
-  { label: "Carrier", sublabel: "Tab 16", href: "/jobs" },
-  { label: "Entertainment", sublabel: "Tab 17", href: "/about" },
+  { label: "Carriear", sublabel: "Tab 16", href: "/jobs" },
+  { label: "Entertainmen", sublabel: "Tab 17", href: "/about" },
   { label: "Gift", sublabel: "Tab 18", href: "/wallet" },
   { label: "Our Store", sublabel: "Tab 19", href: "/services" },
   { label: "Instant Help", sublabel: "Tab 20", href: "/contact" },
   { label: "Contact", sublabel: "Tab 21", href: "/contact" },
 ];
 
-/**
- * The 21-tab horizontal navigation bar, matching the reference layout.
- * Each tab shows a main label on top with a small green secondary label underneath.
- * Tabs are separated by thin borders and arranged compactly horizontally.
- */
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
 

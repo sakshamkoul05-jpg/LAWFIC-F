@@ -200,13 +200,41 @@
   background: var(--color-primary-light);
 }
 
-/* Hide scrollbar on banner carousel */
-.classic-tabs-nav::-webkit-scrollbar,
-.classic-promotional::-webkit-scrollbar {
+/* Hide scrollbar on tabs and banners */
+.classic-tabs-nav::-webkit-scrollbar {
   display: none;
 }
 
-/* Marquee animation for promotional banner belt */
+/* Classic marquee — continuous motion, pauses on hover */
+@keyframes classic-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.classic-marquee-group {
+  overflow: hidden;
+}
+
+.classic-marquee-track {
+  animation: classic-marquee 25s linear infinite;
+  width: max-content;
+}
+
+.classic-marquee-group:hover .classic-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classic-marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+/* Legacy marquee (kept for portal compat) */
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -222,12 +250,6 @@
 
 .marquee-track:hover {
   animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation-play-state: paused;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
