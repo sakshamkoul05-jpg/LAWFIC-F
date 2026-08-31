@@ -136,6 +136,20 @@ export default function ClassicHeader() {
           {/* Light / dark toggle */}
           <ThemeToggle />
 
+          {/* Wallet — always visible so the wallet is one tap away */}
+          <Link
+            href="/wallet"
+            aria-label="Wallet"
+            title="Wallet"
+            className="flex size-9 items-center justify-center rounded-full border border-primary text-primary transition-colors hover:bg-primary-light"
+          >
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="11.5" cy="9.5" r="1" fill="currentColor" />
+            </svg>
+          </Link>
+
           {/* Auth */}
           {mounted && user ? (
             <Link href="/wallet" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
@@ -155,21 +169,6 @@ export default function ClassicHeader() {
               Sign in
             </Link>
           ) : null}
-
-          {/* Wallet link */}
-          {mounted && user && (
-            <Link
-              href="/wallet"
-              className="hidden items-center gap-1.5 rounded border border-border px-2.5 py-1.5 text-[11px] text-muted transition-colors hover:border-primary hover:text-foreground sm:flex"
-            >
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-primary">
-                <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.2" />
-                <circle cx="11.5" cy="9.5" r="1" fill="currentColor" />
-              </svg>
-              Wallet
-            </Link>
-          )}
         </div>
       </div>
     </header>

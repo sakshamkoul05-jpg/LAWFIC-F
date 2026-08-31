@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const items = [
   { href: "/wallet", label: "Balance" },
   { href: "/wallet/topup", label: "Top up" },
+  { href: "/wallet/customize", label: "Customize" },
   { href: "/wallet/transactions", label: "Transactions" },
 ];
 
