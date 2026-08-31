@@ -7,47 +7,112 @@
    for financial/numerical data.
    ============================================================ */
 
-@theme {
+@theme inline {
   /* Background & surfaces */
-  --color-background: #f8f9fa;
-  --color-surface: #ffffff;
-  --color-surface-2: #f1f3f5;
-  --color-surface-3: #e9ecef;
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
 
   /* Borders / hairlines */
-  --color-border: #dee2e6;
-  --color-border-2: #ced4da;
-  --color-border-3: #adb5bd;
+  --color-border: var(--border);
+  --color-border-2: var(--border-2);
+  --color-border-3: var(--border-3);
 
   /* Text */
-  --color-foreground: #1a1a2e;
-  --color-muted: #495057;
-  --color-muted-foreground: #6c757d;
-  --color-subtle: #868e96;
+  --color-foreground: var(--fg);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-fg);
+  --color-subtle: var(--subtle);
 
   /* Brand — LAWFIC brass/gold */
-  --color-primary: #b8860b;
-  --color-primary-hover: #996f09;
-  --color-primary-light: #f5e6c8;
-  --color-primary-lighter: #faf3e5;
+  --color-primary: var(--brand);
+  --color-primary-hover: var(--brand-hover);
+  --color-primary-light: var(--brand-light);
+  --color-primary-lighter: var(--brand-lighter);
 
-  /* Accent — teal for status/links */
-  --color-accent: #0c8599;
-  --color-accent-light: #e6f7fb;
+  /* Accent */
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
 
   /* Semantic */
-  --color-success: #2f9e44;
-  --color-success-light: #ebfbee;
-  --color-destructive: #e03131;
-  --color-destructive-light: #fff5f5;
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-destructive: var(--destructive);
+  --color-destructive-light: var(--destructive-light);
 
   /* Grid background */
-  --color-grid: rgba(0, 0, 0, 0.04);
+  --color-grid: var(--grid);
 
   /* Fonts */
   --font-sans: "Satoshi", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-overpass-mono), "Overpass Mono", ui-monospace, monospace;
   --font-display: "Satoshi", system-ui, sans-serif;
+}
+
+/* ---------- Light theme (default) — gold on light ---------- */
+:root,
+[data-theme="light"] {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f5;
+  --surface-3: #e9ecef;
+
+  --border: #dee2e6;
+  --border-2: #ced4da;
+  --border-3: #adb5bd;
+
+  --fg: #1a1a2e;
+  --muted: #495057;
+  --muted-fg: #6c757d;
+  --subtle: #868e96;
+
+  --brand: #a8790a;
+  --brand-hover: #8d6407;
+  --brand-light: #f5e6c8;
+  --brand-lighter: #faf3e5;
+
+  --accent: #0c8599;
+  --accent-light: #e6f7fb;
+
+  --success: #2f9e44;
+  --success-light: #ebfbee;
+  --destructive: #e03131;
+  --destructive-light: #fff5f5;
+
+  --grid: rgba(0, 0, 0, 0.04);
+}
+
+/* ---------- Dark theme — black & gold, elegant (Apple-like) ---------- */
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+  --surface-3: #262626;
+
+  --border: #2a2a2a;
+  --border-2: #3a3a3a;
+  --border-3: #4a4a4a;
+
+  --fg: #f5f5f0;
+  --muted: #b8b8b0;
+  --muted-fg: #9a9a92;
+  --subtle: #7a7a72;
+
+  --brand: #d4af37;
+  --brand-hover: #e0c25a;
+  --brand-light: rgba(212, 175, 55, 0.14);
+  --brand-lighter: rgba(212, 175, 55, 0.08);
+
+  --accent: #4cc3d8;
+  --accent-light: rgba(76, 195, 216, 0.14);
+
+  --success: #4cc38a;
+  --success-light: rgba(76, 195, 138, 0.14);
+  --destructive: #f2635f;
+  --destructive-light: rgba(242, 99, 95, 0.14);
+
+  --grid: rgba(255, 255, 255, 0.04);
 }
 
 @layer base {

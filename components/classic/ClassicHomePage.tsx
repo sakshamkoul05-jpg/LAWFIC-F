@@ -6,19 +6,16 @@ import { services } from "@/lib/services";
 import { plans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
-import ClassicHeader from "./ClassicHeader";
-import ClassicCategoryTabs from "./ClassicCategoryTabs";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
 
 /**
  * Classic theme homepage — dense, information-rich layout based on the client-approved reference.
- * Renders its own header + tabs + promotional banners + main content.
+ * The shared header + 21-tab navigation is rendered by ThemeShell; this page
+ * renders the promotional banners + main content.
  */
 export default function ClassicHomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <ClassicHeader />
-      <ClassicCategoryTabs />
       <ClassicPromotionalBanners />
 
       {/* Service Categories Grid */}

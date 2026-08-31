@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Wordmark from "@/components/site/Wordmark";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 type User = {
   email?: string;
@@ -132,6 +133,9 @@ export default function ClassicHeader() {
 
         {/* Right side: Auth + utilities */}
         <div className="flex items-center gap-2.5">
+          {/* Light / dark toggle */}
+          <ThemeToggle />
+
           {/* Auth */}
           {mounted && user ? (
             <Link href="/wallet" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
