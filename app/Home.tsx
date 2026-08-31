@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/components/theme/ThemeProvider";
 import ModernHomepage from "./ModernHomepage";
-import PortalHomepage from "@/components/portal/PortalHomepage";
+import ClassicHomePage from "@/components/classic/ClassicHomePage";
 
 /**
  * Client-side wrapper that renders the correct homepage based on theme.
@@ -10,8 +10,8 @@ import PortalHomepage from "@/components/portal/PortalHomepage";
 export default function Home() {
   const { theme } = useTheme();
 
-  if (theme === "portal") {
-    return <PortalHomepage />;
+  if (theme === "classic") {
+    return <ClassicHomePage />;
   }
 
   return <ModernHomepage />;

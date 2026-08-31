@@ -20,14 +20,14 @@ export default function ThemeToggle() {
       </button>
       <button
         type="button"
-        onClick={() => setTheme("portal")}
+        onClick={() => setTheme("classic")}
         className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
-          theme === "portal"
+          theme === "classic"
             ? "bg-primary text-white"
             : "text-muted hover:text-foreground"
         }`}
       >
-        ▦ Portal
+        ▦ Classic
       </button>
     </div>
   );

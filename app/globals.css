@@ -172,6 +172,40 @@
   }
 }
 
+/* Classic theme — tab navigation */
+.classic-tabs-nav {
+  background: var(--color-surface);
+}
+
+.classic-tab-item {
+  position: relative;
+}
+
+.classic-tab-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.classic-tab-item:hover::after {
+  background: var(--color-primary);
+}
+
+.classic-tab-item[href="/"] {
+  background: var(--color-primary-light);
+}
+
+/* Hide scrollbar on banner carousel */
+.classic-tabs-nav::-webkit-scrollbar,
+.classic-promotional::-webkit-scrollbar {
+  display: none;
+}
+
 /* Marquee animation for promotional banner belt */
 @keyframes marquee {
   0% {
@@ -205,7 +239,7 @@
   }
 }
 
-/* Portal theme — additional styles */
+/* Portal theme — additional styles (kept for backward compat) */
 .portal-nav-item {
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }

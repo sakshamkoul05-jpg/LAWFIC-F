@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-type Theme = "modern" | "portal";
+type Theme = "modern" | "classic";
 
 type ThemeContextValue = {
   theme: Theme;
@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "modern" || stored === "portal") {
+    if (stored === "modern" || stored === "classic") {
       setThemeState(stored);
     }
     setMounted(true);
