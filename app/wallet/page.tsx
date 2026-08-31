@@ -5,6 +5,7 @@ import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
+import WalletDemo from "@/components/wallet/WalletDemo";
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -30,7 +31,17 @@ export default async function WalletPage() {
   }
 
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return <Prompt title="Sign in to see your wallet" />;
+  if (!auth.user) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <p className="mb-6 text-center text-[15px] leading-relaxed text-[#f4f4ee]/70">
+          Meet your wallet before you make it official — pick a material and pin a few badges to
+          see the card come together.
+        </p>
+        <WalletDemo />
+      </div>
+    );
+  }
 
   const [{ data: balanceData }, { data: entries }, { data: prefsRow }] = await Promise.all([
     supabase.rpc("my_wallet_balance"),
