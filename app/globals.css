@@ -318,3 +318,53 @@
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-light);
 }
+
+/* ============================================================
+   Wallet — CRED-style dark glass presentation
+   A self-contained dark backdrop with glass panels and gold
+   accents, used under the /wallet routes.
+   ============================================================ */
+.wallet-scene {
+  background:
+    radial-gradient(90% 60% at 20% 0%, rgba(212, 175, 55, 0.10), transparent 55%),
+    radial-gradient(80% 60% at 85% 15%, rgba(212, 175, 55, 0.08), transparent 50%),
+    linear-gradient(to bottom, #0b0b0b, #0d0d0c);
+  color: #f4f4ee;
+}
+
+.wallet-scene a,
+.wallet-scene button,
+.wallet-scene input {
+  color: inherit;
+}
+
+.glass-panel {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 40px -24px rgba(0, 0, 0, 0.7);
+}
+
+.wallet-card-glow {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 60px -28px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(212, 175, 55, 0.12);
+}
+
+.wallet-gold-text {
+  background: linear-gradient(120deg, #e8c86a, #d4af37 40%, #f4e3a8 60%, #c79b2c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Wallet cheap card edge hint */
+.wallet-hairline {
+  background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.35), transparent);
+}
+
