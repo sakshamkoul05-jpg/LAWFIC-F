@@ -81,6 +81,7 @@
   --destructive-light: #fff5f5;
 
   --grid: rgba(0, 0, 0, 0.04);
+  --logo-blend: screen;
 }
 
 /* ---------- Dark theme — black & gold, elegant (Apple-like) ---------- */
@@ -113,6 +114,15 @@
   --destructive-light: rgba(242, 99, 95, 0.14);
 
   --grid: rgba(255, 255, 255, 0.04);
+  --logo-blend: normal;
+}
+
+/* Logo mark — blend mode drops black bg in light theme */
+.logo-mark {
+  mix-blend-mode: screen;
+}
+[data-theme="dark"] .logo-mark {
+  mix-blend-mode: normal;
 }
 
 @layer base {
