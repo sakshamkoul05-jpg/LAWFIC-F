@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LAWFIC — Professional Indian Business Portal
+   LAWFIC �?" Professional Indian Business Portal
    Light theme with structured grid, thin borders, and
-   utility-first typography. Satoshi for UI, Overpass Mono
-   for financial/numerical data.
+   utility-first typography. Inter for body/UI, Manrope for
+   display/headlines, Overpass Mono for financial/numerical data.
    ============================================================ */
 
 @theme inline {
@@ -45,9 +45,9 @@
   --color-grid: var(--grid);
 
   /* Fonts */
-  --font-sans: "Satoshi", system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-overpass-mono), "Overpass Mono", ui-monospace, monospace;
-  --font-display: "Satoshi", system-ui, sans-serif;
+  --font-display: var(--font-manrope), "Manrope", system-ui, sans-serif;
 }
 
 /* ---------- Light theme (default) — gold on light ---------- */

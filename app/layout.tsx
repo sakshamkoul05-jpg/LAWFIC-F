@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
-import { Overpass_Mono } from "next/font/google";
+import { Inter, Manrope, Overpass_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const overpassMono = Overpass_Mono({
   variable: "--font-overpass-mono",
@@ -24,15 +36,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${overpassMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${manrope.variable} ${overpassMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://api.fontshare.com" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
-          rel="stylesheet"
-        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var s=localStorage.getItem('lawfic-color');var t=s==='dark'||s==='light'?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`,
