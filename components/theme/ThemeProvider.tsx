@@ -1,50 +1,22 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 
-type Theme = "modern" | "classic";
-
+/**
+ * The site now ships a single visual theme (Classic). This context is retained
+ * as a thin compatibility shim so any existing imports of useTheme() keep working,
+ * but there is no switching and no persistence.
+ */
 type ThemeContextValue = {
-  theme: Theme;
-  setTheme: (t: Theme) => void;
+  theme: "classic";
+  setTheme: (t: "classic") => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = "lawfic-theme";
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("modern");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "modern" || stored === "classic") {
-      setThemeState(stored);
-    }
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme, mounted]);
-
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <ThemeContext.Provider value={{ theme: "modern", setTheme: () => {} }}>
-        {children}
-      </ThemeContext.Provider>
-    );
-  }
-
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: "classic", setTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -52,6 +24,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
-  if (!ctx) return { theme: "modern", setTheme: () => {} };
+  if (!ctx) return { theme: "classic", setTheme: () => {} };
   return ctx;
 }
