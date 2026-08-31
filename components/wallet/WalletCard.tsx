@@ -8,14 +8,12 @@ import { getFlair, getSkin, type WalletPrefs } from "@/lib/wallet-custom";
 export type CardPhase = "idle" | "forming" | "settled";
 
 /**
- * The LAWFIC collector card: an ISO-proportioned card whose face is the
- * chosen skin (material), carrying the gold chip, the brand, the balance in
- * gilded figures, and up to three pinned flairs.
+ * The LAWFIC collector card — skeuomorphic physical card with gold chip,
+ * layered depth, and material texture. Reveals itself like a card pulled
+ * from a wallet, and morphs through top-up states (idle → forming → settled).
  *
- * It reveals itself like a card pulled from a wallet — rising and 3D
- * flip-setting into place — and it responds to the top-up state machine
- * (idle / forming / settled) so the money landing feels physical. All motion
- * honours prefers-reduced-motion.
+ * Theme-aware: adapts shadows, text colors, and glow to light/dark via CSS
+ * variables and skin definitions. All motion honours prefers-reduced-motion.
  */
 export default function WalletCard({
   prefs,
@@ -34,7 +32,6 @@ export default function WalletCard({
   const skin = getSkin(prefs.skin) ?? getSkin("gilded")!;
   const flairs = prefs.flairs.map(getFlair).filter(Boolean);
 
-  // Optional count-up for the balance figure (used on the wallet home).
   const shown = useMotionValue(balancePaise);
   const [shownText, setShownText] = useState(formatPaise(balancePaise));
   useEffect(() => {
@@ -42,23 +39,14 @@ export default function WalletCard({
     return () => unsub();
   }, [shown]);
   useEffect(() => {
-    if (!animateBalance) {
-      shown.set(balancePaise);
-      return;
-    }
-    if (reduced) {
-      shown.set(balancePaise);
-      return;
-    }
+    if (!animateBalance || reduced) { shown.set(balancePaise); return; }
     shown.set(0);
-    const controls = animate(shown, balancePaise, {
-      duration: 1.1,
-      ease: [0.22, 0.8, 0.3, 1],
-      delay: 0.45,
-    });
-    return () => controls.stop();
+    const c = animate(shown, balancePaise, { duration: 1.1, ease: [0.22, 0.8, 0.3, 1], delay: 0.45 });
+    return () => c.stop();
   }, [balancePaise, animateBalance, reduced, shown]);
   const balanceLabel = animateBalance ? shownText : formatPaise(balancePaise);
+
+  const isLight = prefs.skin === "ivory";
 
   return (
     <motion.div
@@ -68,28 +56,41 @@ export default function WalletCard({
       animate={{ opacity: 1, y: 0, rotateX: 0, rotateY: 0 }}
       transition={{ type: "spring", stiffness: 120, damping: 18, mass: 1 }}
     >
+      {/* Card body */}
       <motion.div
-        className="absolute inset-0 overflow-hidden rounded-[22px]"
-        style={{
-          background: skin.bg,
-          boxShadow:
-            "0 30px 70px -30px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08)",
-        }}
-        // State morph: a golden ring and pulse while a payment is forming, and
-        // a gentle luminous lift once the money has settled in.
+        className="absolute inset-0 overflow-hidden rounded-[1.25rem]"
+        style={{ background: skin.bg }}
         animate={
           phase === "forming"
             ? { boxShadow: "0 30px 90px -28px rgba(212,175,55,0.55), inset 0 0 0 2px rgba(212,175,55,0.6)" }
             : phase === "settled"
               ? { scale: 1.015, boxShadow: "0 34px 90px -28px rgba(212,175,55,0.6), inset 0 1px 0 rgba(255,255,255,0.12)" }
-              : { scale: 1, boxShadow: "0 30px 70px -30px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08)" }
+              : { scale: 1, boxShadow: isLight
+                  ? "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.12), 0 24px 56px -12px rgba(0,0,0,0.18)"
+                  : "0 30px 70px -30px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08)"
+              }
         }
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        {/* soft material vein */}
-        <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(120% 90% at 85% 0%, ${skin.vein}, transparent 60%)` }} aria-hidden />
+        {/* Material vein — subtle texture overlay */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(120% 90% at 85% 0%, ${skin.vein}, transparent 60%)` }}
+          aria-hidden
+        />
 
-        {/* shine that sweeps once on settle */}
+        {/* Inner edge shadow for depth */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[1.25rem]"
+          style={{
+            boxShadow: isLight
+              ? "inset 0 1px 3px rgba(0,0,0,0.06), inset 0 -1px 2px rgba(255,255,255,0.8)"
+              : "inset 0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.05)",
+          }}
+          aria-hidden
+        />
+
+        {/* Shine sweep on settle */}
         <AnimatePresence>
           {phase === "settled" && !reduced && (
             <motion.div
@@ -104,69 +105,99 @@ export default function WalletCard({
           )}
         </AnimatePresence>
 
-        {/* card content */}
+        {/* Card content */}
         <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
+          {/* Top row: chip + brand */}
           <div className="flex items-start justify-between">
-            <span className="font-display text-[15px] font-semibold tracking-tight" style={{ color: skin.accent }}>
-              LAWFiC
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: skin.accent }}>
+            {/* Gold chip — raised, embossed */}
+            <div className="relative">
+              <div
+                className="h-8 w-11 rounded-[6px]"
+                style={{
+                  background: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
+                  boxShadow: isLight
+                    ? "0 1px 3px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.5)"
+                    : "0 2px 6px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)",
+                }}
+                aria-hidden
+              >
+                {/* Chip contacts — horizontal lines */}
+                <div className="flex h-full flex-col justify-center gap-[3px] px-1.5">
+                  <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
+                  <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
+                  <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
+                </div>
+              </div>
+            </div>
+
+            <span
+              className="font-display text-[11px] font-semibold uppercase tracking-[0.18em]"
+              style={{ color: skin.accent }}
+            >
               Wallet
             </span>
           </div>
 
-          {/* Gold chip */}
-          <div className="h-7 w-10 rounded-md" style={{ background: "linear-gradient(135deg,#e8c86a,#b8860b 60%,#8d6407)" }} aria-hidden>
-            <div className="m-0.5 h-[calc(100%-4px)] w-[calc(100%-4px)] rounded-[3px] border border-[#6b5612]/50" />
+          {/* Center: brand name */}
+          <div className="flex-1 flex items-center">
+            <span
+              className="font-display text-[15px] font-semibold tracking-tight"
+              style={{ color: skin.accent }}
+            >
+              LAWFiC
+            </span>
           </div>
 
-          {/* Balance — gilded figures on dark skins, ink on ivory */}
+          {/* Bottom: balance + flairs */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: skin.accent }}>
-              Available balance
+            <p
+              className="text-[10px] uppercase tracking-[0.18em]"
+              style={{ color: skin.accent }}
+            >
+              Total Balance
             </p>
             <p
               className="mt-1 font-display text-[clamp(26px,6vw,38px)] font-semibold leading-none tabular-nums"
               style={{
-                color:
-                  prefs.skin === "ivory"
-                    ? "#1c1a16"
-                    : "transparent",
-                backgroundImage:
-                  prefs.skin === "ivory"
-                    ? undefined
-                    : "linear-gradient(120deg,#e8c86a,#d4af37 45%,#f4e3a8 70%,#c79b2c)",
-                WebkitBackgroundClip: prefs.skin === "ivory" ? undefined : "text",
-                backgroundClip: prefs.skin === "ivory" ? undefined : "text",
+                color: isLight ? "#1c1a16" : "transparent",
+                backgroundImage: isLight
+                  ? undefined
+                  : "linear-gradient(120deg,#e8c86a,#d4af37 45%,#f4e3a8 70%,#c79b2c)",
+                WebkitBackgroundClip: isLight ? undefined : "text",
+                backgroundClip: isLight ? undefined : "text",
               }}
             >
               {balanceLabel}
             </p>
+
+            {/* Flairs row */}
+            {flairs.length > 0 && (
+              <div className="mt-2 flex items-center gap-1.5">
+                {flairs.map((f, i) => (
+                  <motion.span
+                    key={f!.id}
+                    initial={reduced ? false : { opacity: 0, y: 6, scale: 0.7 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.35 + i * 0.08 }}
+                    title={f!.label}
+                    aria-label={f!.label}
+                    className="flex size-7 items-center justify-center rounded-full"
+                    style={{
+                      background: skin.accent,
+                      color: isLight ? "#1c1a16" : "#17140c",
+                      boxShadow: isLight
+                        ? "0 1px 3px rgba(0,0,0,0.12)"
+                        : "0 4px 12px -4px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    <span className="h-3.5 w-3.5">{f!.glyph}</span>
+                  </motion.span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
-
-      {/* Flairs — pinned along the bottom edge of the card face */}
-      <AnimatePresence>
-        {flairs.length > 0 && (
-          <div className="absolute -bottom-3 left-5 right-5 flex items-center gap-2">
-            {flairs.map((f, i) => (
-              <motion.span
-                key={f!.id}
-                initial={reduced ? false : { opacity: 0, y: 8, scale: 0.7 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.35 + i * 0.08 }}
-                title={f!.label}
-                aria-label={f!.label}
-                className="flex size-8 items-center justify-center rounded-full text-[#17140c]"
-                style={{ background: skin.accent, boxShadow: "0 8px 20px -8px rgba(0,0,0,0.6)" }}
-              >
-                <span className="h-4 w-4">{f!.glyph}</span>
-              </motion.span>
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

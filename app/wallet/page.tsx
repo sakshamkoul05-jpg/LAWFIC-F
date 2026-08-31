@@ -26,17 +26,10 @@ type Entry = {
 export default async function WalletPage() {
   const supabase = await createClient();
 
-  // No session (signed out, or Supabase not configured) → show the interactive
-  // demo. It is hardcoded sample data and never touches the database, so it
-  // works for any visitor, Supabase or not.
-  if (!supabase) {
-    return <WalletDemo />;
-  }
+  if (!supabase) return <WalletDemo />;
 
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) {
-    return <WalletDemo />;
-  }
+  if (!auth.user) return <WalletDemo />;
 
   const [{ data: balanceData }, { data: entries }, { data: prefsRow }] = await Promise.all([
     supabase.rpc("my_wallet_balance"),
@@ -53,77 +46,120 @@ export default async function WalletPage() {
   const prefs = normalizePrefs(prefsRow) ?? DEFAULT_PREFS;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-xl">
       {isRazorpayTestMode && (
-        <p className="mb-5 text-center text-[12.5px] text-[#f4f4ee]/45">
+        <p className="mb-5 text-center text-[12.5px] opacity-50">
           Test mode — no real money moves
         </p>
       )}
 
-      {/* The collector card — your material, your badges, counted balance */}
-      <div className="flex flex-col items-center">
+      {/* Pocket / cardholder */}
+      <div className="wallet-pocket p-4 sm:p-5">
         <WalletCard prefs={prefs} balancePaise={balancePaise} animateBalance />
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        {/* Quick actions inside the pocket */}
+        <div className="mt-5 flex items-center gap-3">
           <Link
             href="/wallet/topup"
-            className="rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b] transition-all hover:bg-[#e8c86a] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.5)]"
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[13px] font-semibold transition-all"
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #c79b2c)",
+              color: "#0b0b0b",
+              boxShadow: "0 4px 16px -4px rgba(212,175,55,0.4)",
+            }}
           >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M8 3v10M3 8h10" />
+            </svg>
             Add money
           </Link>
           <Link
             href="/wallet/customize"
-            className="rounded-full border border-white/12 bg-white/5 px-6 py-3 text-sm font-medium text-[#f4f4ee] transition-colors hover:bg-white/10"
+            className="flex items-center justify-center rounded-2xl border px-4 py-3.5 text-[13px] font-medium transition-colors"
+            style={{ borderColor: "var(--wallet-pocket-border)", color: "var(--wallet-scene-fg)" }}
           >
-            Customize card
-          </Link>
-          <Link
-            href="/wallet/transactions"
-            className="rounded-full border border-white/12 bg-white/5 px-6 py-3 text-sm font-medium text-[#f4f4ee] transition-colors hover:bg-white/10"
-          >
-            Statement{rows.length > 0 ? ` · ${rows.length}` : ""}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.5 1.5l2 2-9 9H3.5v-2l9-9z" />
+            </svg>
           </Link>
         </div>
       </div>
 
-      <div className="glass-panel mt-12 overflow-hidden rounded-3xl">
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d4af37]">
+      {/* Quick links row */}
+      <div className="mt-5 flex gap-3">
+        <Link
+          href="/wallet/topup"
+          className="wallet-glass flex flex-1 items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-white/10"
+        >
+          <div className="flex size-10 items-center justify-center rounded-full bg-[#d4af37]/15 text-[#d4af37]">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M8 3v10M3 8h10" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[13px] font-medium opacity-90">Top up</p>
+            <p className="text-[11px] opacity-50">Add funds to your wallet</p>
+          </div>
+        </Link>
+        <Link
+          href="/wallet/transactions"
+          className="wallet-glass flex flex-1 items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-white/10"
+        >
+          <div className="flex size-10 items-center justify-center rounded-full bg-[#d4af37]/15 text-[#d4af37]">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3h10M3 8h7M3 13h4" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[13px] font-medium opacity-90">Statement{rows.length > 0 ? ` · ${rows.length}` : ""}</p>
+            <p className="text-[11px] opacity-50">See all transactions</p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Recent activity */}
+      <div className="wallet-glass mt-5 overflow-hidden rounded-3xl">
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#d4af37]">
             Recent activity
           </p>
           <Link
             href="/wallet/transactions"
-            className="text-[13px] font-medium text-[#f4f4ee]/60 hover:text-[#f4f4ee]"
+            className="text-[12px] font-medium opacity-50 hover:opacity-80 transition-opacity"
           >
             See all →
           </Link>
         </div>
 
         {rows.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <p className="text-[14.5px] text-[#f4f4ee]/65">Nothing here yet.</p>
-            <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-[#f4f4ee]/45">
-              Add money and every credit and debit will be listed here, each opening into its own
-              detail.
+          <div className="px-5 py-10 text-center">
+            <p className="text-[14px] opacity-60">Nothing here yet.</p>
+            <p className="mx-auto mt-2 max-w-xs text-[12px] leading-relaxed opacity-40">
+              Add money and every credit and debit will be listed here, each opening into its own detail.
             </p>
             <Link
               href="/wallet/topup"
-              className="mt-6 inline-block rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b]"
+              className="mt-5 inline-block rounded-full bg-[#d4af37] px-5 py-2.5 text-[13px] font-semibold text-[#0b0b0b]"
             >
               Add money
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y" style={{ borderColor: "var(--wallet-pocket-border)" }}>
             {rows.map((r) => (
               <li key={r.id}>
                 <Link
                   href={`/wallet/transactions/${r.id}`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-white/5"
+                  className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/5"
                 >
+                  <div className="flex size-10 items-center justify-center rounded-full" style={{ background: "var(--wallet-pocket-bg)" }}>
+                    <span className="text-[13px] font-semibold opacity-70">
+                      {r.direction === "credit" ? "+" : "−"}
+                    </span>
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] text-[#f4f4ee]">{r.reason}</p>
-                    <p className="mt-1 font-mono text-[11px] tracking-[0.04em] text-[#f4f4ee]/40">
+                    <p className="truncate text-[13px] font-medium opacity-90">{r.reason}</p>
+                    <p className="mt-0.5 font-mono text-[11px] opacity-40">
                       {new Date(r.created_at).toLocaleDateString("en-IN", {
                         day: "2-digit",
                         month: "short",
@@ -132,8 +168,8 @@ export default async function WalletPage() {
                     </p>
                   </div>
                   <p
-                    className={`shrink-0 font-mono text-[14px] tabular-nums ${
-                      r.direction === "credit" ? "text-[#7fc98e]" : "text-[#f4f4ee]"
+                    className={`shrink-0 font-mono text-[14px] tabular-nums font-medium ${
+                      r.direction === "credit" ? "text-[#4cc38a]" : "opacity-70"
                     }`}
                   >
                     {formatEntry(r.direction, r.amount_paise)}
@@ -144,14 +180,13 @@ export default async function WalletPage() {
           </ul>
         )}
 
-        <p className="border-t border-white/10 px-6 py-4 text-[12px] leading-relaxed text-[#f4f4ee]/40">
-          Balance is usable only for LAWFIC services — it cannot be transferred to another user or
-          withdrawn to a bank account.
+        <p className="border-t px-5 py-3.5 text-[11px] leading-relaxed opacity-35" style={{ borderColor: "var(--wallet-pocket-border)" }}>
+          Balance is usable only for LAWFIC services — it cannot be transferred or withdrawn.
         </p>
       </div>
 
       {!isRazorpayConfigured && (
-        <p className="mt-6 text-center text-[12.5px] text-[#f4f4ee]/40">
+        <p className="mt-5 text-center text-[12px] opacity-40">
           Payments are not switched on yet. Add the Razorpay keys and top-ups go live.
         </p>
       )}
