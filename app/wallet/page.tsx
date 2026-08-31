@@ -26,21 +26,16 @@ type Entry = {
 export default async function WalletPage() {
   const supabase = await createClient();
 
+  // No session (signed out, or Supabase not configured) → show the interactive
+  // demo. It is hardcoded sample data and never touches the database, so it
+  // works for any visitor, Supabase or not.
   if (!supabase) {
-    return <Prompt title="The wallet is not connected yet" />;
+    return <WalletDemo />;
   }
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
-    return (
-      <div className="mx-auto max-w-4xl">
-        <p className="mb-6 text-center text-[15px] leading-relaxed text-[#f4f4ee]/70">
-          Meet your wallet before you make it official — pick a material and pin a few badges to
-          see the card come together.
-        </p>
-        <WalletDemo />
-      </div>
-    );
+    return <WalletDemo />;
   }
 
   const [{ data: balanceData }, { data: entries }, { data: prefsRow }] = await Promise.all([
@@ -160,20 +155,6 @@ export default async function WalletPage() {
           Payments are not switched on yet. Add the Razorpay keys and top-ups go live.
         </p>
       )}
-    </div>
-  );
-}
-
-function Prompt({ title }: { title: string }) {
-  return (
-    <div className="glass-panel mx-auto max-w-xl rounded-3xl p-8 text-center">
-      <p className="text-[15px] text-[#f4f4ee]">{title}</p>
-      <Link
-        href="/login?next=/wallet"
-        className="mt-6 inline-block rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b]"
-      >
-        Sign in
-      </Link>
     </div>
   );
 }
