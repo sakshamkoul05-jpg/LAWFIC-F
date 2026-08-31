@@ -3,17 +3,17 @@
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { formatPaise } from "@/lib/money";
-import { getSkin, type WalletPrefs } from "@/lib/wallet-custom";
-import AvatarRenderer from "./AvatarRenderer";
+import { getCardType, type WalletPrefs } from "@/lib/wallet-custom";
+import DiceBearAvatar from "./DiceBearAvatar";
 
 export type CardPhase = "idle" | "forming" | "settled";
 
 /**
- * The LAWFIC collector card — skeuomorphic physical card with gold chip,
- * avatar, layered depth, and material texture. Reveals itself like a card
- * pulled from a wallet, and morphs through top-up states.
+ * The LAWFIC collector card — physical card with layered depth, material
+ * texture, and a DiceBear avatar. Each card type has its own gradient,
+ * accent, and chip style. Reveals itself like a card pulled from a wallet
+ * and morphs through top-up states.
  *
- * Theme-aware: adapts shadows, text colors, and glow to light/dark.
  * All motion honours prefers-reduced-motion.
  */
 export default function WalletCard({
@@ -30,7 +30,7 @@ export default function WalletCard({
   className?: string;
 }) {
   const reduced = useReducedMotion();
-  const skin = getSkin(prefs.skin) ?? getSkin("gilded")!;
+  const ct = getCardType(prefs.cardType) ?? getCardType("standard")!;
 
   const shown = useMotionValue(balancePaise);
   const [shownText, setShownText] = useState(formatPaise(balancePaise));
@@ -46,8 +46,6 @@ export default function WalletCard({
   }, [balancePaise, animateBalance, reduced, shown]);
   const balanceLabel = animateBalance ? shownText : formatPaise(balancePaise);
 
-  const isLight = prefs.skin === "ivory";
-
   return (
     <motion.div
       className={`relative aspect-[1.586] w-full max-w-md select-none ${className}`}
@@ -59,34 +57,27 @@ export default function WalletCard({
       {/* Card body */}
       <motion.div
         className="absolute inset-0 overflow-hidden rounded-[1.25rem]"
-        style={{ background: skin.bg }}
+        style={{ background: ct.gradient }}
         animate={
           phase === "forming"
-            ? { boxShadow: "0 30px 90px -28px rgba(212,175,55,0.55), inset 0 0 0 2px rgba(212,175,55,0.6)" }
+            ? { boxShadow: `0 30px 90px -28px ${ct.accent}55, inset 0 0 0 2px ${ct.accent}60` }
             : phase === "settled"
-              ? { scale: 1.015, boxShadow: "0 34px 90px -28px rgba(212,175,55,0.6), inset 0 1px 0 rgba(255,255,255,0.12)" }
-              : { scale: 1, boxShadow: isLight
-                  ? "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.12), 0 24px 56px -12px rgba(0,0,0,0.18)"
-                  : "0 30px 70px -30px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.08)"
-              }
+              ? { scale: 1.015, boxShadow: `0 34px 90px -28px ${ct.accent}60, inset 0 1px 0 ${ct.accent}18` }
+              : { scale: 1, boxShadow: "0 2px 4px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.12), 0 24px 56px -12px rgba(0,0,0,0.18)" }
         }
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        {/* Material vein */}
+        {/* Material vein — subtle texture overlay */}
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: `radial-gradient(120% 90% at 85% 0%, ${skin.vein}, transparent 60%)` }}
+          style={{ background: `radial-gradient(120% 90% at 85% 0%, ${ct.accent}12, transparent 60%)` }}
           aria-hidden
         />
 
         {/* Inner edge shadow */}
         <div
           className="pointer-events-none absolute inset-0 rounded-[1.25rem]"
-          style={{
-            boxShadow: isLight
-              ? "inset 0 1px 3px rgba(0,0,0,0.06), inset 0 -1px 2px rgba(255,255,255,0.8)"
-              : "inset 0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.05)",
-          }}
+          style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.12), inset 0 -1px 2px rgba(255,255,255,0.08)" }}
           aria-hidden
         />
 
@@ -107,29 +98,28 @@ export default function WalletCard({
 
         {/* Card content */}
         <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
-          {/* Top row: chip + "Wallet" */}
+          {/* Top row: chip + card type label */}
           <div className="flex items-start justify-between">
+            {/* Chip */}
             <div
               className="h-8 w-11 rounded-[6px]"
               style={{
-                background: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
-                boxShadow: isLight
-                  ? "0 1px 3px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.5)"
-                  : "0 2px 6px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)",
+                background: ct.chipGradient,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.2)",
               }}
               aria-hidden
             >
               <div className="flex h-full flex-col justify-center gap-[3px] px-1.5">
-                <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
-                <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
-                <div className="h-px rounded-full" style={{ background: isLight ? "rgba(139,101,8,0.35)" : "rgba(139,101,8,0.6)" }} />
+                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
+                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
+                <div className="h-px rounded-full" style={{ background: "rgba(0,0,0,0.25)" }} />
               </div>
             </div>
             <span
               className="font-display text-[11px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: skin.accent }}
+              style={{ color: ct.accent }}
             >
-              Wallet
+              {ct.name}
             </span>
           </div>
 
@@ -139,18 +129,20 @@ export default function WalletCard({
               initial={reduced ? false : { opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 18, delay: 0.2 }}
+              className="rounded-full"
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
             >
-              <AvatarRenderer avatar={prefs.avatar} size={56} />
+              <DiceBearAvatar seed={prefs.avatarSeed} size={56} />
             </motion.div>
             <div>
               <span
                 className="font-display text-[15px] font-semibold tracking-tight"
-                style={{ color: skin.accent }}
+                style={{ color: ct.accent }}
               >
                 LAWFiC
               </span>
-              <p className="text-[10px] opacity-50" style={{ color: skin.accent }}>
-                {prefs.avatar.clothes === "suit" ? "Advocate" : prefs.avatar.clothes === "kurta" ? "Counsel" : "Member"}
+              <p className="text-[10px]" style={{ color: ct.accentSub }}>
+                {prefs.cardType === "advocate" ? "Advocate" : prefs.cardType === "business" ? "Business" : prefs.cardType === "student" ? "Student" : "Member"}
               </p>
             </div>
           </div>
@@ -159,20 +151,13 @@ export default function WalletCard({
           <div>
             <p
               className="text-[10px] uppercase tracking-[0.18em]"
-              style={{ color: skin.accent }}
+              style={{ color: ct.accentSub }}
             >
               Total Balance
             </p>
             <p
               className="mt-1 font-display text-[clamp(26px,6vw,38px)] font-semibold leading-none tabular-nums"
-              style={{
-                color: isLight ? "#1c1a16" : "transparent",
-                backgroundImage: isLight
-                  ? undefined
-                  : "linear-gradient(120deg,#e8c86a,#d4af37 45%,#f4e3a8 70%,#c79b2c)",
-                WebkitBackgroundClip: isLight ? undefined : "text",
-                backgroundClip: isLight ? undefined : "text",
-              }}
+              style={{ color: ct.accent }}
             >
               {balanceLabel}
             </p>

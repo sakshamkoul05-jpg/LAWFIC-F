@@ -1,210 +1,128 @@
 import type { ReactNode } from "react";
-import { normalizeAvatar, DEFAULT_AVATAR, type AvatarPrefs } from "./wallet-avatar";
 
 /**
  * The LAWFIC wallet "collector card" customization kit.
  *
- * A wallet feels owned when it can become yours: a material (skin) you choose
- * for the card face, and an avatar that represents you on the card. Everything
- * here is cosmetic — a skin or an avatar never touches a balance, the ledger,
- * or an order. That boundary is the point of the feature.
+ * A wallet feels owned when it can become yours: a card type that reflects
+ * your identity, and an avatar (DiceBear) that represents you on the card.
+ * Everything here is cosmetic — a card type or avatar never touches a balance,
+ * the ledger, or an order. That boundary is the point of the feature.
  *
  * Validation lives here because the server route, the customize form, and the
  * card all need the same idea of what is a valid choice.
  */
 
-export type SkinId =
-  | "gilded"
-  | "midnight-satin"
-  | "jade"
-  | "slate-onyx"
-  | "ivory"
-  | "rose-brass";
+// ─── Card Types ─────────────────────────────────────────────────────────────
 
-export type FlairId =
-  | "scales"
-  | "pillar"
-  | "quill"
-  | "shield"
-  | "star"
-  | "bolt";
+export type CardTypeId = "standard" | "premium" | "business" | "student" | "advocate";
 
-export type WalletPrefs = {
-  skin: SkinId;
-  flairs: FlairId[];
-  avatar: AvatarPrefs;
-};
-
-export type Skin = {
-  id: SkinId;
+export type CardType = {
+  id: CardTypeId;
   name: string;
   desc: string;
-  /** CSS background for the card face. */
-  bg: string;
-  /** A small CSS value for the chip + accents so it reads on the material. */
+  /** CSS gradient for the card face. */
+  gradient: string;
+  /** Primary accent color (text, chip, highlights). */
   accent: string;
-  /** Overlay tint applied to the card face. */
-  vein: string;
+  /** Secondary accent (subtle text, badges). */
+  accentSub: string;
+  /** Gradient for the gold chip area. */
+  chipGradient: string;
+  /** CSS gradient for the pocket body. */
+  pocketGradient: string;
 };
 
-export type Flair = {
-  id: FlairId;
-  label: string;
-  /** An inline SVG glyph (24x24 viewBox). */
-  glyph: ReactNode;
-};
-
-export const MAX_FLAIRS = 3;
-
-export const SKINS: Skin[] = [
+export const CARD_TYPES: CardType[] = [
   {
-    id: "gilded",
-    name: "Gilded",
-    desc: "Warm gold leaf on dark. The signature.",
-    bg: "radial-gradient(140% 120% at 20% 10%, #3a2f12 0%, #17140c 45%, #0d0c08 100%)",
+    id: "standard",
+    name: "Standard",
+    desc: "The classic purple — clean, confident, yours.",
+    gradient: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 40%, #5b21b6 100%)",
+    accent: "#ffffff",
+    accentSub: "rgba(255,255,255,0.7)",
+    chipGradient: "linear-gradient(135deg, #e8c86a 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
+    pocketGradient: "linear-gradient(135deg, #4c1d95 0%, #3b0764 100%)",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    desc: "Gold on dark — for the ones who lead.",
+    gradient: "linear-gradient(135deg, #1c1917 0%, #292524 40%, #1c1917 100%)",
     accent: "#e8c86a",
-    vein: "rgba(232,200,106,0.10)",
+    accentSub: "rgba(232,200,106,0.7)",
+    chipGradient: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
+    pocketGradient: "linear-gradient(135deg, #0c0a09 0%, #1c1917 100%)",
   },
   {
-    id: "midnight-satin",
-    name: "Midnight Satin",
-    desc: "Cool graphite with a soft sheen.",
-    bg: "linear-gradient(150deg, #23262b 0%, #14161a 55%, #0c0d10 100%)",
-    accent: "#b9c2cf",
-    vein: "rgba(255,255,255,0.05)",
+    id: "business",
+    name: "Business",
+    desc: "Charcoal and silver — sharp and professional.",
+    gradient: "linear-gradient(135deg, #374151 0%, #1f2937 40%, #111827 100%)",
+    accent: "#d1d5db",
+    accentSub: "rgba(209,213,219,0.6)",
+    chipGradient: "linear-gradient(135deg, #e5e7eb 0%, #9ca3af 35%, #6b7280 70%, #4b5563 100%)",
+    pocketGradient: "linear-gradient(135deg, #111827 0%, #030712 100%)",
   },
   {
-    id: "jade",
-    name: "Jade",
-    desc: "Deep green, calm and assured.",
-    bg: "linear-gradient(150deg, #173c30 0%, #0e241c 60%, #08140f 100%)",
-    accent: "#7fc98e",
-    vein: "rgba(127,201,142,0.08)",
+    id: "student",
+    name: "Student",
+    desc: "Teal and bright — for the ones starting out.",
+    gradient: "linear-gradient(135deg, #06b6d4 0%, #0891b2 40%, #0e7490 100%)",
+    accent: "#ffffff",
+    accentSub: "rgba(255,255,255,0.7)",
+    chipGradient: "linear-gradient(135deg, #e8c86a 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
+    pocketGradient: "linear-gradient(135deg, #155e75 0%, #164e63 100%)",
   },
   {
-    id: "slate-onyx",
-    name: "Slate Onyx",
-    desc: "Near-black with a faint blue cast.",
-    bg: "linear-gradient(150deg, #1a1f26 0%, #10141a 55%, #090c10 100%)",
-    accent: "#8fa5bf",
-    vein: "rgba(143,165,191,0.06)",
-  },
-  {
-    id: "ivory",
-    name: "Ivory",
-    desc: "Ink on warm bone — an editorial ledger.",
-    bg: "linear-gradient(150deg, #f1e9d8 0%, #e6dcc5 55%, #d9cdb2 100%)",
-    accent: "#1c1a16",
-    vein: "rgba(28,26,22,0.05)",
-  },
-  {
-    id: "rose-brass",
-    name: "Rose Brass",
-    desc: "Warm copper-rose, softly burnished.",
-    bg: "linear-gradient(150deg, #3c2430 0%, #271720 55%, #170c12 100%)",
-    accent: "#d9a9b4",
-    vein: "rgba(217,169,180,0.08)",
+    id: "advocate",
+    name: "Advocate",
+    desc: "Deep blue and gold — the legal seal.",
+    gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 40%, #1d4ed8 100%)",
+    accent: "#e8c86a",
+    accentSub: "rgba(232,200,106,0.7)",
+    chipGradient: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
+    pocketGradient: "linear-gradient(135deg, #172554 0%, #1e3a5f 100%)",
   },
 ];
 
-export const FLAIRS: Flair[] = [
-  {
-    id: "scales",
-    label: "Legal Eagle",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3v18" />
-        <path d="M4 7h16" />
-        <path d="M7 7l-3 5a3 3 0 0 0 5 0l-2-5" />
-        <path d="M17 7l-3 5a3 3 0 0 0 5 0l-2-5" />
-      </svg>
-    ),
-  },
-  {
-    id: "pillar",
-    label: "Justice",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 21h18" />
-        <path d="M5 21V10M12 21V6M19 21V10" />
-        <path d="M3 10h16" />
-        <path d="M9 6h6" />
-        <path d="M12 3v3" />
-      </svg>
-    ),
-  },
-  {
-    id: "quill",
-    label: "Advocate",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 4c-3 1-11 7-13 13l-1 4" />
-        <path d="M16 8c0 2 0 7-3 9" />
-        <path d="M4 10v4h4" />
-      </svg>
-    ),
-  },
-  {
-    id: "shield",
-    label: "Counsel",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z" />
-        <path d="M9 12l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    id: "star",
-    label: "Top filer",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
-        <path d="M12 3l2.5 6 6.5.5-5 4 1.5 6.5L12 17l-5.5 3 1.5-6.5-5-4 6.5-.5L12 3z" />
-      </svg>
-    ),
-  },
-  {
-    id: "bolt",
-    label: "Swift payer",
-    glyph: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 3L5 13h6l-1 8 8-10h-6l1-8z" />
-      </svg>
-    ),
-  },
+// ─── Wallet Prefs ───────────────────────────────────────────────────────────
+
+export type WalletPrefs = {
+  cardType: CardTypeId;
+  avatarSeed: string;
+};
+
+export const DEFAULT_PREFS: WalletPrefs = {
+  cardType: "standard",
+  avatarSeed: "Felix",
+};
+
+/** Pre-set avatar seeds for the picker — names that produce good lorelei avatars. */
+export const AVATAR_SEEDS = [
+  "Felix", "Aneka", "Jasper", "Lola", "Milo",
+  "Nala", "Oscar", "Piper", "Quinn", "Remy",
+  "Sage", "Toni", "Uma", "Vex", "Wren",
 ];
 
-export const DEFAULT_PREFS: WalletPrefs = { skin: "gilded", flairs: [], avatar: DEFAULT_AVATAR };
-
-export function getSkin(id: string): Skin | undefined {
-  return SKINS.find((s) => s.id === id);
-}
-
-export function getFlair(id: string): Flair | undefined {
-  return FLAIRS.find((f) => f.id === id);
+export function getCardType(id: string): CardType | undefined {
+  return CARD_TYPES.find((ct) => ct.id === id);
 }
 
 /**
  * Accepts unknown input from the wire and returns a valid WalletPrefs, or null
  * if it is irredeemably malformed. Used by the PUT route so the browser can
- * never plant a bogus skin. `flairs` are de-duplicated, trimmed to MAX_FLAIRS,
- * and only valid ids are kept. `avatar` is normalised via normalizeAvatar.
+ * never plant a bogus card type. avatarSeed is trimmed and capped at 64 chars.
  */
 export function normalizePrefs(input: unknown): WalletPrefs | null {
   if (!input || typeof input !== "object") return null;
   const obj = input as Record<string, unknown>;
 
-  const skin = getSkin(String(obj.skin ?? ""))?.id;
-  if (!skin) return null;
+  const cardType = getCardType(String(obj.cardType ?? ""))?.id;
+  if (!cardType) return null;
 
-  if (!Array.isArray(obj.flairs)) return null;
-  const seen = new Set<FlairId>();
-  for (const id of obj.flairs) {
-    const f = getFlair(String(id));
-    if (f && !seen.has(f.id) && seen.size < MAX_FLAIRS) seen.add(f.id);
-  }
+  const rawSeed = typeof obj.avatarSeed === "string" ? obj.avatarSeed.trim() : "";
+  if (!rawSeed) return null;
+  const avatarSeed = rawSeed.slice(0, 64);
 
-  const avatar = normalizeAvatar(obj.avatar as Partial<AvatarPrefs> | null | undefined);
-
-  return { skin, flairs: [...seen], avatar };
+  return { cardType, avatarSeed };
 }

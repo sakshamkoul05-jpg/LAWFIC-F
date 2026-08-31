@@ -1,4 +1,4 @@
--- wallet_prefs: per-user wallet card customization (skin + avatar).
+-- wallet_prefs: per-user wallet card customization (cardType + avatarSeed).
 --
 -- Cosmetic only. Never touches balances, the ledger, or orders. Scoped to the
 -- owner via RLS so a user can only read and write their own row.
@@ -7,11 +7,10 @@
 -- through the anon key and lets RLS decide, matching the wallet_entries model.
 
 create table if not exists public.wallet_prefs (
-  user_id    uuid primary key references auth.users (id) on delete cascade,
-  skin       text not null default 'gilded',
-  flairs     text[] not null default '{}',
-  avatar     jsonb not null default '{"skinTone":"medium","hairStyle":"short","hairColor":"black","eyeStyle":"round","mouthStyle":"smile","clothes":"suit","accessory":"none"}'::jsonb,
-  updated_at timestamptz not null default now()
+  user_id      uuid primary key references auth.users (id) on delete cascade,
+  card_type    text not null default 'standard',
+  avatar_seed  text not null default 'Felix',
+  updated_at   timestamptz not null default now()
 );
 
 alter table public.wallet_prefs enable row level security;

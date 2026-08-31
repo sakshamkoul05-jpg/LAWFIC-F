@@ -320,11 +320,9 @@
 }
 
 /* ============================================================
-   Wallet — CRED-style dark glass presentation
-   A self-contained dark backdrop with glass panels and gold
-   accents, used under the /wallet routes.
-   Automatically switches between dark and light scenes based
-   on the active theme.
+   Wallet — Purple gradient theme
+   A self-contained purple backdrop with glass panels, used under
+   the /wallet routes. Matches the reference fintech UI style.
    ============================================================ */
 .wallet-scene {
   color: var(--wallet-scene-fg);
@@ -333,18 +331,18 @@
 [data-theme="dark"] .wallet-scene,
 :root:not([data-theme="light"]) .wallet-scene {
   background:
-    radial-gradient(90% 60% at 20% 0%, rgba(212, 175, 55, 0.10), transparent 55%),
-    radial-gradient(80% 60% at 85% 15%, rgba(212, 175, 55, 0.08), transparent 50%),
-    linear-gradient(to bottom, #0b0b0b, #0d0d0c);
-  --wallet-scene-fg: #f4f4ee;
+    radial-gradient(90% 60% at 20% 0%, rgba(124, 58, 237, 0.15), transparent 55%),
+    radial-gradient(80% 60% at 85% 15%, rgba(109, 40, 217, 0.12), transparent 50%),
+    linear-gradient(to bottom, #0f051a, #1a0a2e);
+  --wallet-scene-fg: #f4f0ff;
 }
 
 [data-theme="light"] .wallet-scene {
   background:
-    radial-gradient(90% 60% at 20% 0%, rgba(168, 121, 10, 0.06), transparent 55%),
-    radial-gradient(80% 60% at 85% 15%, rgba(168, 121, 10, 0.04), transparent 50%),
-    linear-gradient(to bottom, #f5f0e8, #ede6d8);
-  --wallet-scene-fg: #1a1a2e;
+    radial-gradient(90% 60% at 20% 0%, rgba(124, 58, 237, 0.08), transparent 55%),
+    radial-gradient(80% 60% at 85% 15%, rgba(109, 40, 217, 0.06), transparent 50%),
+    linear-gradient(to bottom, #f5f0ff, #ede4fa);
+  --wallet-scene-fg: #1a0a2e;
 }
 
 .wallet-scene a,
@@ -364,18 +362,18 @@
 
 [data-theme="dark"] .glass-panel,
 :root:not([data-theme="light"]) .glass-panel {
-  --wallet-glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  --wallet-glass-border: rgba(255, 255, 255, 0.08);
+  --wallet-glass-bg: linear-gradient(160deg, rgba(124, 58, 237, 0.08), rgba(109, 40, 217, 0.03));
+  --wallet-glass-border: rgba(124, 58, 237, 0.12);
   --wallet-glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 18px 40px -24px rgba(0, 0, 0, 0.7);
 }
 
 [data-theme="light"] .glass-panel {
   --wallet-glass-bg: rgba(255, 255, 255, 0.7);
-  --wallet-glass-border: rgba(0, 0, 0, 0.06);
+  --wallet-glass-border: rgba(124, 58, 237, 0.08);
   --wallet-glass-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(124, 58, 237, 0.06),
     0 12px 32px -8px rgba(0, 0, 0, 0.08);
 }
 
@@ -388,18 +386,18 @@
   --wallet-card-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 24px 60px -28px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(212, 175, 55, 0.12);
+    0 0 0 1px rgba(124, 58, 237, 0.15);
 }
 
 [data-theme="light"] .wallet-card-glow {
   --wallet-card-shadow:
     0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 24px -4px rgba(0, 0, 0, 0.12),
+    0 8px 24px -4px rgba(124, 58, 237, 0.12),
     0 24px 56px -12px rgba(0, 0, 0, 0.18);
 }
 
 .wallet-gold-text {
-  background: linear-gradient(120deg, #e8c86a, #d4af37 40%, #f4e3a8 60%, #c79b2c);
+  background: linear-gradient(120deg, #a78bfa, #7c3aed 40%, #c4b5fd 60%, #6d28d9);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -411,19 +409,8 @@
 }
 
 /* ============================================================
-   Wallet — Skeuomorphic light + dark
-   Physical card-in-pocket feel with layered depth, soft shadows,
-   and material textures.
+   Wallet — Purple pocket + glass
    ============================================================ */
-
-/* Light scene — warm cream backdrop */
-.wallet-scene-light {
-  background:
-    radial-gradient(90% 60% at 20% 0%, rgba(168, 121, 10, 0.06), transparent 55%),
-    radial-gradient(80% 60% at 85% 15%, rgba(168, 121, 10, 0.04), transparent 50%),
-    linear-gradient(to bottom, #f5f0e8, #ede6d8);
-  color: #1a1a2e;
-}
 
 /* Glass panel — adapts to light/dark via CSS vars */
 .wallet-glass {
@@ -435,46 +422,46 @@
 :root,
 [data-theme="light"] {
   --wallet-glass-bg: rgba(255, 255, 255, 0.7);
-  --wallet-glass-border: rgba(0, 0, 0, 0.06);
+  --wallet-glass-border: rgba(124, 58, 237, 0.08);
   --wallet-glass-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(124, 58, 237, 0.06),
     0 12px 32px -8px rgba(0, 0, 0, 0.08);
   --wallet-card-shadow:
     0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 24px -4px rgba(0, 0, 0, 0.12),
+    0 8px 24px -4px rgba(124, 58, 237, 0.12),
     0 24px 56px -12px rgba(0, 0, 0, 0.18);
   --wallet-card-shadow-hover:
     0 4px 8px rgba(0, 0, 0, 0.06),
-    0 16px 40px -4px rgba(0, 0, 0, 0.16),
+    0 16px 40px -4px rgba(124, 58, 237, 0.16),
     0 32px 72px -12px rgba(0, 0, 0, 0.22);
-  --wallet-pocket-bg: rgba(255, 255, 255, 0.55);
-  --wallet-pocket-border: rgba(0, 0, 0, 0.06);
+  --wallet-pocket-bg: rgba(76, 29, 149, 0.12);
+  --wallet-pocket-border: rgba(124, 58, 237, 0.1);
   --wallet-pocket-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+    0 4px 16px -4px rgba(124, 58, 237, 0.12);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.08), transparent);
 }
 
 [data-theme="dark"] {
-  --wallet-glass-bg: rgba(255, 255, 255, 0.04);
-  --wallet-glass-border: rgba(255, 255, 255, 0.06);
+  --wallet-glass-bg: rgba(124, 58, 237, 0.06);
+  --wallet-glass-border: rgba(124, 58, 237, 0.12);
   --wallet-glass-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 18px 40px -24px rgba(0, 0, 0, 0.7);
   --wallet-card-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
     0 20px 56px -12px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(212, 175, 55, 0.08);
+    0 0 0 1px rgba(124, 58, 237, 0.12);
   --wallet-card-shadow-hover:
     0 6px 12px rgba(0, 0, 0, 0.4),
     0 28px 72px -12px rgba(0, 0, 0, 0.75),
-    0 0 0 1px rgba(212, 175, 55, 0.14);
-  --wallet-pocket-bg: rgba(255, 255, 255, 0.03);
-  --wallet-pocket-border: rgba(255, 255, 255, 0.06);
+    0 0 0 1px rgba(124, 58, 237, 0.18);
+  --wallet-pocket-bg: rgba(76, 29, 149, 0.2);
+  --wallet-pocket-border: rgba(124, 58, 237, 0.15);
   --wallet-pocket-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.2);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(255,255,255,0.04), transparent);
+    0 4px 20px -4px rgba(0, 0, 0, 0.4);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(124,58,237,0.12), transparent);
 }
 
 /* Pocket / cardholder */

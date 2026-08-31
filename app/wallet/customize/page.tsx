@@ -6,7 +6,7 @@ import CustomizePanel from "./CustomizePanel";
 
 export const metadata: Metadata = {
   title: "Customize wallet",
-  description: "Create your avatar and choose a material to make the LAWFiC wallet yours.",
+  description: "Pick your card type and create your avatar to make the LAWFiC wallet yours.",
 };
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export default async function CustomizePage() {
         <p className="text-[15px] opacity-80">Sign in to customize your wallet card.</p>
         <Link
           href="/login?next=/wallet/customize"
-          className="mt-6 inline-block rounded-full bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#0b0b0b]"
+          className="mt-6 inline-block rounded-full bg-[#7c3aed] px-6 py-3 text-sm font-semibold text-white"
         >
           Sign in
         </Link>
@@ -39,7 +39,7 @@ export default async function CustomizePage() {
 
   const [{ data: balanceData }, { data: prefsRow }] = await Promise.all([
     supabase.rpc("my_wallet_balance"),
-    supabase.from("wallet_prefs").select("skin, flairs, avatar").eq("user_id", auth.user.id).maybeSingle(),
+    supabase.from("wallet_prefs").select("card_type, avatar_seed").eq("user_id", auth.user.id).maybeSingle(),
   ]);
 
   const balancePaise = Number(balanceData ?? 0);
@@ -48,7 +48,7 @@ export default async function CustomizePage() {
   return (
     <div className="mx-auto max-w-4xl">
       <p className="mb-6 text-center text-[15px] leading-relaxed opacity-60">
-        Create your avatar and pick a material — your card becomes yours wherever you sign in.
+        Pick your card type and create your avatar — your card becomes yours wherever you sign in.
       </p>
       <CustomizePanel initial={prefs} balancePaise={balancePaise} />
     </div>

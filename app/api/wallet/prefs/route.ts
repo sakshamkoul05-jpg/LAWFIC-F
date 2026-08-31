@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Read and write a user's wallet card preferences (skin + flairs).
+ * Read and write a user's wallet card preferences (cardType + avatarSeed).
  *
  * Uses the anon key and lets RLS decide — a user can never read or write
  * anyone else's row. Cosmetic data only; no money logic here.
@@ -14,12 +14,12 @@ export const dynamic = "force-dynamic";
 async function getPrefs(supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>, userId: string) {
   const { data } = await supabase
     .from("wallet_prefs")
-    .select("skin, flairs, avatar")
+    .select("card_type, avatar_seed")
     .eq("user_id", userId)
     .maybeSingle();
 
   if (!data) return DEFAULT_PREFS;
-  const normalized = normalizePrefs(data);
+  const normalized = normalizePrefs({ cardType: data.card_type, avatarSeed: data.avatar_seed });
   return normalized ?? DEFAULT_PREFS;
 }
 
@@ -56,9 +56,8 @@ export async function PUT(request: Request) {
   const { error } = await supabase.from("wallet_prefs").upsert(
     {
       user_id: auth.user.id,
-      skin: prefs.skin,
-      flairs: prefs.flairs,
-      avatar: prefs.avatar,
+      card_type: prefs.cardType,
+      avatar_seed: prefs.avatarSeed,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" }
