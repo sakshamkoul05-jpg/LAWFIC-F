@@ -42,7 +42,7 @@ export default function PersonalizedHero({ profile }: { profile: UserProfile }) 
             <QuickLink href="/wallet" icon="💰" title="Your wallet" sub="Top up & track" />
             <QuickLink href="/jobs" icon="💼" title="Jobs" sub="Matched to you" />
             <QuickLink href="/orders" icon="📋" title="Filings" sub="Track applications" />
-            <QuickLink href="/profile/setup" icon="✏️" title="Edit profile" sub="Update interests" />
+            <QuickLink href="/profile" icon="✏️" title="Profile" sub="Update details" />
           </div>
         </div>
       </div>

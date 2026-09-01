@@ -152,7 +152,7 @@ export default function ClassicHeader() {
 
           {/* Auth */}
           {mounted && user ? (
-            <Link href="/wallet" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
+            <Link href="/profile" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
               <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white">
                 {getInitial(displayName)}
               </div>
