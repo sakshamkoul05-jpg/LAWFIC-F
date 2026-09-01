@@ -29,7 +29,7 @@ export default async function WalletPage() {
   const supabase = await createClient();
   if (!supabase) return <WalletDemo />;
 
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   if (!auth.user) return <WalletDemo />;
 
   const [{ data: balanceData }, { data: entries }, { data: prefsRow }] = await Promise.all([
