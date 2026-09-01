@@ -82,7 +82,9 @@ export default function LoginForm() {
         type: "sms",
       });
       if (error) throw error;
-      router.push(next);
+      const { data } = await supabase.auth.getUser();
+      const isNew = data.user && !data.user.user_metadata?.onboarded;
+      router.push(isNew ? "/profile/setup" : next);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That code did not work.");

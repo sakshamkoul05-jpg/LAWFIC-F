@@ -5,8 +5,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Where a magic link lands. Exchanges the one-time code for a session cookie,
- * then sends the user on to wherever they were headed.
+ * Where a magic link lands. Exchanges the one-time code for a session cookie.
+ * New users are sent to profile setup, everyone else to where they were headed.
  *
  * `next` is constrained to a path on this site — an open redirect here would
  * let a crafted link bounce a freshly signed-in user to somewhere else with
@@ -33,5 +33,11 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?error=link_expired", url.origin));
   }
 
-  return NextResponse.redirect(new URL(next, url.origin));
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // New users (no full_name metadata yet) land on profile setup first.
+  const isNew = user && !user.user_metadata?.onboarded;
+  const target = isNew ? "/profile/setup" : next;
+
+  return NextResponse.redirect(new URL(target, url.origin));
 }
