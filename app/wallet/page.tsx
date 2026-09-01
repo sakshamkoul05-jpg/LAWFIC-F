@@ -101,27 +101,46 @@ export default async function WalletPage() {
       <div className="mt-8 grid grid-cols-4 gap-3">
         {[
           { label: "Add money", icon: "M8 3v10M3 8h10", href: "/wallet/topup" },
-          { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4", href: "#" },
-          { label: "Withdraw", icon: "M3 3h10v10H3zM8 7v4M6 9h4", href: "#" },
+          { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4", soon: true },
+          { label: "Withdraw", icon: "M3 3h10v10H3zM8 7v4M6 9h4", soon: true },
           { label: "More", icon: "M4 6h8M4 10h8", href: "/wallet/transactions" },
-        ].map((a) => (
-          <Link
-            key={a.label}
-            href={a.href}
-            className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
-            style={{ color: "var(--wallet-fg)" }}
-          >
-            <div
-              className="flex size-9 items-center justify-center rounded-full"
-              style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+        ].map((a) =>
+          "href" in a ? (
+            <Link
+              key={a.label}
+              href={a.href!}
+              className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
+              style={{ color: "var(--wallet-fg)" }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d={a.icon} />
-              </svg>
-            </div>
-            {a.label}
-          </Link>
-        ))}
+              <div
+                className="flex size-9 items-center justify-center rounded-full"
+                style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d={a.icon} />
+                </svg>
+              </div>
+              {a.label}
+            </Link>
+          ) : (
+            <span
+              key={a.label}
+              title="Coming soon"
+              className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium"
+              style={{ color: "var(--wallet-fg)" }}
+            >
+              <div
+                className="flex size-9 items-center justify-center rounded-full opacity-45"
+                style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d={a.icon} />
+                </svg>
+              </div>
+              <span className="opacity-45">{a.label}</span>
+            </span>
+          )
+        )}
       </div>
 
       {/* Recent transactions */}

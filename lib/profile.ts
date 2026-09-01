@@ -173,3 +173,32 @@ export function personalizeLine(p: UserProfile): string {
     return "Your government career track";
   return "Your personalised LAWFIC";
 }
+
+/**
+ * The live LAWFIC services that matter most for a user's track, in priority
+ * order. Government-exam tracks get the identity stack first (PAN, Aadhaar) —
+ * every one of those forms hangs off identity records — while business and
+ * finance tracks get the tax/registration stack (GST, MSME, PAN).
+ */
+export function recommendedServiceSlugs(p: UserProfile): string[] {
+  const jobs = p.jobsLooking.map((j) => j.toLowerCase());
+
+  const isGovtTrack =
+    matchesTrack(p.examsPreparing, "upsc") ||
+    matchesTrack(p.examsPreparing, "banking") ||
+    matchesTrack(p.examsPreparing, "railway") ||
+    matchesTrack(p.examsPreparing, "defence") ||
+    matchesTrack(p.examsPreparing, "judiciary") ||
+    jobs.some((j) => j.includes("government"));
+
+  const isFinanceTrack =
+    matchesTrack(p.examsPreparing, "ca") || jobs.some((j) => j.includes("account"));
+
+  const isBusinessTrack =
+    jobs.some((j) => j.includes("sales")) || jobs.some((j) => j.includes("fresher"));
+
+  if (isFinanceTrack) return ["pan", "gst", "msme-udyam"];
+  if (isGovtTrack) return ["pan", "aadhaar"];
+  if (isBusinessTrack) return ["gst", "msme-udyam", "pan"];
+  return ["pan", "aadhaar"];
+}

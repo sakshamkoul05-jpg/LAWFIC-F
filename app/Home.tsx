@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ClassicHomePage from "@/components/classic/ClassicHomePage";
 import PersonalizedHero from "@/components/classic/PersonalizedHero";
+import TrackRecommendations from "@/components/classic/TrackRecommendations";
 import { isCompleteProfile, type UserProfile } from "@/lib/profile";
 
 /**
@@ -30,6 +31,7 @@ export default function Home() {
   return (
     <>
       {profile && <PersonalizedHero profile={profile} />}
+      <TrackRecommendations />
       <ClassicHomePage />
     </>
   );

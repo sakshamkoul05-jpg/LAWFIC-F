@@ -10,6 +10,7 @@ import { services as livePages } from "@/lib/services";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import Reveal from "@/components/ui/Reveal";
 import HeroStack from "@/components/motion/HeroStack";
+import TrackRecommendations from "@/components/classic/TrackRecommendations";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -66,6 +67,9 @@ export default function ServicesIndex() {
           </div>
         </div>
       </section>
+
+      {/* personalised start point for signed-in users */}
+      <TrackRecommendations />
 
       {/* jump rail */}
       <section className="sticky top-18 z-30 border-b border-border bg-surface/90 backdrop-blur-xl">
