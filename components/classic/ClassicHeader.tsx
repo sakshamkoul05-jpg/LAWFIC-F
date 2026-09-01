@@ -67,24 +67,64 @@ export default function ClassicHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface">
-      {/* Top row: Logo + Big Search Bar + Auth */}
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-2.5 sm:px-6">
+      {/* Grid: [logo | search | auth] on desktop; [logo | auth / search] on phones */}
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5 px-3 py-2.5 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4">
         {/* Logo */}
-        <Link href="/" className="shrink-0" aria-label="LAWFIC home">
+        <Link href="/" className="col-start-1 row-start-1 shrink-0 justify-self-start" aria-label="LAWFIC home">
           <Wordmark />
         </Link>
 
-        {/* Big Amazon-style search bar */}
-        <div className="mx-auto flex w-full max-w-3xl items-center">
+        {/* Right side: Theme + wallet + auth (row 1 on mobile, col 3 on desktop) */}
+        <div className="col-start-2 row-start-1 flex items-center gap-2 justify-self-end lg:col-start-3">
+          {/* Light / dark toggle */}
+          <ThemeToggle />
+
+          {/* Wallet — always visible so the wallet is one tap away */}
+          <Link
+            href="/wallet"
+            aria-label="Wallet"
+            title="Wallet"
+            className="flex size-9 items-center justify-center rounded-full border border-primary text-primary transition-colors hover:bg-primary-light"
+          >
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="11.5" cy="9.5" r="1" fill="currentColor" />
+            </svg>
+          </Link>
+
+          {/* Auth */}
+          {mounted && user ? (
+            <Link href="/profile" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
+              <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white">
+                {getInitial(displayName)}
+              </div>
+              <div className="hidden text-right lg:block">
+                <p className="text-[10px] text-muted leading-tight">{getGreeting()}</p>
+                <p className="text-[12px] font-medium text-foreground leading-tight">{displayName}</p>
+              </div>
+            </Link>
+          ) : mounted ? (
+            <Link
+              href="/login"
+              className="rounded bg-primary px-4 py-2 text-[12px] font-medium text-white transition-colors hover:bg-primary-hover"
+            >
+              Sign in
+            </Link>
+          ) : null}
+        </div>
+
+        {/* Big search bar — full-width row 2 on mobile, centre col on desktop */}
+        <div className="col-span-2 col-start-1 row-start-2 flex w-full items-center lg:col-span-1 lg:col-start-2 lg:row-start-1">
           <div className="flex w-full items-stretch overflow-hidden rounded-md border-2 border-border focus-within:border-primary transition-colors">
             {/* Category dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
-                className="flex h-full items-center gap-1 border-r border-border bg-surface-2 px-3 text-[12px] font-medium text-muted transition-colors hover:bg-surface-3"
+                className="flex h-full items-center gap-1 border-r border-border bg-surface-2 px-2.5 text-[12px] font-medium text-muted transition-colors hover:bg-surface-3 sm:px-3"
               >
-                {searchCategory}
+                <span className="whitespace-nowrap">{searchCategory}</span>
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-muted">
                   <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -113,14 +153,14 @@ export default function ClassicHeader() {
             {/* Search input */}
             <input
               type="search"
-              placeholder="Search services, documents, jobs, registrations..."
-              className="flex-1 bg-transparent px-4 py-2.5 text-[14px] text-foreground outline-none placeholder:text-subtle"
+              placeholder="Search services, documents, jobs..."
+              className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-[14px] text-foreground outline-none placeholder:text-subtle sm:px-4"
             />
 
             {/* Big search button */}
             <button
               type="button"
-              className="shrink-0 bg-primary px-5 text-white transition-colors hover:bg-primary-hover"
+              className="shrink-0 bg-primary px-4 text-white transition-colors hover:bg-primary-hover"
               aria-label="Search"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -129,46 +169,6 @@ export default function ClassicHeader() {
               </svg>
             </button>
           </div>
-        </div>
-
-        {/* Right side: Auth + utilities */}
-        <div className="flex items-center gap-2.5">
-          {/* Light / dark toggle */}
-          <ThemeToggle />
-
-          {/* Wallet — always visible so the wallet is one tap away */}
-          <Link
-            href="/wallet"
-            aria-label="Wallet"
-            title="Wallet"
-            className="flex size-9 items-center justify-center rounded-full border border-primary text-primary transition-colors hover:bg-primary-light"
-          >
-            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-              <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.2" />
-              <circle cx="11.5" cy="9.5" r="1" fill="currentColor" />
-            </svg>
-          </Link>
-
-          {/* Auth */}
-          {mounted && user ? (
-            <Link href="/profile" className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 transition-colors hover:border-primary">
-              <div className="flex size-7 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white">
-                {getInitial(displayName)}
-              </div>
-              <div className="hidden text-right md:block">
-                <p className="text-[10px] text-muted leading-tight">{getGreeting()}</p>
-                <p className="text-[12px] font-medium text-foreground leading-tight">{displayName}</p>
-              </div>
-            </Link>
-          ) : mounted ? (
-            <Link
-              href="/login"
-              className="rounded bg-primary px-4 py-2 text-[12px] font-medium text-white transition-colors hover:bg-primary-hover"
-            >
-              Sign in
-            </Link>
-          ) : null}
         </div>
       </div>
     </header>

@@ -152,7 +152,7 @@ export default function EditProfileForm() {
       {/* Basics */}
       <Card label="Personal details" title="Basics">
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="fullName" className={labelCls}>Full name</label>
               <input
@@ -175,7 +175,7 @@ export default function EditProfileForm() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="phone" className={labelCls}>Mobile</label>
               <input

@@ -72,7 +72,7 @@ export default function ServicesIndex() {
       <TrackRecommendations />
 
       {/* jump rail */}
-      <section className="sticky top-18 z-30 border-b border-border bg-surface/90 backdrop-blur-xl">
+      <section className="border-b border-border bg-surface/90 lg:sticky lg:top-[4.5rem] lg:z-30 lg:backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-5 py-3 sm:px-8">
           {categories.map((c) => (
             <a

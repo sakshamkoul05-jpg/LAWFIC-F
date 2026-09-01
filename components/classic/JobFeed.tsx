@@ -108,7 +108,7 @@ export default function JobFeed() {
                 <p className="mt-1.5 text-[14px] text-ash">{j.firm}</p>
               </div>
 
-              <dl className="grid grid-cols-3 gap-4 md:grid-cols-1 md:gap-2.5">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-1 md:gap-2.5">
                 <div>
                   <dt className="label text-slate">Location</dt>
                   <dd className="mt-0.5 text-[13.5px] text-ash">{j.city}</dd>
