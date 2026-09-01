@@ -6,10 +6,10 @@ import { useRef, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Method = "email" | "phone";
-type Stage = "enter" | "sent" | "otp";
+type Stage = "enter" | "otp";
 
 const ERRORS: Record<string, string> = {
-  link_expired: "That link has expired. Send yourself a fresh one.",
+  link_expired: "That link has expired. Try signing in again.",
   missing_code: "That link was incomplete. Try signing in again.",
   not_configured: "Sign-in is not switched on yet.",
 };
@@ -26,6 +26,7 @@ export default function LoginForm() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(ERRORS[params.get("error") ?? ""] ?? "");
+  const [sentTo, setSentTo] = useState("");
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
@@ -46,19 +47,16 @@ export default function LoginForm() {
     setBusy(true);
     try {
       if (method === "email") {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-          },
-        });
+        const { error } = await supabase.auth.signInWithOtp({ email });
         if (error) throw error;
-        setStage("sent");
+        setSentTo(email);
       } else {
         const { error } = await supabase.auth.signInWithOtp({ phone: `+91${phone}` });
         if (error) throw error;
-        setStage("otp");
+        setSentTo(`+91 ${phone}`);
       }
+      setStage("otp");
+      setOtp(["", "", "", "", "", ""]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send the code. Try again.");
     } finally {
@@ -76,12 +74,13 @@ export default function LoginForm() {
 
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: `+91${phone}`,
-        token: code,
-        type: "sms",
-      });
-      if (error) throw error;
+      const result =
+        method === "email"
+          ? await supabase.auth.verifyOtp({ email, token: code, type: "email" })
+          : await supabase.auth.verifyOtp({ phone: `+91${phone}`, token: code, type: "sms" });
+
+      if (result.error) throw result.error;
+
       const { data } = await supabase.auth.getUser();
       const isNew = data.user && !data.user.user_metadata?.onboarded;
       router.push(isNew ? "/profile/setup" : next);
@@ -105,10 +104,10 @@ export default function LoginForm() {
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
         <div className="border-b border-border px-7 py-5">
           <p className="label text-muted">
-            {stage === "enter" ? "Step 1 of 2" : stage === "otp" ? "Step 2 of 2" : "Check your inbox"}
+            {stage === "enter" ? "Sign in" : "Enter the code"}
           </p>
           <h2 className="mt-2 font-display text-[22px] text-foreground">
-            {stage === "sent" ? "Link sent" : stage === "otp" ? "Enter the code" : "Sign in or create an account"}
+            {stage === "enter" ? "Sign in or create an account" : "Check your inbox"}
           </h2>
         </div>
 
@@ -123,7 +122,6 @@ export default function LoginForm() {
                 transition={{ duration: 0.22 }}
                 onSubmit={send}
               >
-                {/* method toggle */}
                 <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded border border-border">
                   {(["email", "phone"] as Method[]).map((m) => (
                     <button
@@ -134,7 +132,7 @@ export default function LoginForm() {
                         method === m ? "bg-primary-light text-primary" : "bg-surface-2 text-muted hover:text-foreground"
                       }`}
                     >
-                      {m === "email" ? "Email link" : "Mobile OTP"}
+                      {m === "email" ? "Email OTP" : "Mobile OTP"}
                     </button>
                   ))}
                 </div>
@@ -178,7 +176,7 @@ export default function LoginForm() {
                   disabled={!canSend || busy}
                   className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
-                  {busy ? "Sending…" : method === "email" ? "Email me a link" : "Send code"}
+                  {busy ? "Sending…" : "Send code"}
                 </button>
 
                 <p className="mt-5 text-[12px] leading-relaxed text-subtle">
@@ -186,33 +184,6 @@ export default function LoginForm() {
                   sign you in and to update you on your filings.
                 </p>
               </motion.form>
-            )}
-
-            {stage === "sent" && (
-              <motion.div
-                key="sent"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                <div className="flex items-start gap-3.5">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="mt-0.5 shrink-0" aria-hidden>
-                    <rect x="2" y="4.5" width="16" height="11" rx="2" stroke="var(--color-primary)" strokeWidth="1.2" />
-                    <path d="m2.8 5.5 7.2 5 7.2-5" stroke="var(--color-primary)" strokeWidth="1.2" strokeLinecap="round" />
-                  </svg>
-                  <p className="text-[14.5px] leading-relaxed text-muted">
-                    We sent a sign-in link to{" "}
-                    <span className="text-foreground">{email}</span>. Open it on this device and you are in.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setStage("enter")}
-                  className="mt-6 text-[13px] text-muted hover:text-foreground"
-                >
-                  Use a different address
-                </button>
-              </motion.div>
             )}
 
             {stage === "otp" && (
@@ -224,7 +195,8 @@ export default function LoginForm() {
                 transition={{ duration: 0.22 }}
               >
                 <p className="text-[14px] text-muted">
-                  Sent to <span className="font-mono text-foreground">+91 {phone}</span>
+                  A 6-digit code was sent to{" "}
+                  <span className="font-mono text-foreground">{sentTo}</span>
                 </p>
 
                 <div className="mt-5 flex gap-2">
@@ -253,16 +225,26 @@ export default function LoginForm() {
                   disabled={busy || otp.join("").length !== 6}
                   className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
-                  {busy ? "Checking…" : "Verify and continue"}
+                  {busy ? "Verifying…" : "Verify and continue"}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => { setStage("enter"); setOtp(["", "", "", "", "", ""]); }}
-                  className="mt-5 text-[13px] text-muted hover:text-foreground"
-                >
-                  Change number
-                </button>
+                <div className="mt-5 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStage("enter")}
+                    className="text-[13px] text-muted hover:text-foreground"
+                  >
+                    Change {method === "email" ? "address" : "number"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={send}
+                    disabled={busy}
+                    className="text-[13px] text-primary hover:text-primary-hover disabled:opacity-50"
+                  >
+                    Resend code
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
