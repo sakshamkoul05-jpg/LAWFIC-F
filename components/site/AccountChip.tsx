@@ -6,14 +6,6 @@ import { useEffect, useState } from "react";
 import { formatPaise } from "@/lib/money";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-/**
- * The header's account state, resolved in the browser.
- *
- * Deliberately client-side: reading the session in the root layout would make
- * every page dynamic, including the marketing pages that should stay static.
- * The cost is a brief unauthenticated flash in the header, which is a fair
- * trade for keeping the front of the site on a CDN.
- */
 export default function AccountChip() {
   const pathname = usePathname();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -55,7 +47,7 @@ export default function AccountChip() {
     return (
       <Link
         href="/login"
-        className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        className="rounded-full bg-primary px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-primary-hover"
       >
         Sign in
       </Link>
@@ -63,14 +55,14 @@ export default function AccountChip() {
   }
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-1.5">
       <Link
         href="/wallet"
-        className="flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5 transition-colors hover:border-primary"
+        className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 transition-colors hover:border-primary"
       >
         <span className="size-1.5 rounded-full bg-success" aria-hidden />
-        <span className="label hidden text-muted sm:inline">Wallet</span>
-        <span className="font-mono text-xs text-foreground tabular-nums">
+        <span className="type-label hidden sm:inline">Wallet</span>
+        <span className="type-data text-[11px] text-foreground">
           {balance === null ? "—" : formatPaise(balance)}
         </span>
       </Link>
@@ -78,7 +70,7 @@ export default function AccountChip() {
       <form action="/auth/signout" method="post">
         <button
           type="submit"
-          className="rounded-full border border-border px-3.5 py-1.5 text-[13px] text-muted transition-colors hover:border-border-2 hover:text-foreground"
+          className="rounded-full border border-border px-3 py-1.5 text-[11px] text-muted transition-colors hover:text-foreground"
         >
           Sign out
         </button>

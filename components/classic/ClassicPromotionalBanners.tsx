@@ -3,18 +3,13 @@
 import Link from "next/link";
 import { promotionalBanners } from "@/lib/promotional";
 
-/**
- * Continuously scrolling marquee of promotional banners.
- * Automatically moves right-to-left. Pauses on hover.
- * Uses CSS marquee animation for smooth, performant motion.
- */
 export default function ClassicPromotionalBanners() {
   const items = [...promotionalBanners, ...promotionalBanners];
 
   return (
-    <section className="overflow-hidden border-b border-border bg-surface py-4">
+    <section className="overflow-hidden border-b border-border bg-surface/50 py-3">
       <div className="classic-marquee-group relative">
-        <div className="classic-marquee-track flex gap-4">
+        <div className="classic-marquee-track flex gap-3">
           {items.map((banner, i) => (
             <Link
               key={`${banner.id}-${i}`}
@@ -22,27 +17,24 @@ export default function ClassicPromotionalBanners() {
               className="group relative shrink-0"
             >
               <div
-                className="flex h-[150px] w-[300px] items-center justify-center overflow-hidden rounded-lg border-2 transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.02]"
-                style={{ borderColor: banner.color }}
+                className="flex h-[130px] w-[260px] items-center justify-center overflow-hidden border border-border transition-all duration-300 group-hover:border-primary/30"
               >
                 <div
                   className="flex h-full w-full flex-col items-center justify-center gap-2 p-5 text-center"
-                  style={{ backgroundColor: `${banner.color}08` }}
                 >
                   <span
-                    className="text-[22px] font-bold leading-tight"
+                    className="text-[18px] font-bold leading-tight"
                     style={{ color: banner.color }}
                   >
                     {banner.title}
                   </span>
-                  <span className="text-[12px] text-muted max-w-[220px]">
+                  <span className="text-[11px] text-muted max-w-[200px]">
                     {banner.label}
                   </span>
                   <span
-                    className="mt-1 inline-block rounded-full px-3 py-1 text-[10px] font-semibold text-white transition-colors"
-                    style={{ backgroundColor: banner.color }}
+                    className="mt-1 type-data text-[10px] text-primary"
                   >
-                    Explore →
+                    Explore
                   </span>
                 </div>
               </div>

@@ -34,18 +34,19 @@ const principles = [
 export default function About() {
   return (
     <>
-      <section className="relative overflow-hidden border-b border-border bg-surface">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-28">
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_50%_50%,rgba(201,168,76,0.05),transparent)]" />
+        <div className="relative mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-28">
           <Reveal>
-            <p className="label text-primary">About us</p>
+            <p className="type-label text-primary">About us</p>
           </Reveal>
           <Reveal delay={0.06}>
-            <h1 className="mt-6 max-w-4xl font-display text-[clamp(34px,5.6vw,60px)] leading-[1.06] text-foreground">
+            <h1 className="type-display mt-6 max-w-4xl text-foreground">
               Most applications are not rejected. They are returned.
             </h1>
           </Reveal>
           <Reveal delay={0.12}>
-            <p className="mt-8 max-w-2xl text-[17px] leading-relaxed text-muted">
+            <p className="type-body mt-8 max-w-2xl text-muted">
               A surname spelt two ways across two documents. An electricity bill in a landlord&apos;s
               name with no consent letter behind it. A turnover figure that does not reconcile with
               the one the portal pulls from your own return. None of these are hard problems — they
@@ -53,7 +54,7 @@ export default function About() {
             </p>
           </Reveal>
           <Reveal delay={0.18}>
-            <p className="mt-6 max-w-2xl text-[17px] leading-relaxed text-muted">
+            <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-muted">
               LAWFIC exists to catch them before the file goes in. We are a private consultancy: we
               prepare, we check, we file in your name, and we stay on it until the certificate
               exists.
@@ -65,19 +66,19 @@ export default function About() {
       {/* principles */}
       <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <Reveal>
-          <p className="label text-primary">How we work</p>
-          <h2 className="mt-5 max-w-2xl font-display text-[clamp(27px,3.8vw,40px)] leading-[1.12] text-foreground">
+          <p className="type-label text-primary">How we work</p>
+          <h2 className="type-h1 mt-5 max-w-2xl text-foreground">
             Four things we have decided not to compromise on
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-border sm:grid-cols-2">
+        <div className="mt-14 grid gap-px overflow-hidden border border-border sm:grid-cols-2">
           {principles.map((p, i) => (
             <Reveal key={p.n} delay={i * 0.06}>
               <div className="flex h-full flex-col bg-surface p-8">
-                <span className="font-mono text-[12px] tracking-[0.14em] text-primary">{p.n}</span>
-                <h3 className="mt-5 font-display text-[21px] leading-snug text-foreground">{p.t}</h3>
-                <p className="mt-4 text-[14.5px] leading-relaxed text-muted">{p.b}</p>
+                <span className="type-data text-[13px] text-primary">{p.n}</span>
+                <h3 className="type-h3 mt-5 text-foreground">{p.t}</h3>
+                <p className="mt-4 text-[13.5px] leading-relaxed text-muted">{p.b}</p>
               </div>
             </Reveal>
           ))}
@@ -87,7 +88,7 @@ export default function About() {
       {/* numbers */}
       <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
         <Reveal>
-          <dl className="grid gap-px overflow-hidden rounded-lg border border-border sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="grid gap-px overflow-hidden border border-border sm:grid-cols-2 lg:grid-cols-4">
             {[
               ["4", "Services live", "Udyam, GST, PAN and Aadhaar assistance"],
               ["₹0", "Hidden charges", "Government and professional fees always itemised"],
@@ -95,10 +96,10 @@ export default function About() {
               ["1", "Point of contact", "The same person from quote to certificate"],
             ].map(([v, k, note]) => (
               <div key={k} className="bg-surface p-7">
-                <dt className="font-display text-[30px] leading-none text-primary tabular-nums">{v}</dt>
+                <dt className="type-data text-[32px] leading-none text-primary">{v}</dt>
                 <dd className="mt-4">
-                  <p className="label text-foreground">{k}</p>
-                  <p className="mt-2 text-[13px] leading-relaxed text-muted">{note}</p>
+                  <p className="type-label text-foreground">{k}</p>
+                  <p className="mt-2 text-[12.5px] leading-relaxed text-muted">{note}</p>
                 </dd>
               </div>
             ))}
@@ -109,9 +110,9 @@ export default function About() {
       {/* what we are not */}
       <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
         <Reveal>
-          <div className="rounded-lg border border-border bg-surface p-8 sm:p-12">
-            <p className="label text-primary">Plainly stated</p>
-            <h2 className="mt-6 max-w-3xl font-display text-[clamp(23px,3vw,32px)] leading-tight text-foreground">
+          <div className="border border-border bg-surface p-8 sm:p-12">
+            <p className="type-label text-primary">Plainly stated</p>
+            <h2 className="type-h1 mt-6 max-w-3xl text-foreground">
               What LAWFIC is not
             </h2>
             <div className="mt-8 grid gap-8 md:grid-cols-3">
@@ -120,9 +121,9 @@ export default function About() {
                 ["Not a GST Suvidha Provider", "We file on the public portal, in your name, using your credentials and your authentication."],
                 ["Not a payment service", "The LAWFIC wallet is a prepaid balance for our own services. It cannot be transferred to another person or withdrawn to a bank."],
               ].map(([t, b]) => (
-                <div key={t} className="border-l-2 border-primary/30 pl-5">
-                  <h3 className="text-[15px] font-medium text-foreground">{t}</h3>
-                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted">{b}</p>
+                <div key={t} className="border-l-2 border-primary/20 pl-5">
+                  <h3 className="text-[14px] font-semibold text-foreground">{t}</h3>
+                  <p className="mt-2.5 text-[13px] leading-relaxed text-muted">{b}</p>
                 </div>
               ))}
             </div>
@@ -132,17 +133,17 @@ export default function About() {
 
       <section className="mx-auto max-w-6xl px-5 pb-4 sm:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-surface px-8 py-16 text-center sm:px-16">
+          <div className="relative overflow-hidden border border-border bg-surface px-8 py-16 text-center sm:px-16">
             <div className="relative z-2">
-              <h2 className="mx-auto max-w-lg font-display text-[clamp(26px,3.6vw,38px)] leading-tight text-foreground">
+              <h2 className="type-h1 mx-auto max-w-lg text-foreground">
                 Tell us what you are trying to register.
               </h2>
-              <p className="mx-auto mt-5 max-w-md text-[15.5px] leading-relaxed text-muted">
+              <p className="type-body mx-auto mt-5 max-w-md text-muted">
                 We will tell you what it costs, what it needs, and whether you need it at all.
               </p>
               <Link
                 href="/services"
-                className="mt-9 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+                className="mt-9 inline-block rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-hover"
               >
                 Browse services
               </Link>

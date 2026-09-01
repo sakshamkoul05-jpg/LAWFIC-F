@@ -71,13 +71,13 @@ export default function ClassicCategoryTabs() {
                 href={tab.href}
                 data-tab-id={tab.id}
                 onMouseEnter={(e) => handleEnter(tab.id, e.currentTarget)}
-                className={`classic-tab-item group flex items-center rounded-full px-3.5 py-1.5 text-center transition-colors ${
+                className={`classic-tab-item group flex items-center rounded-full px-3 py-1 text-center transition-colors ${
                   active
                     ? "bg-primary-light text-primary"
-                    : "text-foreground hover:bg-surface-2"
+                    : "text-muted hover:text-foreground"
                 }`}
               >
-                <span className="text-[12.5px] font-medium leading-tight whitespace-nowrap">
+                <span className="text-[12px] font-medium leading-tight whitespace-nowrap">
                   {tab.label}
                 </span>
               </Link>
@@ -131,11 +131,11 @@ function DropdownPanel({
   return (
     <div
       ref={panelRef}
-      className="fixed z-50 max-h-[72vh] w-64 overflow-y-auto border border-border border-t-0 bg-surface shadow-2xl"
+      className="fixed z-50 max-h-[72vh] w-64 overflow-y-auto border border-border bg-surface shadow-2xl"
       style={{ left, top: anchorRect.top - 1 }}
       onMouseEnter={() => {}}
     >
-      <p className="border-b border-border px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-primary">
+      <p className="type-label border-b border-border px-4 py-2 text-primary">
         {openTab.label}
       </p>
 
@@ -181,7 +181,7 @@ function GroupedList({
     <>
       {groups.map((g) => (
         <div key={g.name}>
-          <p className="px-4 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-wider text-subtle">
+          <p className="px-4 pb-1 pt-3 type-label text-subtle">
             {g.name}
           </p>
           {g.items.map((st) => (

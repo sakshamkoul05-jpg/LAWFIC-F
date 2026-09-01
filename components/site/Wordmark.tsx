@@ -5,14 +5,14 @@ export default function Wordmark({ className = "" }: { className?: string }) {
       <img
         src="/lawfic-logo.png"
         alt="LAWFIC"
-        className="h-10 w-10 object-contain sm:h-14 sm:w-14 lg:h-16 lg:w-16"
+        className="h-9 w-9 object-contain sm:h-11 sm:w-11 lg:h-12 lg:w-12"
       />
       <span className="flex flex-col">
-        <span className="text-[17px] font-extrabold tracking-[0.14em] text-foreground leading-none sm:text-[22px]">
+        <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-foreground leading-none sm:text-[22px]">
           LAWFIC
         </span>
-        <span className="mt-0.5 text-[9px] font-medium tracking-[0.14em] text-muted uppercase leading-none sm:tracking-[0.18em] sm:text-[11px]">
-          Quality Service With Love
+        <span className="mt-0.5 text-[8px] font-medium tracking-[0.12em] text-muted-fg uppercase leading-none sm:tracking-[0.14em] sm:text-[9.5px]">
+          Registrations &amp; Compliance
         </span>
       </span>
     </span>

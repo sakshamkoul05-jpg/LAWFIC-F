@@ -130,18 +130,18 @@ export default function EditProfileForm() {
   }
 
   const inputCls =
-    "mt-2.5 w-full rounded border border-border bg-surface-2 px-3.5 py-3.5 text-[15px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle";
-  const labelCls = "label text-muted";
+    "mt-2.5 w-full border border-border bg-surface-2 px-3.5 py-3 text-[14px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle";
+  const labelCls = "type-label";
   const chip = (active: boolean) =>
-    `rounded-full border px-4 py-2.5 text-[13px] font-medium transition-colors ${
+    `rounded-full border px-3.5 py-2 text-[12px] font-medium transition-colors ${
       active
         ? "border-primary bg-primary-light text-primary"
-        : "border-border bg-surface-2 text-muted hover:border-primary/50 hover:text-foreground"
+        : "border-border bg-surface-2 text-muted hover:border-primary/40 hover:text-foreground"
     }`;
 
   if (loading) {
     return (
-      <div className="mt-10 rounded-xl border border-border bg-surface p-10 text-center text-[14px] text-muted shadow-xl">
+      <div className="mt-10 border border-border bg-surface p-10 text-center text-[13px] text-muted">
         Loading your profile…
       </div>
     );
@@ -355,10 +355,10 @@ export default function EditProfileForm() {
         </p>
       )}
 
-      <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3 shadow-xl">
+      <div className="sticky bottom-4 flex items-center justify-between gap-3 border border-border bg-surface p-3">
         <Link
           href="/auth/signout"
-          className="rounded-full px-4 py-2 text-[13px] text-muted transition-colors hover:text-destructive"
+          className="rounded-full px-4 py-2 text-[12px] text-muted transition-colors hover:text-destructive"
         >
           Sign out
         </Link>
@@ -366,7 +366,7 @@ export default function EditProfileForm() {
           type="button"
           onClick={save}
           disabled={status === "saving"}
-          className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
+          className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
         >
           {status === "saving" ? "Saving…" : "Save profile"}
         </button>
@@ -385,10 +385,10 @@ function Card({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
+    <section className="overflow-hidden border border-border bg-surface">
       <div className="border-b border-border px-7 py-5">
-        <p className="label text-muted">{label}</p>
-        <h2 className="mt-2 font-display text-[22px] text-foreground">{title}</h2>
+        <p className="type-label text-primary">{label}</p>
+        <h2 className="type-h2 mt-2 text-foreground">{title}</h2>
       </div>
       <div className="p-7">{children}</div>
     </section>

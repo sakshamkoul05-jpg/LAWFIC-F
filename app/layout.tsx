@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, Overpass_Mono } from "next/font/google";
+import { Inter, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -10,16 +10,16 @@ const inter = Inter({
   display: "swap",
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
 });
 
-const overpassMono = Overpass_Mono({
-  variable: "--font-overpass-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${overpassMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} ${ibmPlexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

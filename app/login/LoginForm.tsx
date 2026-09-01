@@ -101,12 +101,12 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md justify-self-center lg:justify-self-end">
-      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
+      <div className="overflow-hidden border border-border bg-surface">
         <div className="border-b border-border px-7 py-5">
-          <p className="label text-muted">
+          <p className="type-label text-primary">
             {stage === "enter" ? "Sign in" : "Enter the code"}
           </p>
-          <h2 className="mt-2 font-display text-[22px] text-foreground">
+          <h2 className="type-h2 mt-2 text-foreground">
             {stage === "enter" ? "Sign in or create an account" : "Check your inbox"}
           </h2>
         </div>
@@ -122,13 +122,13 @@ export default function LoginForm() {
                 transition={{ duration: 0.22 }}
                 onSubmit={send}
               >
-                <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded border border-border">
+                <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden border border-border">
                   {(["email", "phone"] as Method[]).map((m) => (
                     <button
                       key={m}
                       type="button"
                       onClick={() => { setMethod(m); setError(""); }}
-                      className={`py-2.5 text-[13px] transition-colors ${
+                      className={`py-2.5 text-[12px] font-medium transition-colors ${
                         method === m ? "bg-primary-light text-primary" : "bg-surface-2 text-muted hover:text-foreground"
                       }`}
                     >
@@ -139,7 +139,7 @@ export default function LoginForm() {
 
                 {method === "email" ? (
                   <>
-                    <label htmlFor="email" className="label text-muted">Email address</label>
+                    <label htmlFor="email" className="type-label">Email address</label>
                     <input
                       id="email"
                       type="email"
@@ -147,14 +147,14 @@ export default function LoginForm() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="mt-2.5 w-full rounded border border-border bg-surface-2 px-3.5 py-3.5 text-[15px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle"
+                      className="mt-2.5 w-full border border-border bg-surface-2 px-3.5 py-3 text-[14px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle"
                     />
                   </>
                 ) : (
                   <>
-                    <label htmlFor="phone" className="label text-muted">Mobile number</label>
-                    <div className="mt-2.5 flex items-center gap-2 rounded border border-border bg-surface-2 px-3 focus-within:border-primary">
-                      <span className="font-mono text-[15px] text-muted">+91</span>
+                    <label htmlFor="phone" className="type-label">Mobile number</label>
+                    <div className="mt-2.5 flex items-center gap-2 border border-border bg-surface-2 px-3 focus-within:border-primary">
+                      <span className="type-data text-[14px] text-muted">+91</span>
                       <span className="h-5 w-px bg-border" aria-hidden />
                       <input
                         id="phone"
@@ -163,7 +163,7 @@ export default function LoginForm() {
                         placeholder="98765 43210"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                        className="w-full bg-transparent py-3.5 font-mono text-[15px] tracking-[0.08em] text-foreground outline-none placeholder:text-subtle"
+                        className="w-full bg-transparent py-3 type-data text-[14px] text-foreground outline-none placeholder:text-subtle"
                       />
                     </div>
                   </>
@@ -174,12 +174,12 @@ export default function LoginForm() {
                 <button
                   type="submit"
                   disabled={!canSend || busy}
-                  className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
+                  className="mt-6 w-full rounded-full bg-primary py-3 text-[13px] font-medium text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
                   {busy ? "Sending…" : "Send code"}
                 </button>
 
-                <p className="mt-5 text-[12px] leading-relaxed text-subtle">
+                <p className="mt-5 text-[11.5px] leading-relaxed text-subtle">
                   By continuing you agree to our Terms and Privacy Policy. We use your details to
                   sign you in and to update you on your filings.
                 </p>
@@ -194,9 +194,9 @@ export default function LoginForm() {
                 exit={{ opacity: 0, x: 12 }}
                 transition={{ duration: 0.22 }}
               >
-                <p className="text-[14px] text-muted">
+                <p className="text-[13px] text-muted">
                   A 6-digit code was sent to{" "}
-                  <span className="font-mono text-foreground">{sentTo}</span>
+                  <span className="type-data text-foreground">{sentTo}</span>
                 </p>
 
                 <div className="mt-5 flex gap-2">
@@ -212,7 +212,7 @@ export default function LoginForm() {
                         if (e.key === "Backspace" && !otp[i] && i > 0) boxes.current[i - 1]?.focus();
                       }}
                       aria-label={`Digit ${i + 1}`}
-                      className="h-13 w-full rounded border border-border bg-surface-2 text-center font-mono text-[19px] text-foreground outline-none transition-colors focus:border-primary"
+                      className="h-12 w-full border border-border bg-surface-2 text-center type-data text-[18px] text-foreground outline-none transition-colors focus:border-primary"
                     />
                   ))}
                 </div>
@@ -223,7 +223,7 @@ export default function LoginForm() {
                   type="button"
                   onClick={verify}
                   disabled={busy || otp.join("").length !== 6}
-                  className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
+                  className="mt-6 w-full rounded-full bg-primary py-3 text-[13px] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
                 >
                   {busy ? "Verifying…" : "Verify and continue"}
                 </button>
@@ -232,7 +232,7 @@ export default function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setStage("enter")}
-                    className="text-[13px] text-muted hover:text-foreground"
+                    className="text-[12px] text-muted hover:text-foreground transition-colors"
                   >
                     Change {method === "email" ? "address" : "number"}
                   </button>
@@ -240,7 +240,7 @@ export default function LoginForm() {
                     type="button"
                     onClick={send}
                     disabled={busy}
-                    className="text-[13px] text-primary hover:text-primary-hover disabled:opacity-50"
+                    className="text-[12px] text-primary hover:text-primary-hover disabled:opacity-50 transition-colors"
                   >
                     Resend code
                   </button>
@@ -251,7 +251,7 @@ export default function LoginForm() {
         </div>
 
         {!isSupabaseConfigured && (
-          <p className="border-t border-border bg-surface-2 px-7 py-3.5 text-[11.5px] text-subtle">
+          <p className="border-t border-border bg-surface-2 px-7 py-3 text-[11px] text-subtle">
             Sign-in is not connected yet — add the Supabase keys to switch it on.
           </p>
         )}
