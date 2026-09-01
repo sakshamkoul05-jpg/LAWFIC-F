@@ -5,8 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Where a magic link lands. Exchanges the one-time code for a session cookie.
- * New users are sent to profile setup, everyone else to where they were headed.
+ * Auth callback — handles the one-time code exchange when Supabase redirects
+ * back after email OTP verification or a magic link click. Exchanges the
+ * code for a session cookie, then routes new users to profile setup.
  *
  * `next` is constrained to a path on this site — an open redirect here would
  * let a crafted link bounce a freshly signed-in user to somewhere else with

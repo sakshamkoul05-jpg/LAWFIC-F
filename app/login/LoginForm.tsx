@@ -9,8 +9,8 @@ type Method = "email" | "phone";
 type Stage = "enter" | "otp";
 
 const ERRORS: Record<string, string> = {
-  link_expired: "That link has expired. Try signing in again.",
-  missing_code: "That link was incomplete. Try signing in again.",
+  link_expired: "That code has expired. Send a new one.",
+  missing_code: "No verification code found. Try signing in again.",
   not_configured: "Sign-in is not switched on yet.",
 };
 
