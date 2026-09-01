@@ -5,7 +5,7 @@ export default function Wordmark({ className = "" }: { className?: string }) {
       <img
         src="/lawfic-logo.png"
         alt="LAWFIC"
-        className="logo-mark h-9 w-9 object-contain sm:h-10 sm:w-10"
+        className="h-9 w-9 object-contain sm:h-10 sm:w-10"
       />
       <span className="flex flex-col">
         <span className="text-[16px] font-bold tracking-[0.14em] text-foreground leading-none">
