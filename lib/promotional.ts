@@ -28,6 +28,20 @@ export type Banner = {
    * the files are committed here and the API is not touched. Serving them
    * ourselves also means a banner cannot break because a third party moved
    * a URL.
+   *
+   * NO IDENTIFIABLE PEOPLE. This is a rule, not a preference. Unsplash's
+   * licence covers copyright but Unsplash does not verify that model releases
+   * exist, and its own guidance is never to imply endorsement by someone
+   * depicted in a photo. These banners are advertising, so a recognisable
+   * face in one is a publicity-rights problem regardless of the licence.
+   * Photographs here show premises, desks and paperwork instead — which also
+   * happens to say what the service is, where a candid portrait of a stranger
+   * did not. Keep it that way.
+   *
+   * The same caution applies to other people's artwork and branding. A shop
+   * photo densely papered with printed posters was replaced for exactly that
+   * reason: incidental background in a documentary shot is one thing, the
+   * same posters filling an advertising banner is another.
    */
   photo: string;
   /** Describes the picture for anyone who cannot see it. */
@@ -59,7 +73,7 @@ export const promotionalBanners: Banner[] = [
     cta: "Register your MSME",
     href: "/services/msme-udyam",
     photo: "/banners/msme.jpg",
-    photoAlt: "A shopkeeper standing behind the counter of a small store",
+    photoAlt: "The glass display counter of a small shop",
     tone: "ember",
   },
   {
@@ -71,7 +85,7 @@ export const promotionalBanners: Banner[] = [
     cta: "Start GST registration",
     href: "/services/gst",
     photo: "/banners/gst.jpg",
-    photoAlt: "Indian rupee coins and banknotes counted on a table",
+    photoAlt: "A desk with a calculator, reading glasses and printed statements",
     tone: "ink",
   },
   {
@@ -83,7 +97,7 @@ export const promotionalBanners: Banner[] = [
     cta: "See what it costs",
     href: "/pricing",
     photo: "/banners/membership.jpg",
-    photoAlt: "A woman working at a desk in a small office",
+    photoAlt: "An empty meeting table in a quiet office",
     tone: "jade",
   },
   {
@@ -95,7 +109,7 @@ export const promotionalBanners: Banner[] = [
     cta: "Browse jobs",
     href: "/jobs",
     photo: "/banners/jobs.jpg",
-    photoAlt: "A woman seated at her workplace desk",
+    photoAlt: "Rows of empty desks in an open-plan workplace",
     tone: "azure",
   },
   {
@@ -107,7 +121,7 @@ export const promotionalBanners: Banner[] = [
     cta: "See identity services",
     href: "/services",
     photo: "/banners/identity.jpg",
-    photoAlt: "A shopkeeper standing in the doorway of his shop",
+    photoAlt: "A stack of documents squared up on a wooden table",
     tone: "clay",
   },
 ];
