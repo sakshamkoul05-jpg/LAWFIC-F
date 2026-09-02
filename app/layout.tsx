@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
+import { Schibsted_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-const inter = Inter({
-  variable: "--font-inter",
+/* One UI family carries display and body alike — the way Apple ships SF and
+   CRED ships Gilroy. Playfair Display (a high-contrast Didone) and Inter were
+   both dropped: the Didone read decorative on a compliance product, and Inter
+   is the default every generated interface reaches for. */
+const grotesk = Schibsted_Grotesk({
+  variable: "--font-grotesk",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -36,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${grotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

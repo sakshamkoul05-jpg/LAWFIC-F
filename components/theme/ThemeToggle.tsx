@@ -1,13 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeProvider";
 
 /**
- * Light / dark (black & gold) theme toggle. Follows system preference by
- * default; clicking cycles between light, dark, and back to system.
+ * Light / dark theme toggle. Follows system preference by default; clicking
+ * cycles between light, dark, and back to system.
+ *
+ * The icon and label depend on the resolved theme, which the server cannot
+ * know — it has no access to the visitor's stored choice or their OS setting.
+ * Rendering either icon during SSR therefore guarantees a hydration mismatch
+ * for half of all visitors, so the button renders a neutral placeholder until
+ * it has mounted and the real theme is known.
  */
 export default function ThemeToggle() {
   const { color, override, setColor } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const cycle = () => {
     if (override === null) {
@@ -19,6 +29,15 @@ export default function ThemeToggle() {
   };
 
   const dark = color === "dark";
+
+  if (!mounted) {
+    return (
+      <span
+        aria-hidden
+        className="grid size-8 place-items-center rounded-full border border-border"
+      />
+    );
+  }
 
   return (
     <button

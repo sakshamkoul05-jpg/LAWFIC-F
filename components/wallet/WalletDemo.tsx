@@ -9,10 +9,18 @@ import DiceBearAvatar from "@/components/wallet/DiceBearAvatar";
 
 const DEMO_BALANCE_PAISE = 2435000;
 
+/* Sample rows for the signed-out preview.
+   These previously read as a real statement — "Court filing fee — Delhi HC",
+   "Legal consultation — SME advisory" — shown to visitors with nothing marking
+   them as illustrative. Two things were wrong with that: invented records were
+   presented as genuine on a real company's public page, and they described
+   litigation and advisory work LAWFIC does not do. It prepares registrations,
+   licences and statutory filings. The rows below say only what LAWFIC actually
+   sells, and the panel they render in is labelled as an example. */
 const DEMO_TXNS = [
-  { id: "d1", reason: "Legal consultation — SME advisory", date: "28 Aug 2026", amount: -250000, dir: "debit" as const, avatar: "Aneka" },
-  { id: "d2", reason: "Wallet top-up via UPI", date: "25 Aug 2026", amount: 500000, dir: "credit" as const, avatar: "Felix" },
-  { id: "d3", reason: "Court filing fee — Delhi HC", date: "20 Aug 2026", amount: -15000, dir: "debit" as const, avatar: "Jasper" },
+  { id: "d1", reason: "GST Registration — professional fee", date: "28 Aug 2026", amount: -149900, dir: "debit" as const, avatar: "Aneka" },
+  { id: "d2", reason: "Wallet top-up", date: "25 Aug 2026", amount: 500000, dir: "credit" as const, avatar: "Felix" },
+  { id: "d3", reason: "PAN Services — government fee", date: "20 Aug 2026", amount: -10700, dir: "debit" as const, avatar: "Jasper" },
 ];
 
 export default function WalletDemo() {
@@ -68,12 +76,13 @@ export default function WalletDemo() {
       </WalletPocket>
 
       {/* Quick actions */}
-      <div className="mt-8 grid grid-cols-4 gap-3">
+      {/* See the note in app/wallet/page.tsx: this wallet never pays out, so
+          no payout affordance belongs here — not even a disabled one. */}
+      <div className="mt-8 grid grid-cols-3 gap-3">
         {[
           { label: "Add money", icon: "M8 3v10M3 8h10" },
-          { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4" },
-          { label: "Withdraw", icon: "M3 3h10v10H3zM8 7v4M6 9h4" },
-          { label: "More", icon: "M4 6h8M4 10h8" },
+          { label: "Statement", icon: "M4 6h8M4 10h8" },
+          { label: "Your filings", icon: "M3 3h10v10H3z" },
         ].map((a) => (
           <button
             key={a.label}
@@ -96,13 +105,16 @@ export default function WalletDemo() {
 
       {/* Recent transactions */}
       <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
-        <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center justify-between gap-3 px-5 py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-50">
-            Recent
+            Example statement
           </p>
-          <button type="button" className="text-[12px] font-medium opacity-40 hover:opacity-70 transition-opacity">
-            See more
-          </button>
+          <span
+            className="rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em]"
+            style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
+          >
+            Sample
+          </span>
         </div>
         <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
           {DEMO_TXNS.map((t) => (

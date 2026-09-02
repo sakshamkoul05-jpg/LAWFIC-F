@@ -2,9 +2,11 @@
 
 /* ============================================================
    LAWFIC — Design System
-   Typography-led, dark-first. Apple/CRED restraint.
-   Playfair Display for display, Inter for body/UI,
-   IBM Plex Mono for data/numerals.
+
+   One grotesk (Schibsted) for display and UI, one mono (IBM Plex) for data.
+   Two themes: warm paper, and a warm-ink dark that is biased toward the gold
+   rather than away from it. Every neutral here is chosen — the previous set
+   was stock Tailwind zinc and stone, which is why it read as unspecific.
    ============================================================ */
 
 @theme inline {
@@ -45,74 +47,127 @@
   --color-grid: var(--grid);
 
   /* Fonts */
-  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  /* One UI family, one mono. The mono is earned — GSTINs, PANs and rupee
+     amounts are the product's raw material and should read as data. */
+  --font-sans: var(--font-grotesk), "Schibsted Grotesk", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
-  --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: var(--font-grotesk), "Schibsted Grotesk", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", sans-serif;
 }
 
-/* ---------- Dark theme (default) — black + gold ---------- */
-[data-theme="dark"] {
-  --bg: #0A0A0C;
-  --surface: #111113;
-  --surface-2: #18181B;
-  --surface-3: #222225;
-
-  --border: rgba(255, 255, 255, 0.08);
-  --border-2: rgba(255, 255, 255, 0.12);
-  --border-3: rgba(255, 255, 255, 0.16);
-
-  --fg: #EDEDF0;
-  --muted: #A1A1AA;
-  --muted-fg: #71717A;
-  --subtle: #52525B;
-
-  --brand: #C9A84C;
-  --brand-hover: #D4B85E;
-  --brand-light: rgba(201, 168, 76, 0.10);
-  --brand-lighter: rgba(201, 168, 76, 0.05);
-
-  --accent: #60A5FA;
-  --accent-light: rgba(96, 165, 250, 0.10);
-
-  --success: #34D399;
-  --success-light: rgba(52, 211, 153, 0.10);
-  --destructive: #F87171;
-  --destructive-light: rgba(248, 113, 113, 0.10);
-
-  --grid: rgba(255, 255, 255, 0.03);
-}
-
-/* ---------- Light theme — warm, restrained ---------- */
+/* ---------- Light theme — warm paper (the base) --------------------------- */
 :root,
 [data-theme="light"] {
-  --bg: #FAFAF9;
+  --bg: #FAF8F4;
   --surface: #FFFFFF;
-  --surface-2: #F5F5F4;
-  --surface-3: #E7E5E4;
+  --surface-2: #F3F0E9;
+  --surface-3: #E8E3D8;
 
-  --border: rgba(0, 0, 0, 0.08);
-  --border-2: rgba(0, 0, 0, 0.12);
-  --border-3: rgba(0, 0, 0, 0.16);
+  --border: rgba(28, 24, 16, 0.10);
+  --border-2: rgba(28, 24, 16, 0.16);
+  --border-3: rgba(28, 24, 16, 0.22);
 
-  --fg: #1C1917;
-  --muted: #57534E;
-  --muted-fg: #78716C;
-  --subtle: #A8A29E;
+  --fg: #1A1712;
+  --muted: #5E574B;
+  --muted-fg: #7D7566;
+  --subtle: #A39A88;
 
-  --brand: #92700C;
-  --brand-hover: #7A5E0A;
-  --brand-light: rgba(146, 112, 12, 0.08);
-  --brand-lighter: rgba(146, 112, 12, 0.04);
+  --brand: #8A6A0B;
+  --brand-hover: #755A08;
+  --brand-light: rgba(138, 106, 11, 0.08);
+  --brand-lighter: rgba(138, 106, 11, 0.04);
 
-  --accent: #2563EB;
-  --accent-light: rgba(37, 99, 235, 0.08);
+  --accent: #3E6E86;
+  --accent-light: rgba(62, 110, 134, 0.08);
 
-  --success: #16A34A;
-  --success-light: rgba(22, 163, 74, 0.08);
-  --destructive: #DC2626;
-  --destructive-light: rgba(220, 38, 38, 0.08);
+  --success: #2F6449;
+  --success-light: rgba(47, 100, 73, 0.09);
+  --destructive: #A03127;
+  --destructive-light: rgba(160, 49, 39, 0.09);
 
-  --grid: rgba(0, 0, 0, 0.03);
+  --grid: rgba(28, 24, 16, 0.03);
+}
+
+/* ---------- Dark theme — "Warm Ink" ----------------------------------------
+   The neutral is biased toward the gold (hue ~35 deg, low saturation) so the
+   accent belongs to the palette instead of fighting it. Steps are ~4 points of
+   lightness apart so a raised surface actually reads as raised, and the ground
+   sits off pure black so it does not clip on OLED. Hairlines are tinted with
+   the foreground's hue, never pure white.
+
+   ORDER MATTERS. `[data-theme="dark"]` and `:root` have identical specificity
+   (0,1,0), so whichever is written last wins. Previously the light block came
+   second and silently beat the dark one — data-theme="dark" was set on <html>
+   and the page still rendered every light token. Dark mode had never actually
+   worked; the only dark surface anyone ever saw was the wallet, which forced
+   `background: #000000` as a literal rather than through a token.
+
+   So: light first, dark last. The media query covers the visitor who has made
+   no explicit choice, for whom the inline script stamps nothing.
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121110;
+    --surface: #1A1917;
+    --surface-2: #24221F;
+    --surface-3: #302D28;
+
+    --border: rgba(243, 239, 232, 0.10);
+    --border-2: rgba(243, 239, 232, 0.15);
+    --border-3: rgba(243, 239, 232, 0.22);
+
+    --fg: #F3EFE8;
+    --muted: #A9A299;
+    --muted-fg: #8A8278;
+    --subtle: #6C665E;
+
+    --brand: #D0AE55;
+    --brand-hover: #DCBC68;
+    --brand-light: rgba(208, 174, 85, 0.10);
+    --brand-lighter: rgba(208, 174, 85, 0.05);
+
+    --accent: #8FB8C9;
+    --accent-light: rgba(143, 184, 201, 0.10);
+
+    --success: #6FBF95;
+    --success-light: rgba(111, 191, 149, 0.10);
+    --destructive: #E0796C;
+    --destructive-light: rgba(224, 121, 108, 0.10);
+
+    --grid: rgba(243, 239, 232, 0.03);
+  }
+}
+
+[data-theme="dark"] {
+  --bg: #121110;
+  --surface: #1A1917;
+  --surface-2: #24221F;
+  --surface-3: #302D28;
+
+  --border: rgba(243, 239, 232, 0.10);
+  --border-2: rgba(243, 239, 232, 0.15);
+  --border-3: rgba(243, 239, 232, 0.22);
+
+  --fg: #F3EFE8;
+  --muted: #A9A299;
+  --muted-fg: #8A8278;
+  --subtle: #6C665E;
+
+  --brand: #D0AE55;
+  --brand-hover: #DCBC68;
+  --brand-light: rgba(208, 174, 85, 0.10);
+  --brand-lighter: rgba(208, 174, 85, 0.05);
+
+  --accent: #8FB8C9;
+  --accent-light: rgba(143, 184, 201, 0.10);
+
+  --success: #6FBF95;
+  --success-light: rgba(111, 191, 149, 0.10);
+  --destructive: #E0796C;
+  --destructive-light: rgba(224, 121, 108, 0.10);
+
+  --grid: rgba(243, 239, 232, 0.03);
 }
 
 /* ============================================================
@@ -160,31 +215,32 @@
    ============================================================ */
 
 @layer utilities {
-  /* Display — serif, for hero headlines only */
+  /* Display — grotesk, for hero headlines only. A grotesk needs materially
+     tighter tracking than the serif it replaced, or it reads loose at size. */
   .type-display {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(2.25rem, 5vw, 3.5rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
+    font-size: clamp(2.5rem, 5.4vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.038em;
   }
 
-  /* H1 — display serif, large */
+  /* H1 */
   .type-h1 {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-    line-height: 1.15;
-    letter-spacing: -0.015em;
+    font-weight: 600;
+    font-size: clamp(1.875rem, 3.5vw, 2.625rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
   }
 
-  /* H2 — display serif, medium */
+  /* H2 */
   .type-h2 {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    line-height: 1.16;
+    letter-spacing: -0.024em;
   }
 
   /* H3 — sans, semibold */
@@ -418,20 +474,16 @@
 }
 
 /* ============================================================
-   Wallet scene — clean Apple/CRED backdrop
+   Wallet scene
+   Was a borrowed violet/iOS palette (#7C3AED glass, #5856D6, #34C759) sitting
+   on top of the gold brand — a third colour system. It now runs entirely on
+   the site tokens, so the wallet belongs to the same product as everything
+   else. Elevation here comes from the surface ramp, not from a glow.
    ============================================================ */
 
-.wallet-scene { color: var(--wallet-scene-fg); }
-
-[data-theme="dark"] .wallet-scene,
-:root:not([data-theme="light"]) .wallet-scene {
-  background: #000000;
-  --wallet-scene-fg: #f5f5f7;
-}
-
-[data-theme="light"] .wallet-scene {
-  background: #f5f5f7;
-  --wallet-scene-fg: #1d1d1f;
+.wallet-scene {
+  background: var(--color-background);
+  color: var(--color-foreground);
 }
 
 .wallet-scene a,
@@ -442,28 +494,20 @@
 
 .glass-panel {
   position: relative;
-  border: 1px solid var(--wallet-glass-border);
-  background: var(--wallet-glass-bg);
-  backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid var(--border);
+  background: var(--color-surface);
   box-shadow: var(--wallet-glass-shadow);
 }
 
 [data-theme="dark"] .glass-panel,
 :root:not([data-theme="light"]) .glass-panel {
-  --wallet-glass-bg: linear-gradient(160deg, rgba(124, 58, 237, 0.08), rgba(109, 40, 217, 0.03));
-  --wallet-glass-border: rgba(124, 58, 237, 0.12);
   --wallet-glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 40px -24px rgba(0, 0, 0, 0.7);
+    inset 0 1px 0 rgba(243, 239, 232, 0.04),
+    0 18px 40px -24px rgba(0, 0, 0, 0.75);
 }
 
 [data-theme="light"] .glass-panel {
-  --wallet-glass-bg: rgba(255, 255, 255, 0.7);
-  --wallet-glass-border: rgba(124, 58, 237, 0.08);
-  --wallet-glass-shadow:
-    0 2px 8px rgba(124, 58, 237, 0.06),
-    0 12px 32px -8px rgba(0, 0, 0, 0.08);
+  --wallet-glass-shadow: 0 1px 2px rgba(28, 24, 16, 0.04), 0 10px 28px -12px rgba(28, 24, 16, 0.10);
 }
 
 .wallet-card-glow {
@@ -473,27 +517,33 @@
 [data-theme="dark"] .wallet-card-glow,
 :root:not([data-theme="light"]) .wallet-card-glow {
   --wallet-card-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 24px 60px -28px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(124, 58, 237, 0.15);
+    inset 0 1px 0 rgba(243, 239, 232, 0.07),
+    0 24px 60px -30px rgba(0, 0, 0, 0.85),
+    0 0 0 1px var(--brand-light);
 }
 
 [data-theme="light"] .wallet-card-glow {
   --wallet-card-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 24px -4px rgba(124, 58, 237, 0.12),
-    0 24px 56px -12px rgba(0, 0, 0, 0.18);
+    0 1px 3px rgba(28, 24, 16, 0.05),
+    0 10px 28px -10px rgba(28, 24, 16, 0.12),
+    0 0 0 1px var(--brand-light);
 }
 
+/* Named gold, and now actually gold — it was a purple gradient. */
 .wallet-gold-text {
-  background: linear-gradient(120deg, #a78bfa, #7c3aed 40%, #c4b5fd 60%, #6d28d9);
+  background: linear-gradient(
+    120deg,
+    var(--brand) 0%,
+    var(--brand-hover) 45%,
+    var(--brand) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .wallet-hairline {
-  background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.35), transparent);
+  background: linear-gradient(to right, transparent, var(--brand-light), transparent);
 }
 
 /* ============================================================
@@ -508,75 +558,69 @@
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
 }
 
-/* Light mode */
-:root,
-[data-theme="light"] {
-  --wallet-glass-bg: rgba(255, 255, 255, 0.72);
-  --wallet-glass-border: rgba(0, 0, 0, 0.04);
-  --wallet-glass-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 8px 24px -4px rgba(0, 0, 0, 0.06);
-  --wallet-card-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.03),
-    0 12px 28px -6px rgba(0, 0, 0, 0.08),
-    0 28px 64px -12px rgba(0, 0, 0, 0.12);
-  --wallet-card-shadow-hover:
-    0 4px 10px rgba(0, 0, 0, 0.05),
-    0 20px 40px -6px rgba(0, 0, 0, 0.12),
-    0 40px 80px -12px rgba(0, 0, 0, 0.16);
-  --wallet-pocket-bg: rgba(0, 0, 0, 0.025);
-  --wallet-pocket-border: rgba(0, 0, 0, 0.04);
-  --wallet-pocket-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.03),
-    0 2px 12px -2px rgba(0, 0, 0, 0.06);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
-  --wallet-fg: #1d1d1f;
-  --wallet-fg-muted: rgba(29, 29, 31, 0.5);
-  --wallet-btn-bg: rgba(0, 0, 0, 0.04);
-  --wallet-btn-bg-hover: rgba(0, 0, 0, 0.07);
-  --wallet-btn-text: #1d1d1f;
-  --wallet-input-bg: rgba(0, 0, 0, 0.03);
-  --wallet-input-border: rgba(0, 0, 0, 0.06);
-  --wallet-input-text: #1d1d1f;
-  --wallet-divider: rgba(0, 0, 0, 0.05);
-  --wallet-icon-circle: rgba(146, 112, 12, 0.08);
-  --wallet-icon-fg: #92700C;
-  --wallet-scene-bg: #f5f5f7;
+/* Wallet variables, derived from the site palette.
+   These previously carried a borrowed iOS set — #f5f5f7 and #1d1d1f for text,
+   rgba(44,44,46) and rgba(58,58,60) for elevated surfaces, and a pure #000000
+   scene background. That last value was the only true black the site ever
+   rendered (the theme tokens themselves were being overridden — see the note
+   on cascade order above), so it was the black the client was reacting to.
+   Everything structural now maps onto the site tokens and switches with them;
+   only the shadows, which genuinely differ by theme, are still split. */
+:root {
+  --wallet-scene-bg: var(--bg);
+  --wallet-glass-bg: var(--surface);
+  --wallet-glass-border: var(--border);
+  --wallet-pocket-bg: var(--surface-2);
+  --wallet-pocket-border: var(--border);
+  --wallet-fg: var(--fg);
+  --wallet-fg-muted: var(--muted);
+  --wallet-btn-bg: var(--surface-2);
+  --wallet-btn-bg-hover: var(--surface-3);
+  --wallet-btn-text: var(--fg);
+  --wallet-input-bg: var(--surface-2);
+  --wallet-input-border: var(--border);
+  --wallet-input-text: var(--fg);
+  --wallet-divider: var(--border);
+  --wallet-icon-circle: var(--brand-light);
+  --wallet-icon-fg: var(--brand);
 }
 
-/* Dark mode */
-[data-theme="dark"] {
-  --wallet-glass-bg: rgba(44, 44, 46, 0.6);
-  --wallet-glass-border: rgba(255, 255, 255, 0.06);
+/* Shadows only — a dark ground needs deeper, tighter shadows than paper. */
+:root,
+[data-theme="light"] {
   --wallet-glass-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 12px 32px -8px rgba(0, 0, 0, 0.5);
+    0 1px 3px rgba(28, 24, 16, 0.04),
+    0 8px 24px -4px rgba(28, 24, 16, 0.06);
   --wallet-card-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.2),
-    0 16px 40px -8px rgba(0, 0, 0, 0.45),
-    0 0 0 0.5px rgba(255, 255, 255, 0.06);
+    0 2px 6px rgba(28, 24, 16, 0.03),
+    0 12px 28px -6px rgba(28, 24, 16, 0.08),
+    0 28px 64px -12px rgba(28, 24, 16, 0.12);
   --wallet-card-shadow-hover:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 24px 56px -8px rgba(0, 0, 0, 0.55),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1);
-  --wallet-pocket-bg: rgba(58, 58, 60, 0.5);
-  --wallet-pocket-border: rgba(255, 255, 255, 0.05);
+    0 4px 10px rgba(28, 24, 16, 0.05),
+    0 20px 40px -6px rgba(28, 24, 16, 0.12),
+    0 40px 80px -12px rgba(28, 24, 16, 0.16);
   --wallet-pocket-shadow:
-    inset 0 1px 4px rgba(0, 0, 0, 0.2),
-    0 2px 16px -2px rgba(0, 0, 0, 0.35);
-  --wallet-pocket-rim: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
-  --wallet-fg: #f5f5f7;
-  --wallet-fg-muted: rgba(245, 245, 247, 0.5);
-  --wallet-btn-bg: rgba(255, 255, 255, 0.08);
-  --wallet-btn-bg-hover: rgba(255, 255, 255, 0.14);
-  --wallet-btn-text: #f5f5f7;
-  --wallet-input-bg: rgba(255, 255, 255, 0.05);
-  --wallet-input-border: rgba(255, 255, 255, 0.08);
-  --wallet-input-text: #f5f5f7;
-  --wallet-divider: rgba(255, 255, 255, 0.06);
-  --wallet-icon-circle: rgba(201, 168, 76, 0.12);
-  --wallet-icon-fg: #C9A84C;
-  --wallet-scene-bg: #000000;
+    inset 0 1px 3px rgba(28, 24, 16, 0.03),
+    0 2px 12px -2px rgba(28, 24, 16, 0.06);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(28, 24, 16, 0.04), transparent);
+}
+
+[data-theme="dark"] {
+  --wallet-glass-shadow:
+    0 1px 0 rgba(243, 239, 232, 0.04) inset,
+    0 12px 32px -8px rgba(0, 0, 0, 0.55);
+  --wallet-card-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    0 16px 40px -8px rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(243, 239, 232, 0.06);
+  --wallet-card-shadow-hover:
+    0 4px 12px rgba(0, 0, 0, 0.32),
+    0 24px 56px -8px rgba(0, 0, 0, 0.6),
+    0 0 0 0.5px rgba(243, 239, 232, 0.10);
+  --wallet-pocket-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.22),
+    0 2px 16px -2px rgba(0, 0, 0, 0.38);
+  --wallet-pocket-rim: linear-gradient(to bottom, rgba(243, 239, 232, 0.06), transparent);
 }
 
 /* Pocket / cardholder */

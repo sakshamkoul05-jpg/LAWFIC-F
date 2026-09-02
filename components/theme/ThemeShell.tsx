@@ -1,19 +1,18 @@
 "use client";
 
-import ClassicHeader from "@/components/classic/ClassicHeader";
-import ClassicCategoryTabs from "@/components/classic/ClassicCategoryTabs";
+import SiteHeader from "@/components/site/SiteHeader";
 import Footer from "@/components/site/Footer";
 
 /**
- * Client-side shell. Renders the shared title bar (header), the 21-tab
- * navigation, the page content, and the footer — so navigation persists on
- * every page of the site.
+ * Client-side shell: one header bar, the page, the footer.
+ *
+ * The 21-tab category strip that used to sit under the header is gone — see
+ * lib/nav.ts for what replaced it and why.
  */
 export default function ThemeShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <ClassicHeader />
-      <ClassicCategoryTabs />
+      <SiteHeader />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

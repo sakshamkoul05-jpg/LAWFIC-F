@@ -6,13 +6,10 @@ import { services } from "@/lib/services";
 import { plans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
-import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
 
 export default function ClassicHomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <ClassicPromotionalBanners />
-
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border">
         {/* Subtle radial glow */}

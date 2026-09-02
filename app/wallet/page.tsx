@@ -98,17 +98,21 @@ export default async function WalletPage() {
       </WalletPocket>
 
       {/* Quick actions */}
-      <div className="mt-8 grid grid-cols-4 gap-3">
+      {/* Three actions, not four. "Transfer" and "Withdraw" were here marked
+          "coming soon" — but this wallet is a closed-loop prepaid balance and
+          it never pays out: no withdrawal to a bank, no user-to-user transfer,
+          no third-party spend. That is the whole basis of the closed-system PPI
+          exemption it operates under, so advertising a payout as forthcoming is
+          not a harmless placeholder. Do not add them back. */}
+      <div className="mt-8 grid grid-cols-3 gap-3">
         {[
           { label: "Add money", icon: "M8 3v10M3 8h10", href: "/wallet/topup" },
-          { label: "Transfer", icon: "M3 8h10M10 4l4 4-4 4", soon: true },
-          { label: "Withdraw", icon: "M3 3h10v10H3zM8 7v4M6 9h4", soon: true },
-          { label: "More", icon: "M4 6h8M4 10h8", href: "/wallet/transactions" },
-        ].map((a) =>
-          "href" in a ? (
+          { label: "Statement", icon: "M4 6h8M4 10h8", href: "/wallet/transactions" },
+          { label: "Your filings", icon: "M3 3h10v10H3z", href: "/orders" },
+        ].map((a) => (
             <Link
               key={a.label}
-              href={a.href!}
+              href={a.href}
               className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
               style={{ color: "var(--wallet-fg)" }}
             >
@@ -122,25 +126,7 @@ export default async function WalletPage() {
               </div>
               {a.label}
             </Link>
-          ) : (
-            <span
-              key={a.label}
-              title="Coming soon"
-              className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium"
-              style={{ color: "var(--wallet-fg)" }}
-            >
-              <div
-                className="flex size-9 items-center justify-center rounded-full opacity-45"
-                style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={a.icon} />
-                </svg>
-              </div>
-              <span className="opacity-45">{a.label}</span>
-            </span>
-          )
-        )}
+        ))}
       </div>
 
       {/* Recent transactions */}

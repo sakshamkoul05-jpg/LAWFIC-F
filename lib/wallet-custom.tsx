@@ -32,56 +32,66 @@ export type CardType = {
   pocketGradient: string;
 };
 
+/* Card faces, re-grounded in the LAWFIC palette.
+   These were Tailwind defaults — violet-600, gray-800, cyan-500, blue-700 —
+   with violet as the DEFAULT card, which put a purple product in front of a
+   black-and-gold brand. Variety is still the point (people like choosing a
+   card), so there are still five; they now vary within one world instead of
+   sampling five unrelated ones.
+
+   Every face stays lighter than the dark ground (#121110). A card whose
+   darkest stop equals the page background stops reading as an object sitting
+   on the page and starts reading as a hole cut in it. */
 export const CARD_TYPES: CardType[] = [
   {
     id: "standard",
     name: "Standard",
-    desc: "The classic purple — clean, confident, yours.",
-    gradient: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 40%, #5b21b6 100%)",
-    accent: "#ffffff",
-    accentSub: "rgba(255,255,255,0.7)",
-    chipGradient: "linear-gradient(135deg, #e8c86a 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
-    pocketGradient: "linear-gradient(135deg, #4c1d95 0%, #3b0764 100%)",
+    desc: "Warm ink and gold — the house card.",
+    gradient: "linear-gradient(135deg, #3A3630 0%, #2C2823 45%, #211E1A 100%)",
+    accent: "#F3EFE8",
+    accentSub: "rgba(243,239,232,0.62)",
+    chipGradient: "linear-gradient(135deg, #E8C86A 0%, #D0AE55 35%, #A8842F 70%, #7A5E14 100%)",
+    pocketGradient: "linear-gradient(135deg, #1C1A17 0%, #0E0D0B 100%)",
   },
   {
     id: "premium",
     name: "Premium",
-    desc: "Gold on dark — for the ones who lead.",
-    gradient: "linear-gradient(135deg, #1c1917 0%, #292524 40%, #1c1917 100%)",
-    accent: "#e8c86a",
-    accentSub: "rgba(232,200,106,0.7)",
-    chipGradient: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
-    pocketGradient: "linear-gradient(135deg, #0c0a09 0%, #1c1917 100%)",
+    desc: "Gold on near-black — for the ones who lead.",
+    gradient: "linear-gradient(135deg, #2A241A 0%, #201B14 45%, #17130E 100%)",
+    accent: "#DCBC68",
+    accentSub: "rgba(220,188,104,0.68)",
+    chipGradient: "linear-gradient(135deg, #F0D678 0%, #D0AE55 35%, #A8842F 70%, #7A5E14 100%)",
+    pocketGradient: "linear-gradient(135deg, #0E0C0A 0%, #1A1712 100%)",
   },
   {
     id: "business",
     name: "Business",
-    desc: "Charcoal and silver — sharp and professional.",
-    gradient: "linear-gradient(135deg, #374151 0%, #1f2937 40%, #111827 100%)",
-    accent: "#d1d5db",
-    accentSub: "rgba(209,213,219,0.6)",
-    chipGradient: "linear-gradient(135deg, #e5e7eb 0%, #9ca3af 35%, #6b7280 70%, #4b5563 100%)",
-    pocketGradient: "linear-gradient(135deg, #111827 0%, #030712 100%)",
+    desc: "Warm charcoal and silver — sharp and plain.",
+    gradient: "linear-gradient(135deg, #47433D 0%, #363229 45%, #26231F 100%)",
+    accent: "#DAD5CC",
+    accentSub: "rgba(218,213,204,0.6)",
+    chipGradient: "linear-gradient(135deg, #E4E0D8 0%, #B0AAA0 35%, #7E7972 70%, #56524C 100%)",
+    pocketGradient: "linear-gradient(135deg, #1B1917 0%, #0D0C0B 100%)",
   },
   {
     id: "student",
     name: "Student",
-    desc: "Teal and bright — for the ones starting out.",
-    gradient: "linear-gradient(135deg, #06b6d4 0%, #0891b2 40%, #0e7490 100%)",
-    accent: "#ffffff",
-    accentSub: "rgba(255,255,255,0.7)",
-    chipGradient: "linear-gradient(135deg, #e8c86a 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
-    pocketGradient: "linear-gradient(135deg, #155e75 0%, #164e63 100%)",
+    desc: "Muted jade — for the ones starting out.",
+    gradient: "linear-gradient(135deg, #35594F 0%, #26443D 45%, #1B322C 100%)",
+    accent: "#E6EFE9",
+    accentSub: "rgba(230,239,233,0.62)",
+    chipGradient: "linear-gradient(135deg, #E8C86A 0%, #D0AE55 35%, #A8842F 70%, #7A5E14 100%)",
+    pocketGradient: "linear-gradient(135deg, #142722 0%, #0B1614 100%)",
   },
   {
     id: "advocate",
     name: "Advocate",
-    desc: "Deep blue and gold — the legal seal.",
-    gradient: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 40%, #1d4ed8 100%)",
-    accent: "#e8c86a",
-    accentSub: "rgba(232,200,106,0.7)",
-    chipGradient: "linear-gradient(135deg, #f0d678 0%, #d4af37 35%, #b8860b 70%, #8d6407 100%)",
-    pocketGradient: "linear-gradient(135deg, #172554 0%, #1e3a5f 100%)",
+    desc: "Deep ink-blue and gold — the legal seal.",
+    gradient: "linear-gradient(135deg, #303A50 0%, #222A3C 45%, #181D2A 100%)",
+    accent: "#DCBC68",
+    accentSub: "rgba(220,188,104,0.68)",
+    chipGradient: "linear-gradient(135deg, #F0D678 0%, #D0AE55 35%, #A8842F 70%, #7A5E14 100%)",
+    pocketGradient: "linear-gradient(135deg, #10141E 0%, #080A11 100%)",
   },
 ];
 
