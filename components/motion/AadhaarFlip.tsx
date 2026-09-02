@@ -83,15 +83,20 @@ export default function AadhaarFlip() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative h-[211px] w-full overflow-hidden rounded-xl border border-border-2 bg-gradient-to-br from-surface-2 via-surface to-surface text-left shadow-2xl shadow-black/60">
+    <div className="relative min-h-[232px] w-full overflow-hidden rounded-xl border border-border-2 bg-gradient-to-br from-surface-2 via-surface to-surface text-left shadow-2xl shadow-black/60">
       {/* brass edge light */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       <div
         className="pointer-events-none absolute -right-8 -top-10 size-40 rounded-full opacity-[0.07]"
-        style={{ background: "radial-gradient(circle, var(--color-brass), transparent 65%)" }}
+        style={{ background: "radial-gradient(circle, var(--color-primary), transparent 65%)" }}
       />
+      {/* The watermark has to be unmistakable without competing with the
+          fields it sits behind. Centred at 46px it landed straight across the
+          name and date of birth and made both hard to read. Rotated into the
+          corner at low contrast it still reads as SAMPLE from any distance,
+          and nothing on the card has to fight it. */}
       <span
-        className="pointer-events-none absolute inset-0 grid place-items-center font-display text-[46px] tracking-[0.3em] text-bone/[0.045] select-none"
+        className="pointer-events-none absolute -right-4 bottom-6 origin-bottom-right -rotate-[24deg] select-none font-display text-[34px] font-bold tracking-[0.28em] text-foreground/[0.055]"
         aria-hidden
       >
         SAMPLE
@@ -121,10 +126,10 @@ function CardFront() {
           {/* photo well */}
           <div className="grid h-[74px] w-[58px] shrink-0 place-items-center rounded border border-border-2 bg-background/60">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <circle cx="12" cy="8.5" r="3.6" stroke="var(--color-slate)" strokeWidth="1.2" />
+              <circle cx="12" cy="8.5" r="3.6" stroke="var(--color-muted)" strokeWidth="1.2" />
               <path
                 d="M4.8 20c.9-3.7 3.8-5.6 7.2-5.6s6.3 1.9 7.2 5.6"
-                stroke="var(--color-slate)"
+                stroke="var(--color-muted)"
                 strokeWidth="1.2"
                 strokeLinecap="round"
               />
@@ -140,7 +145,7 @@ function CardFront() {
 
         <div className="mt-auto border-t border-border pt-3">
           <p className="label text-muted">Number</p>
-          <p className="font-mono text-[19px] tracking-[0.22em] text-bone tnum">
+          <p className="font-mono text-[19px] tracking-[0.22em] text-foreground tnum">
             XXXX XXXX 1234
           </p>
         </div>
@@ -202,7 +207,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="label text-muted">{label}</dt>
-      <dd className="truncate text-[13.5px] text-bone">{value}</dd>
+      <dd className="truncate text-[13.5px] text-foreground">{value}</dd>
     </div>
   );
 }

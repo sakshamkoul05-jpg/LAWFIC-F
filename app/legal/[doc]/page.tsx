@@ -25,7 +25,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
       <section className="grain relative overflow-hidden border-b border-border">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
           <p className="label text-primary">Legal</p>
-          <h1 className="mt-5 max-w-3xl font-display text-[clamp(30px,4.4vw,46px)] leading-[1.08] text-bone">
+          <h1 className="mt-5 max-w-3xl font-display text-[clamp(30px,4.4vw,46px)] leading-[1.08] text-foreground">
             {legal.title}
           </h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-muted-foreground">{legal.summary}</p>
@@ -47,7 +47,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
                     className={`block border-l-2 py-2 pl-4 text-[13.5px] transition-colors ${
                       on
                         ? "border-primary text-primary"
-                        : "border-border text-muted-foreground hover:border-border-3 hover:text-bone"
+                        : "border-border text-muted-foreground hover:border-border-3 hover:text-foreground"
                     }`}
                   >
                     {d.title}
@@ -58,7 +58,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
             <li className="mt-2">
               <Link
                 href="/contact"
-                className="block border-l-2 border-border py-2 pl-4 text-[13.5px] text-muted-foreground transition-colors hover:border-border-3 hover:text-bone"
+                className="block border-l-2 border-border py-2 pl-4 text-[13.5px] text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
               >
                 Contact & grievances
               </Link>
@@ -69,7 +69,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {
         <article className="min-w-0">
           {legal.sections.map((s, i) => (
             <section key={s.heading} className="mb-11">
-              <h2 className="flex items-baseline gap-4 font-display text-[22px] leading-tight text-bone">
+              <h2 className="flex items-baseline gap-4 font-display text-[22px] leading-tight text-foreground">
                 <span className="font-mono text-[12px] text-primary">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -119,7 +119,7 @@ function Fact({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
     <div>
       <dt className="label text-muted">{k}</dt>
-      <dd className={`mt-1.5 text-[13.5px] text-bone ${mono ? "font-mono tracking-[0.04em]" : ""}`}>
+      <dd className={`mt-1.5 text-[13.5px] text-foreground ${mono ? "font-mono tracking-[0.04em]" : ""}`}>
         {v}
       </dd>
     </div>

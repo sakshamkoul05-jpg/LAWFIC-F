@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { documents } from "@/lib/documents";
 import { getSpecimen } from "@/lib/specimens";
 import DocumentSpecimen from "@/components/motion/DocumentSpecimen";
+import RequestForm from "@/components/site/RequestForm";
 
 /**
  * A page per document.
@@ -62,20 +63,16 @@ export default async function DocumentDetailPage({
           {/* The explanation lives under the specimen, where the thing it
               explains is visible. Repeating it here read as a stutter. */}
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/contact"
-              className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
-            >
-              Ask us about this
-            </Link>
-            <Link
-              href="/services"
-              className="rounded-full border border-border-2 px-6 py-3 text-sm text-foreground transition-colors hover:border-border-3"
-            >
-              Browse all services
-            </Link>
+          <div className="mt-8">
+            <RequestForm slug={doc.slug} label={doc.label} />
           </div>
+
+          <Link
+            href="/services"
+            className="mt-5 inline-block text-[13px] text-muted underline-offset-4 hover:text-primary hover:underline"
+          >
+            Browse all services
+          </Link>
 
           <p className="mt-6 text-[12px] leading-relaxed text-subtle">
             LAWFIC is a private consultancy. We prepare and file paperwork in your name. We

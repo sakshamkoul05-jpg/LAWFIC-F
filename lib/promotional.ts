@@ -19,6 +19,19 @@ export type BannerTone = "ember" | "ink" | "jade" | "azure" | "clay";
 
 export type Banner = {
   id: number;
+  /**
+   * A photograph in /public/banners.
+   *
+   * Downloaded from Unsplash rather than hotlinked. The Unsplash Licence
+   * permits commercial use of a downloaded image with no attribution; using
+   * their *API* to serve images does require crediting the photographer, so
+   * the files are committed here and the API is not touched. Serving them
+   * ourselves also means a banner cannot break because a third party moved
+   * a URL.
+   */
+  photo: string;
+  /** Describes the picture for anyone who cannot see it. */
+  photoAlt: string;
   /** Small uppercase line above the headline. */
   eyebrow: string;
   title: string;
@@ -45,6 +58,8 @@ export const promotionalBanners: Banner[] = [
       "The government charges nothing for it. We charge ₹999 and make sure it is filed right the first time.",
     cta: "Register your MSME",
     href: "/services/msme-udyam",
+    photo: "/banners/msme.jpg",
+    photoAlt: "A shopkeeper standing behind the counter of a small store",
     tone: "ember",
   },
   {
@@ -55,6 +70,8 @@ export const promotionalBanners: Banner[] = [
       "We prepare the application, answer the department's queries, and explain what all fifteen digits mean.",
     cta: "Start GST registration",
     href: "/services/gst",
+    photo: "/banners/gst.jpg",
+    photoAlt: "Indian rupee coins and banknotes counted on a table",
     tone: "ink",
   },
   {
@@ -65,6 +82,8 @@ export const promotionalBanners: Banner[] = [
       "One membership covers every service on the site, for the whole year. No per-filing subscription.",
     cta: "See what it costs",
     href: "/pricing",
+    photo: "/banners/membership.jpg",
+    photoAlt: "A woman working at a desk in a small office",
     tone: "jade",
   },
   {
@@ -75,6 +94,8 @@ export const promotionalBanners: Banner[] = [
       "Tell us your qualification and where you are, and the feed narrows to work you can actually take. Free, always.",
     cta: "Browse jobs",
     href: "/jobs",
+    photo: "/banners/jobs.jpg",
+    photoAlt: "A woman seated at her workplace desk",
     tone: "azure",
   },
   {
@@ -85,6 +106,8 @@ export const promotionalBanners: Banner[] = [
       "Government fee and our fee, itemised separately, before you commit to anything.",
     cta: "See identity services",
     href: "/services",
+    photo: "/banners/identity.jpg",
+    photoAlt: "A shopkeeper standing in the doorway of his shop",
     tone: "clay",
   },
 ];

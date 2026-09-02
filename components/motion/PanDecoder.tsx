@@ -70,7 +70,7 @@ export default function PanDecoder() {
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
         <span
-          className="pointer-events-none absolute inset-0 grid place-items-center font-display text-[42px] tracking-[0.3em] text-bone/[0.045] select-none"
+          className="pointer-events-none absolute inset-0 grid place-items-center font-display text-[42px] tracking-[0.3em] text-foreground/[0.045] select-none"
           aria-hidden
         >
           SAMPLE
@@ -84,14 +84,14 @@ export default function PanDecoder() {
             </span>
           </div>
 
-          <p className="mt-6 font-mono text-[25px] tracking-[0.16em] text-bone tnum">
+          <p className="mt-6 font-mono text-[25px] tracking-[0.16em] text-foreground tnum">
             {PAN.split("").map((ch, i) => {
               const on = i >= current.from && i < current.to;
               return (
                 <span
                   key={i}
                   className="transition-colors duration-500"
-                  style={{ color: on ? "var(--color-brass-hi)" : undefined }}
+                  style={{ color: on ? "var(--color-primary-hover)" : undefined }}
                 >
                   {ch}
                 </span>
@@ -102,11 +102,11 @@ export default function PanDecoder() {
           <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
             <div>
               <dt className="label text-muted">Name</dt>
-              <dd className="text-[13.5px] text-bone">Anjali R. Deshmukh</dd>
+              <dd className="text-[13.5px] text-foreground">Anjali R. Deshmukh</dd>
             </div>
             <div>
               <dt className="label text-muted">Date of birth</dt>
-              <dd className="text-[13.5px] text-bone tnum">14 / 08 / 1994</dd>
+              <dd className="text-[13.5px] text-foreground tnum">14 / 08 / 1994</dd>
             </div>
           </dl>
         </div>

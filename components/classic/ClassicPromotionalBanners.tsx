@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { promotionalBanners, TONES } from "@/lib/promotional";
@@ -201,11 +202,32 @@ export default function ClassicPromotionalBanners() {
                   background: `linear-gradient(115deg, ${tone.from} 0%, ${tone.to} 72%)`,
                 }}
               >
-                {/* A single soft light source, keyed to the slide's accent.
-                    Cheap to paint and it stops the panel reading as flat. */}
+                {/* The photograph, then a scrim over it.
+                    A headline set straight on a photo is a coin toss — it is
+                    legible over the dark parts and vanishes over the bright
+                    ones. The gradient is opaque where the text sits and clears
+                    towards the right, so the picture is visible, the words are
+                    always readable, and neither is left to chance. */}
+                <Image
+                  src={banner.photo}
+                  alt={banner.photoAlt}
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  className="object-cover"
+                />
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute -right-24 -top-32 size-[420px] rounded-full opacity-[0.16] blur-3xl"
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(100deg, ${tone.to} 0%, ${tone.to}F0 34%, ${tone.from}B8 62%, ${tone.from}66 100%)`,
+                  }}
+                />
+
+                {/* A single soft light source, keyed to the slide's accent. */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-24 -top-32 size-[420px] rounded-full opacity-[0.14] blur-3xl"
                   style={{ background: tone.accent }}
                 />
 

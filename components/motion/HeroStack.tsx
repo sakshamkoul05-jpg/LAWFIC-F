@@ -53,7 +53,7 @@ export default function HeroStack() {
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <p className="label text-primary">{d.meta}</p>
-                  <p className="mt-1 font-display text-[17px] tracking-[0.1em] text-bone">
+                  <p className="mt-1 font-display text-[17px] tracking-[0.1em] text-foreground">
                     {d.label}
                   </p>
                 </div>

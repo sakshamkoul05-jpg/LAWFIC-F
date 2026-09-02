@@ -46,7 +46,7 @@ export default function UdyamCertificate() {
           </Row>
 
           <Row delay={0.75} show={show} reduced={reduced}>
-            <h4 className="mt-4 font-display text-[22px] leading-tight tracking-[0.06em] text-bone">
+            <h4 className="mt-4 font-display text-[22px] leading-tight tracking-[0.06em] text-foreground">
               Udyam Registration Certificate
             </h4>
           </Row>
@@ -72,7 +72,7 @@ export default function UdyamCertificate() {
               <Row key={k} delay={0.95 + i * 0.07} show={show} reduced={reduced}>
                 <div>
                   <dt className="label text-muted">{k}</dt>
-                  <dd className="mt-0.5 text-[13.5px] text-bone">{v}</dd>
+                  <dd className="mt-0.5 text-[13.5px] text-foreground">{v}</dd>
                 </div>
               </Row>
             ))}
@@ -102,17 +102,17 @@ export default function UdyamCertificate() {
               aria-hidden
             >
               <svg viewBox="0 0 100 100" className="size-full">
-                <circle cx="50" cy="50" r="46" fill="none" stroke="var(--color-brass)" strokeWidth="1.6" opacity="0.75" />
-                <circle cx="50" cy="50" r="39" fill="none" stroke="var(--color-brass)" strokeWidth="0.8" opacity="0.5" strokeDasharray="3 3" />
+                <circle cx="50" cy="50" r="46" fill="none" stroke="var(--color-primary)" strokeWidth="1.6" opacity="0.75" />
+                <circle cx="50" cy="50" r="39" fill="none" stroke="var(--color-primary)" strokeWidth="0.8" opacity="0.5" strokeDasharray="3 3" />
                 <path id="sealArc" d="M50,15 a35,35 0 1,1 -0.1,0" fill="none" />
-                <text fill="var(--color-brass)" fontSize="9.5" letterSpacing="2.6" fontFamily="var(--font-mono)" opacity="0.9">
+                <text fill="var(--color-primary)" fontSize="9.5" letterSpacing="2.6" fontFamily="var(--font-mono)" opacity="0.9">
                   <textPath href="#sealArc" startOffset="4%">VERIFIED FILING · LAWFIC ·</textPath>
                 </text>
                 <text
                   x="50"
                   y="56"
                   textAnchor="middle"
-                  fill="var(--color-brass-hi)"
+                  fill="var(--color-primary-hover)"
                   fontSize="17"
                   letterSpacing="1.5"
                   fontFamily="var(--font-display)"

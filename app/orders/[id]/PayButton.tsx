@@ -52,9 +52,9 @@ export default function PayButton({
         initial={reduced ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="rounded border border-jade/40 bg-jade/10 px-5 py-4"
+        className="rounded border border-success/40 bg-success/10 px-5 py-4"
       >
-        <p className="label text-jade">Paid</p>
+        <p className="label text-success">Paid</p>
         <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
           {amountLabel} has been taken from your wallet. We will start work on this now.
         </p>
@@ -89,7 +89,7 @@ export default function PayButton({
         {pending ? "Taking payment…" : `Pay ${amountLabel} from wallet`}
       </button>
 
-      {error && <p className="mt-4 text-[13px] leading-relaxed text-rust">{error}</p>}
+      {error && <p className="mt-4 text-[13px] leading-relaxed text-destructive">{error}</p>}
 
       <p className="mt-4 text-[12.5px] leading-relaxed text-muted">
         Paid from your prepaid balance. Government fee and our fee appear as separate lines on

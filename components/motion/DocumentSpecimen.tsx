@@ -64,15 +64,16 @@ function SpecimenFace({ spec }: { spec: Specimen }) {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="relative overflow-hidden rounded-xl border border-border-2 bg-surface-2 p-5"
       >
-        {/* Never optional: this is what keeps the illustration an illustration. */}
-        <div
+        {/* Never optional: this is what keeps the illustration an illustration.
+            Kept to the lower corner rather than centred — a centred watermark
+            lands on the fields and makes the specimen harder to read than the
+            document it depicts. */}
+        <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 grid place-items-center"
+          className="pointer-events-none absolute -right-3 bottom-4 origin-bottom-right -rotate-[24deg] select-none font-mono text-[clamp(1.6rem,5vw,2.6rem)] font-bold tracking-[0.28em] text-foreground/[0.06]"
         >
-          <span className="rotate-[-18deg] font-mono text-[clamp(2rem,7vw,3.4rem)] font-bold tracking-[0.3em] text-foreground/[0.07]">
-            SAMPLE
-          </span>
-        </div>
+          SAMPLE
+        </span>
 
         <div className="relative flex items-start justify-between gap-3">
           <p className="type-label text-primary">Specimen · {spec.title}</p>

@@ -63,7 +63,7 @@ export default function StartFiling({
                 name="details"
                 rows={3}
                 placeholder="e.g. trading business in Pune, turnover about ₹60 lakh, no GST yet"
-                className="mt-2.5 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 text-[14px] leading-relaxed text-bone outline-none focus:border-primary/50 placeholder:text-muted/60"
+                className="mt-2.5 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 text-[14px] leading-relaxed text-foreground outline-none focus:border-primary/50 placeholder:text-muted/60"
               />
 
               <button
@@ -74,7 +74,7 @@ export default function StartFiling({
                 {pending ? "Sending…" : "Send request"}
               </button>
 
-              {error && <p className="mt-4 text-[13px] text-rust">{error}</p>}
+              {error && <p className="mt-4 text-[13px] text-destructive">{error}</p>}
 
               <p className="mt-4 text-[12.5px] leading-relaxed text-muted">
                 We will check your file and send a quote with the government fee and our fee shown

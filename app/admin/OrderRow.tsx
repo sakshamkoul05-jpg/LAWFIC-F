@@ -37,7 +37,7 @@ export default function OrderRow({ order }: { order: Row }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-mono text-[11.5px] tracking-[0.08em] text-muted">{order.reference}</p>
-          <h3 className="mt-1.5 font-display text-[19px] leading-snug text-bone">
+          <h3 className="mt-1.5 font-display text-[19px] leading-snug text-foreground">
             {order.service_name}
           </h3>
           <p className="mt-1 text-[13px] text-muted-foreground">
@@ -48,7 +48,7 @@ export default function OrderRow({ order }: { order: Row }) {
 
         <div className="flex items-center gap-3">
           {order.professional_fee_paise !== null && (
-            <span className="font-mono text-[13.5px] text-bone tnum">{formatPaise(total)}</span>
+            <span className="font-mono text-[13.5px] text-foreground tnum">{formatPaise(total)}</span>
           )}
           <StatusPill status={order.status} />
         </div>
@@ -140,7 +140,7 @@ export default function OrderRow({ order }: { order: Row }) {
                 <textarea
                   name="notes"
                   rows={2}
-                  className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-sans text-[13.5px] normal-case tracking-normal text-bone outline-none focus:border-primary/50"
+                  className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-sans text-[13.5px] normal-case tracking-normal text-foreground outline-none focus:border-primary/50"
                 />
               </label>
 
@@ -163,7 +163,7 @@ export default function OrderRow({ order }: { order: Row }) {
                 run(rejectOrder, fd);
               }}
             >
-              <p className="label mb-3 text-rust">Close and refund</p>
+              <p className="label mb-3 text-destructive">Close and refund</p>
               <p className="mb-4 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
                 Anything already paid is credited straight back to the customer&apos;s wallet, in
                 the same transaction as the closure. They will see this reason.
@@ -173,12 +173,12 @@ export default function OrderRow({ order }: { order: Row }) {
                 rows={2}
                 required
                 placeholder="Address proof was not accepted by the officer"
-                className="w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 text-[13.5px] text-bone outline-none focus:border-primary/50 placeholder:text-muted/60"
+                className="w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 text-[13.5px] text-foreground outline-none focus:border-primary/50 placeholder:text-muted/60"
               />
               <button
                 type="submit"
                 disabled={pending}
-                className="mt-4 rounded-full border border-rust/50 bg-rust/10 px-6 py-2.5 text-sm text-rust transition-colors hover:bg-rust/20 disabled:opacity-60"
+                className="mt-4 rounded-full border border-destructive/50 bg-destructive/10 px-6 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-60"
               >
                 {pending ? "Closing…" : "Close and refund"}
               </button>
@@ -187,7 +187,7 @@ export default function OrderRow({ order }: { order: Row }) {
         )}
       </AnimatePresence>
 
-      {error && <p className="mt-4 text-[13px] text-rust">{error}</p>}
+      {error && <p className="mt-4 text-[13px] text-destructive">{error}</p>}
     </div>
   );
 }
@@ -226,7 +226,7 @@ function Field({
         min={0}
         step={1}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-mono text-[15px] tracking-normal text-bone outline-none focus:border-primary/50 tnum"
+        className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-mono text-[15px] tracking-normal text-foreground outline-none focus:border-primary/50 tnum"
       />
       <span className="mt-1.5 block text-[11.5px] normal-case tracking-normal text-muted">
         {note}
@@ -256,7 +256,7 @@ function Action({
       className={`rounded-full px-5 py-2 text-[13px] transition-colors disabled:opacity-60 ${
         primary
           ? "bg-primary text-background hover:bg-primary-hover"
-          : "border border-border-2 text-muted-foreground hover:border-border-3 hover:text-bone"
+          : "border border-border-2 text-muted-foreground hover:border-border-3 hover:text-foreground"
       }`}
     >
       {children}

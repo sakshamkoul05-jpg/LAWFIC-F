@@ -235,3 +235,22 @@ export function catalogueIntegrity(liveSlugs: string[]): string[] {
 
   return problems;
 }
+
+
+/**
+ * Can LAWFIC accept a request for this slug?
+ *
+ * A filing request is not the same thing as a built service page. The
+ * catalogue holds every service LAWFIC intends to offer and `lib/documents`
+ * every document it prepares; a customer may ask about any of them, and the
+ * quote step is where LAWFIC decides what it can actually do. Restricting
+ * requests to the four slugs that happen to have a written page meant the
+ * other sixty could be read about and never asked for.
+ *
+ * This deliberately does NOT check `status: "live"`. Live means "we have
+ * written the page", not "we will take the work".
+ */
+export function isRequestableSlug(slug: string, documentSlugs: string[] = []): boolean {
+  if (allServices.some((s) => s.slug === slug)) return true;
+  return documentSlugs.includes(slug);
+}

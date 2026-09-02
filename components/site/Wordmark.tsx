@@ -11,7 +11,7 @@ export default function Wordmark({ className = "" }: { className?: string }) {
         <span className="font-display text-[17px] font-bold tracking-[-0.02em] text-foreground leading-none sm:text-[20px]">
           LAWFIC
         </span>
-        <span className="mt-0.5 hidden text-[8px] font-medium tracking-[0.12em] text-muted-fg uppercase leading-none sm:block sm:tracking-[0.14em] sm:text-[9.5px]">
+        <span className="mt-0.5 hidden text-[8px] font-medium tracking-[0.12em] text-muted-foreground uppercase leading-none sm:block sm:tracking-[0.14em] sm:text-[9.5px]">
           Registrations &amp; Compliance
         </span>
       </span>

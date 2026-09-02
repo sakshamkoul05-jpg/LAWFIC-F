@@ -80,7 +80,7 @@ export default function JobFeed() {
         <span className="size-1.5 rounded-full bg-primary" aria-hidden />
         {matched && firstName ? (
           <p className="text-[14px] text-muted-foreground">
-            Re-ordered by your track, <span className="text-bone font-medium">{firstName}</span>.{" "}
+            Re-ordered by your track, <span className="text-foreground font-medium">{firstName}</span>.{" "}
             <Link href="/profile/setup" className="text-primary hover:text-primary-hover">
               Edit interests
             </Link>
@@ -104,7 +104,7 @@ export default function JobFeed() {
             <article className="card grid gap-5 border-0! p-7 md:grid-cols-[1.5fr_1fr_auto] md:items-center md:gap-8">
               <div>
                 <p className="label text-primary">{j.tag}</p>
-                <h2 className="mt-3 font-display text-[21px] leading-snug text-bone">{j.role}</h2>
+                <h2 className="mt-3 font-display text-[21px] leading-snug text-foreground">{j.role}</h2>
                 <p className="mt-1.5 text-[14px] text-muted-foreground">{j.firm}</p>
               </div>
 
@@ -119,11 +119,11 @@ export default function JobFeed() {
                 </div>
                 <div>
                   <dt className="label text-muted">Monthly</dt>
-                  <dd className="mt-0.5 font-mono text-[13px] text-bone tnum">{j.pay}</dd>
+                  <dd className="mt-0.5 font-mono text-[13px] text-foreground tnum">{j.pay}</dd>
                 </div>
               </dl>
 
-              <span className="justify-self-start rounded-full border border-border-2 px-5 py-2.5 text-[13px] text-bone transition-colors md:justify-self-end">
+              <span className="justify-self-start rounded-full border border-border-2 px-5 py-2.5 text-[13px] text-foreground transition-colors md:justify-self-end">
                 Apply
               </span>
             </article>

@@ -89,7 +89,7 @@ export default async function AdminPage() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className="label text-primary">Back office</p>
-              <h1 className="mt-4 font-display text-[32px] leading-tight text-bone">
+              <h1 className="mt-4 font-display text-[32px] leading-tight text-foreground">
                 {needsAction === 0 ? "Nothing waiting on you" : `${needsAction} waiting on you`}
               </h1>
             </div>
@@ -115,7 +115,7 @@ export default async function AdminPage() {
               return (
                 <div key={g.status}>
                   <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <h2 className="font-display text-[21px] text-bone">{g.heading}</h2>
+                    <h2 className="font-display text-[21px] text-foreground">{g.heading}</h2>
                     <span className="font-mono text-[12px] text-primary tnum">{group.length}</span>
                     {g.note && <span className="text-[13px] text-muted">{g.note}</span>}
                   </div>
@@ -138,7 +138,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="label text-muted">{label}</dt>
-      <dd className="mt-1.5 font-mono text-[18px] text-bone tnum">{value}</dd>
+      <dd className="mt-1.5 font-mono text-[18px] text-foreground tnum">{value}</dd>
     </div>
   );
 }
@@ -148,7 +148,7 @@ function Locked({ title, body, signIn }: { title: string; body: string; signIn?:
     <section className="grain relative min-h-[70vh] overflow-hidden">
       <div className="relative z-2 mx-auto max-w-6xl px-5 py-24 sm:px-8">
         <p className="label text-primary">Back office</p>
-        <h1 className="mt-6 font-display text-[clamp(28px,4vw,40px)] leading-[1.1] text-bone">
+        <h1 className="mt-6 font-display text-[clamp(28px,4vw,40px)] leading-[1.1] text-foreground">
           {title}
         </h1>
         <p className="mt-6 max-w-lg text-[16px] leading-relaxed text-muted-foreground">{body}</p>

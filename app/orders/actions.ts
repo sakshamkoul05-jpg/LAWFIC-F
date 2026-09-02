@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getService } from "@/lib/services";
+import { isRequestableSlug } from "@/lib/catalogue";
+import { documents } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -32,7 +33,15 @@ export async function startFiling(formData: FormData) {
   });
   if (!parsed.success) return { error: "Something was missing from that request." };
 
-  if (!getService(parsed.data.slug)) return { error: "That service does not exist." };
+  /* Any catalogue service or document may be requested. Previously this
+     accepted only the handful of slugs with a written page, so a customer
+     could read about sixty documents and ask for four of them. What LAWFIC
+     will actually take on is decided at the quote step, not here. */
+  const known = isRequestableSlug(
+    parsed.data.slug,
+    documents.map((d) => d.slug),
+  );
+  if (!known) return { error: "We do not have that on our list." };
 
   const { data, error } = await supabase
     .from("service_orders")
