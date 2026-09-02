@@ -63,7 +63,7 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-5 sm:px-7">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-7">
         <Link href="/" aria-label="LAWFIC home" className="shrink-0">
           <Wordmark />
         </Link>
@@ -86,7 +86,7 @@ export default function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5 md:ml-0">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
           <ThemeToggle />
 
           {mounted && user ? (
@@ -105,7 +105,7 @@ export default function SiteHeader() {
           ) : mounted ? (
             <Link
               href="/login"
-              className="rounded-full bg-primary px-4 py-2 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
+              className="whitespace-nowrap rounded-full bg-primary px-3.5 py-2 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover sm:px-4"
             >
               Sign in
             </Link>
