@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ForYouStrip from "@/components/profile/ForYouStrip";
 import {
   catalogueIntegrity,
   categories,
@@ -28,6 +29,13 @@ export default function ServicesIndex() {
 
   return (
     <>
+      {/* Signed in and onboarded? Lead with what suits them. Renders nothing
+          for everyone else, so the page below is unchanged for a first-time
+          visitor. */}
+      <div className="mx-auto max-w-6xl px-5 pt-6 sm:px-8">
+        <ForYouStrip />
+      </div>
+
       <section className="relative overflow-hidden border-b border-border">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_50%_50%,rgba(201,168,76,0.05),transparent)]" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:py-24">

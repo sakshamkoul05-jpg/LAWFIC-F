@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useProfile } from "@/components/profile/ProfileProvider";
 import Reveal from "@/components/ui/Reveal";
-import { hasInterests, isCompleteProfile, type UserProfile } from "@/lib/profile";
+import { hasInterests, type UserProfile } from "@/lib/profile";
 
 type Job = {
   role: string;
@@ -47,22 +48,8 @@ function scoreJob(job: Job, profile: UserProfile): number {
 }
 
 export default function JobFeed() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/profile")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (alive && data && isCompleteProfile(data)) setProfile(data);
-        if (alive) setReady(true);
-      })
-      .catch(() => alive && setReady(true));
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const { profile: rawProfile, ready, personalised } = useProfile();
+  const profile = personalised ? rawProfile : null;
 
   const list: ScoredJob[] = useMemo(() => {
     if (!profile || !hasInterests(profile)) return jobs.map((j) => ({ ...j, score: 0 }));

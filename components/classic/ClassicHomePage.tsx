@@ -7,6 +7,7 @@ import { plans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
+import AdTiles from "./AdTiles";
 
 export default function ClassicHomePage() {
   return (
@@ -54,6 +55,8 @@ export default function ClassicHomePage() {
           </div>
         </div>
       </section>
+
+      <AdTiles />
 
       {/* ── Service Categories ───────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">

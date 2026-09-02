@@ -1,35 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { isCompleteProfile, personalizeLine, recommendedServiceSlugs, type UserProfile } from "@/lib/profile";
+import { personalizeLine, recommendedServiceSlugs } from "@/lib/profile";
 import { getService } from "@/lib/services";
+import { useProfile } from "@/components/profile/ProfileProvider";
 
 export default function TrackRecommendations() {
-  const [slugs, setSlugs] = useState<string[] | null>(null);
-  const [track, setTrack] = useState("");
-  const [name, setName] = useState("");
+  const { profile, personalised } = useProfile();
 
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/profile")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!alive || !data || !isCompleteProfile(data as UserProfile)) return;
-        const p = data as UserProfile;
-        const found = recommendedServiceSlugs(p);
-        if (found.length === 0) return;
-        setSlugs(found);
-        setTrack(personalizeLine(p));
-        setName(p.fullName.split(" ")[0]);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
+  if (!personalised || !profile) return null;
 
-  if (!slugs) return null;
+  const slugs = recommendedServiceSlugs(profile);
+  if (slugs.length === 0) return null;
+
+  const track = personalizeLine(profile);
+  const name = profile.fullName.split(" ")[0];
 
   const rows = slugs
     .map((s) => getService(s))

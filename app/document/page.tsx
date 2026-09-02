@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ForYouStrip from "@/components/profile/ForYouStrip";
 import { documents } from "@/lib/documents";
 
 export const metadata: Metadata = {
@@ -26,6 +27,8 @@ export default function DocumentPage() {
         Every identity card, certificate, agreement and registration we prepare — checked, filed
         and followed up so the first submission is the one that sticks.
       </p>
+
+      <ForYouStrip className="mt-10" />
 
       {groups.map((group) => {
         const items = documents.filter((d) => d.group === group);
