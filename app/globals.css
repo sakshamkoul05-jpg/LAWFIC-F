@@ -449,11 +449,11 @@
    Classic theme — tab navigation
    ============================================================ */
 
+/* The strip scrolls, but a visible scrollbar under 21 tabs reads as clutter —
+   the edge fades in ClassicCategoryTabs carry the affordance instead. */
 .classic-tabs-nav {
-  background: var(--color-surface);
-  padding-top: 0.375rem;
-  padding-bottom: 0.375rem;
-  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .classic-tabs-nav::-webkit-scrollbar { display: none; }
