@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isRequestableSlug } from "@/lib/catalogue";
+import { getIntake } from "@/lib/intake";
 import { documents } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,8 +18,39 @@ import { createClient } from "@/lib/supabase/server";
 
 const Start = z.object({
   slug: z.string().min(1),
-  details: z.string().max(2000).optional(),
+  details: z.string().max(4000).optional(),
 });
+
+/**
+ * Fold a document's intake answers into the one `details` column.
+ *
+ * Each document asks for different things (see lib/intake.ts), so the shapes
+ * vary per request. They are written as readable "Label: value" lines rather
+ * than JSON because the only consumer is a person reading the order in the
+ * admin console, and a paragraph they can scan beats a blob they have to
+ * decode. If this ever needs querying — "how many GST requests were over ₹5
+ * crore" — that is the point to add a jsonb column, not before.
+ *
+ * Anything not declared in the intake spec is ignored, so a hand-crafted POST
+ * cannot stuff arbitrary content into an order.
+ */
+function summarise(slug: string, formData: FormData): string {
+  const intake = getIntake(slug);
+  if (!intake) {
+    const notes = formData.get("notes");
+    return typeof notes === "string" ? notes.trim().slice(0, 4000) : "";
+  }
+
+  const lines: string[] = [];
+  for (const field of intake.fields) {
+    const raw = formData.get(field.name);
+    if (typeof raw !== "string") continue;
+    const value = raw.trim();
+    if (!value) continue;
+    lines.push(`${field.label}: ${value}`);
+  }
+  return lines.join("\n").slice(0, 4000);
+}
 
 export async function startFiling(formData: FormData) {
   const supabase = await createClient();
@@ -27,9 +59,10 @@ export async function startFiling(formData: FormData) {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect("/login?next=/orders");
 
+  const slug = formData.get("slug");
   const parsed = Start.safeParse({
-    slug: formData.get("slug"),
-    details: formData.get("details") ?? undefined,
+    slug,
+    details: typeof slug === "string" ? summarise(slug, formData) || undefined : undefined,
   });
   if (!parsed.success) return { error: "Something was missing from that request." };
 

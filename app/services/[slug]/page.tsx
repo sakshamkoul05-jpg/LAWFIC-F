@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getService, services } from "@/lib/services";
 import ServiceVisual from "@/components/motion/ServiceVisual";
-import StartFiling from "./StartFiling";
+import RequestForm from "@/components/site/RequestForm";
 import Reveal from "@/components/ui/Reveal";
 
 export function generateStaticParams() {
@@ -71,7 +71,11 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
 
             <Reveal delay={0.24}>
               <div className="mt-8">
-                <StartFiling slug={service.slug} turnaround={service.turnaround} />
+                <RequestForm
+                  slug={service.slug}
+                  label={service.name}
+                  turnaround={service.turnaround}
+                />
               </div>
             </Reveal>
           </div>

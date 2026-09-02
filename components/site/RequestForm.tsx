@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState, useTransition } from "react";
 import { startFiling } from "@/app/orders/actions";
+import { getIntake, type IntakeField } from "@/lib/intake";
 
 /**
  * The request form, used by every service page and every document page.
@@ -18,6 +19,67 @@ import { startFiling } from "@/app/orders/actions";
  * so the form does not ask again. It says what it already knows instead,
  * which is both shorter and a small proof that signing in was worth it.
  */
+/** Used when a document has no intake spec of its own yet. */
+const FALLBACK_FIELDS: IntakeField[] = [
+  {
+    name: "notes",
+    label: "What do you need, and by when?",
+    type: "textarea",
+    placeholder: "Tell us a little about your situation",
+    required: true,
+  },
+];
+
+function Field({ field, slug }: { field: IntakeField; slug: string }) {
+  const id = `${slug}-${field.name}`;
+  const base =
+    "mt-1.5 w-full rounded-lg border border-border-2 bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none placeholder:text-subtle focus:border-primary/50";
+
+  return (
+    <div>
+      <label htmlFor={id} className="type-label block text-muted">
+        {field.label}
+        {!field.required && (
+          <span className="ml-1.5 normal-case text-subtle">{"· optional"}</span>
+        )}
+      </label>
+
+      {field.type === "textarea" ? (
+        <textarea
+          id={id}
+          name={field.name}
+          rows={3}
+          required={field.required}
+          placeholder={field.placeholder}
+          className={`${base} leading-relaxed`}
+        />
+      ) : field.type === "select" ? (
+        <select id={id} name={field.name} required={field.required} defaultValue="" className={base}>
+          <option value="" disabled>
+            Choose one
+          </option>
+          {(field.options ?? []).map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          id={id}
+          name={field.name}
+          type={field.type}
+          required={field.required}
+          placeholder={field.placeholder}
+          className={base}
+        />
+      )}
+
+      {field.hint && <p className="mt-1 text-[12px] leading-snug text-subtle">{field.hint}</p>}
+    </div>
+  );
+}
+
 export default function RequestForm({
   slug,
   label,
@@ -35,6 +97,7 @@ export default function RequestForm({
   const [profile, setProfile] = useState<{ fullName: string; city: string; phone: string } | null>(
     null,
   );
+  const intake = getIntake(slug);
 
   useEffect(() => {
     if (!open) return;
@@ -98,16 +161,15 @@ export default function RequestForm({
                 </p>
               )}
 
-              <label htmlFor={`details-${slug}`} className="type-label mt-4 block text-muted">
-                Anything we should know? (optional)
-              </label>
-              <textarea
-                id={`details-${slug}`}
-                name="details"
-                rows={3}
-                placeholder="e.g. the name on my PAN does not match my Aadhaar"
-                className="mt-2 w-full rounded-lg border border-border-2 bg-background/60 px-3 py-2.5 text-[14px] leading-relaxed text-foreground outline-none placeholder:text-subtle focus:border-primary/50"
-              />
+              {intake && (
+                <p className="mt-3 text-[12.5px] leading-relaxed text-muted">{intake.intro}</p>
+              )}
+
+              <div className="mt-4 grid gap-4">
+                {(intake?.fields ?? FALLBACK_FIELDS).map((f) => (
+                  <Field key={f.name} field={f} slug={slug} />
+                ))}
+              </div>
 
               <button
                 type="submit"
