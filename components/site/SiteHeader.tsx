@@ -60,6 +60,11 @@ export default function SiteHeader() {
     user?.email?.split("@")[0] ??
     "Account";
 
+  /* Greet by first name only. "Hi, Saksham" is a person talking; "Hi, Saksham
+     Koul" is a database row talking, and a full legal name in the chrome of
+     every page reads like a billing statement. */
+  const firstName = displayName.split(" ")[0];
+
   const search = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
@@ -116,8 +121,8 @@ export default function SiteHeader() {
               <span className="grid size-7 place-items-center rounded-full bg-primary text-[11px] font-semibold text-background">
                 {initialOf(displayName)}
               </span>
-              <span className="hidden max-w-[9ch] truncate text-[13px] text-foreground lg:block">
-                {displayName}
+              <span className="hidden max-w-[14ch] truncate text-[13px] text-foreground sm:block">
+                Hi, <span className="font-medium">{firstName}</span>
               </span>
             </Link>
           ) : mounted ? (

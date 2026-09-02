@@ -19,6 +19,8 @@ export default function ProfileSetupForm() {
   const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  /* Something went wrong but the flow continues — never rendered as a blocker. */
+  const [skipped, setSkipped] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -99,8 +101,19 @@ export default function ProfileSetupForm() {
       });
       setStage("password");
     } else {
+      /* A failed résumé upload must never strand someone mid-onboarding.
+         It is the one optional field in this flow, and the cost of blocking
+         is severe: the account never reaches "done", never gets marked
+         onboarded, and so the whole site stays impersonal for that person
+         forever. Previously this set an error and left the user on this step
+         with no way past it — which is exactly what happened whenever the
+         storage bucket was missing.
+         Tell them plainly, keep their answers, and move on. */
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Upload failed.");
+      setSkipped(body.error === "storage_unavailable"
+        ? "We could not store your résumé just now. Everything else is saved — you can add it later from your profile."
+        : "That file could not be uploaded. Everything else is saved — you can add a résumé later from your profile.");
+      setStage("password");
     }
   }
 
@@ -324,6 +337,14 @@ export default function ProfileSetupForm() {
                 transition={{ duration: 0.22 }}
                 className="space-y-5"
               >
+                {skipped && (
+                  <p
+                    role="status"
+                    className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-[12.5px] leading-relaxed text-muted"
+                  >
+                    {skipped}
+                  </p>
+                )}
                 <p className="text-[14px] text-muted">
                   Pick a password so you can sign in with your email or phone too, even without an
                   OTP link.

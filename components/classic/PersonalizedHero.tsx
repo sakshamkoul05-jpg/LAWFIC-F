@@ -13,7 +13,7 @@ export default function PersonalizedHero({ profile }: { profile: UserProfile }) 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-xl">
-            <p className="type-label text-primary">Welcome back, {firstName}</p>
+            <p className="type-label text-primary">Hi, {firstName}</p>
             <h1 className="type-h1 mt-3 text-foreground">
               {track}
             </h1>
