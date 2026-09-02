@@ -3,7 +3,16 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { CARD_TYPES, AVATAR_SEEDS, normalizePrefs, type WalletPrefs, type CardTypeId } from "@/lib/wallet-custom";
+import {
+  ENTITIES,
+  FINISHES,
+  AVATAR_SEEDS,
+  getEntity,
+  normalizePrefs,
+  type WalletPrefs,
+  type EntityId,
+  type FinishId,
+} from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 
@@ -22,9 +31,14 @@ export default function CustomizePanel({
     AVATAR_SEEDS.includes(initial.avatarSeed) ? "" : initial.avatarSeed
   );
 
-  const pickCardType = (id: CardTypeId) => {
+  const pickEntity = (id: EntityId) => {
     setStatus("idle");
-    setDraft((d) => ({ ...d, cardType: id }));
+    setDraft((d) => ({ ...d, entity: id }));
+  };
+
+  const pickFinish = (id: FinishId) => {
+    setStatus("idle");
+    setDraft((d) => ({ ...d, finish: id }));
   };
 
   const applySeed = (seed: string) => {
@@ -50,8 +64,10 @@ export default function CustomizePanel({
     });
   };
 
+  const normalized = normalizePrefs(draft);
   const dirty =
-    normalizePrefs(draft)?.cardType !== initial.cardType ||
+    normalized?.entity !== initial.entity ||
+    normalized?.finish !== initial.finish ||
     draft.avatarSeed !== initial.avatarSeed;
 
   return (
@@ -64,8 +80,9 @@ export default function CustomizePanel({
         <div className="mt-8 flex justify-center pb-4">
           <WalletCard prefs={draft} balancePaise={balancePaise} />
         </div>
-        <p className="mt-6 text-center text-[12px] opacity-40">
-          {CARD_TYPES.find((c) => c.id === draft.cardType)?.desc}
+        <p className="mt-6 text-center text-[12px] leading-relaxed opacity-40">
+          The pattern is generated from your account and your filings. It is
+          yours alone, and it fills in as you use LAWFIC.
         </p>
       </div>
 
@@ -75,25 +92,64 @@ export default function CustomizePanel({
           Customize
         </p>
 
-        {/* Card type picker */}
+        {/* Who the card belongs to. This is not a tier — it decides which
+            statutory identifier the card carries. */}
         <div className="mt-6">
-          <p className="mb-3 text-[13px] font-medium">Card type</p>
+          <p className="text-[13px] font-medium">You file as</p>
+          <p className="mb-3 mt-1 text-[11.5px] leading-relaxed opacity-40">
+            Sets the identifier printed on your card — {getEntity(draft.entity)?.idLabel}.
+          </p>
           <div className="space-y-2">
-            {CARD_TYPES.map((c) => (
+            {ENTITIES.map((e) => (
               <button
-                key={c.id}
+                key={e.id}
                 type="button"
-                onClick={() => pickCardType(c.id)}
+                onClick={() => pickEntity(e.id)}
+                aria-pressed={draft.entity === e.id}
                 className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all duration-200"
                 style={{
-                  background: draft.cardType === c.id ? "var(--wallet-btn-bg-hover)" : "transparent",
+                  background: draft.entity === e.id ? "var(--wallet-btn-bg-hover)" : "transparent",
                 }}
               >
-                <div className="h-8 w-12 shrink-0 rounded-lg" style={{ background: c.gradient }} />
-                <div>
-                  <p className="text-[12px] font-medium">{c.name}</p>
-                  <p className="text-[10px] opacity-40">{c.desc}</p>
-                </div>
+                <span
+                  className="grid h-8 w-14 shrink-0 place-items-center rounded-lg font-mono text-[8.5px] tracking-[0.06em]"
+                  style={{
+                    background: "var(--wallet-btn-bg)",
+                    color: draft.entity === e.id ? "var(--wallet-icon-fg)" : "var(--wallet-fg-muted)",
+                  }}
+                >
+                  {e.idLabel}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[12px] font-medium">{e.name}</span>
+                  <span className="block text-[10px] opacity-40">{e.desc}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* The one openly cosmetic choice. */}
+        <div className="mt-8">
+          <p className="mb-3 text-[13px] font-medium">Finish</p>
+          <div className="grid grid-cols-2 gap-2">
+            {FINISHES.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => pickFinish(f.id)}
+                aria-pressed={draft.finish === f.id}
+                className="rounded-xl p-3 text-left transition-all duration-200"
+                style={{
+                  background: draft.finish === f.id ? "var(--wallet-btn-bg-hover)" : "transparent",
+                  outline:
+                    draft.finish === f.id
+                      ? "1px solid var(--wallet-icon-fg)"
+                      : "1px solid var(--wallet-input-border)",
+                }}
+              >
+                <span className="block text-[12px] font-medium">{f.name}</span>
+                <span className="mt-0.5 block text-[10px] leading-snug opacity-40">{f.desc}</span>
               </button>
             ))}
           </div>

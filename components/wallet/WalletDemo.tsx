@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CARD_TYPES, AVATAR_SEEDS, type WalletPrefs, type CardTypeId } from "@/lib/wallet-custom";
+import { ENTITIES, FINISHES, AVATAR_SEEDS, DEFAULT_PREFS, type WalletPrefs, type EntityId, type FinishId } from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
 import WalletPocket from "@/components/wallet/WalletPocket";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
@@ -11,6 +11,10 @@ import WalletActions from "@/components/wallet/WalletActions";
 import WalletMenu from "@/components/wallet/WalletMenu";
 
 const DEMO_BALANCE_PAISE = 2435000;
+
+/* A sample filing history, so the signed-out preview shows what a card looks
+   like once it has been used. A real card starts almost bare and accrues. */
+const DEMO_SPEND = { tax: 149900, identity: 10700, business: 99900, licence: 45000 };
 
 /* Sample rows for the signed-out preview.
    These previously read as a real statement — "Court filing fee — Delhi HC",
@@ -27,7 +31,7 @@ const DEMO_TXNS = [
 ];
 
 export default function WalletDemo() {
-  const [draft, setDraft] = useState<WalletPrefs>({ cardType: "standard", avatarSeed: "Felix" });
+  const [draft, setDraft] = useState<WalletPrefs>(DEFAULT_PREFS);
   const [cardOut, setCardOut] = useState(false);
   const [customSeed, setCustomSeed] = useState("");
 
@@ -36,8 +40,12 @@ export default function WalletDemo() {
     setDraft((d) => ({ ...d, avatarSeed: seed }));
   };
 
-  const pickCardType = (id: CardTypeId) => {
-    setDraft((d) => ({ ...d, cardType: id }));
+  const pickEntity = (id: EntityId) => {
+    setDraft((d) => ({ ...d, entity: id }));
+  };
+
+  const pickFinish = (id: FinishId) => {
+    setDraft((d) => ({ ...d, finish: id }));
   };
 
   return (
@@ -55,7 +63,13 @@ export default function WalletDemo() {
 
       {/* Card in pocket */}
       <WalletPocket cardOut={cardOut} onToggleCard={() => setCardOut((v) => !v)}>
-        <WalletCard prefs={draft} balancePaise={DEMO_BALANCE_PAISE} animateBalance />
+        <WalletCard
+          prefs={draft}
+          balancePaise={DEMO_BALANCE_PAISE}
+          accountId="lawfic-preview"
+          spend={DEMO_SPEND}
+          animateBalance
+        />
         <div className="mt-4 flex items-center gap-3">
           <Link
             href="/login?next=/wallet"
@@ -124,27 +138,60 @@ export default function WalletDemo() {
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          {/* Card type picker */}
+          {/* Who you file as — decides the identifier on the card, not a tier */}
           <div className="wallet-glass rounded-2xl p-5">
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
-              Card type
+              You file as
             </p>
             <div className="space-y-2">
-              {CARD_TYPES.map((c) => (
+              {ENTITIES.map((e) => (
                 <button
-                  key={c.id}
+                  key={e.id}
                   type="button"
-                  onClick={() => pickCardType(c.id)}
+                  onClick={() => pickEntity(e.id)}
+                  aria-pressed={draft.entity === e.id}
                   className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-all duration-200"
                   style={{
-                    background: draft.cardType === c.id ? "var(--wallet-btn-bg-hover)" : "transparent",
+                    background: draft.entity === e.id ? "var(--wallet-btn-bg-hover)" : "transparent",
                   }}
                 >
-                  <div className="h-7 w-10 shrink-0 rounded-lg" style={{ background: c.gradient }} />
-                  <div>
-                    <p className="text-[12px] font-medium">{c.name}</p>
-                    <p className="text-[10px] opacity-40">{c.desc}</p>
-                  </div>
+                  <span
+                    className="grid h-7 w-12 shrink-0 place-items-center rounded-lg font-mono text-[8px] tracking-[0.06em]"
+                    style={{
+                      background: "var(--wallet-btn-bg)",
+                      color: draft.entity === e.id ? "var(--wallet-icon-fg)" : "var(--wallet-fg-muted)",
+                    }}
+                  >
+                    {e.idLabel}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[12px] font-medium">{e.name}</span>
+                    <span className="block text-[10px] opacity-40">{e.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <p className="mb-2 mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
+              Finish
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {FINISHES.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => pickFinish(f.id)}
+                  aria-pressed={draft.finish === f.id}
+                  className="rounded-xl p-2.5 text-left text-[12px] font-medium transition-all duration-200"
+                  style={{
+                    background: draft.finish === f.id ? "var(--wallet-btn-bg-hover)" : "transparent",
+                    outline:
+                      draft.finish === f.id
+                        ? "1px solid var(--wallet-icon-fg)"
+                        : "1px solid var(--wallet-input-border)",
+                  }}
+                >
+                  {f.name}
                 </button>
               ))}
             </div>

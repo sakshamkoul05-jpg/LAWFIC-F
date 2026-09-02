@@ -4,6 +4,8 @@ import { formatEntry } from "@/lib/money";
 import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
+import { spendByCategory } from "@/lib/wallet-card";
+import { allServices } from "@/lib/catalogue";
 import WalletCard from "@/components/wallet/WalletCard";
 import WalletPocket from "@/components/wallet/WalletPocket";
 import WalletDemo from "@/components/wallet/WalletDemo";
@@ -35,20 +37,50 @@ export default async function WalletPage() {
   const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   if (!auth.user) return <WalletDemo />;
 
-  const [{ data: balanceData }, { data: entries }, { data: prefsRow }] = await Promise.all([
-    supabase.rpc("my_wallet_balance"),
-    supabase
-      .from("wallet_entries")
-      .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
-      .order("seq", { ascending: false })
-      .limit(6),
-    supabase.from("wallet_prefs").select("card_type, avatar_seed").eq("user_id", auth.user.id).maybeSingle(),
-  ]);
+  const [{ data: balanceData }, { data: entries }, { data: prefsRow }, { data: allDebits }, { data: orders }] =
+    await Promise.all([
+      supabase.rpc("my_wallet_balance"),
+      supabase
+        .from("wallet_entries")
+        .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+        .order("seq", { ascending: false })
+        .limit(6),
+      supabase.from("wallet_prefs").select("*").eq("user_id", auth.user.id).maybeSingle(),
+      // The card's signature is drawn from every debit ever made, not just the
+      // six shown below, so it keeps accruing as a record of the whole history.
+      supabase
+        .from("wallet_entries")
+        .select("direction, amount_paise, order_id")
+        .eq("direction", "debit"),
+      supabase.from("service_orders").select("id, service_slug"),
+    ]);
 
   const balancePaise = Number(balanceData ?? 0);
   const rows = (entries ?? []) as Entry[];
-  const prefs = normalizePrefs(prefsRow) ?? DEFAULT_PREFS;
+  const prefsInput = prefsRow as Record<string, unknown> | null;
+  const prefs =
+    normalizePrefs(
+      prefsInput && {
+        entity: prefsInput.entity,
+        finish: prefsInput.finish ?? prefsInput.card_type,
+        cardType: prefsInput.card_type,
+        avatarSeed: prefsInput.avatar_seed,
+      },
+    ) ?? DEFAULT_PREFS;
   const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
+
+  /* Resolve each debit to the service category it paid for: entry → order →
+     service slug → catalogue category. A debit with no order behind it (an
+     adjustment, say) simply contributes nothing to the signature. */
+  const slugByOrder = new Map((orders ?? []).map((o) => [o.id as string, o.service_slug as string]));
+  const categoryBySlug = new Map(allServices.map((s) => [s.slug, s.categoryId]));
+  const spend = spendByCategory(
+    (allDebits ?? []).map((d) => ({
+      direction: d.direction as string,
+      amount_paise: Number(d.amount_paise),
+      category: categoryBySlug.get(slugByOrder.get(d.order_id as string) ?? "") ?? null,
+    })),
+  );
 
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
@@ -99,7 +131,14 @@ export default async function WalletPage() {
           </div>
         }
       >
-        <WalletCard prefs={prefs} balancePaise={balancePaise} animateBalance />
+        <WalletCard
+          prefs={prefs}
+          balancePaise={balancePaise}
+          accountId={auth.user.id}
+          spend={spend}
+          holderName={displayName}
+          animateBalance
+        />
       </WalletPocket>
 
       <WalletActions />
