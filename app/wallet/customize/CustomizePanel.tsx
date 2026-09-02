@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { CARD_TYPES, AVATAR_SEEDS, normalizePrefs, type WalletPrefs, type CardTypeId } from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
-import DiceBearAvatar from "@/components/wallet/DiceBearAvatar";
+import WalletAvatar from "@/components/wallet/WalletAvatar";
 
 export default function CustomizePanel({
   initial,
@@ -114,7 +114,7 @@ export default function CustomizePanel({
                   color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
                 }}
               >
-                <DiceBearAvatar seed={seed} size={20} />
+                <WalletAvatar seed={seed} size={20} />
                 {seed}
               </button>
             ))}
@@ -124,7 +124,7 @@ export default function CustomizePanel({
             value={customSeed}
             onChange={(e) => applySeed(e.target.value)}
             placeholder="Or type your name…"
-            className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-[#5856d6]/40"
+            className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-primary/40"
             style={{
               borderColor: "var(--wallet-input-border)",
               background: "var(--wallet-input-bg)",
@@ -138,7 +138,7 @@ export default function CustomizePanel({
           type="button"
           onClick={save}
           disabled={pending || !dirty}
-          className="mt-8 w-full rounded-full bg-[#5856d6] py-3.5 text-[13px] font-medium text-white transition-all duration-200 hover:bg-[#4a49b8] disabled:cursor-not-allowed disabled:opacity-30"
+          className="mt-8 w-full rounded-full bg-primary py-3.5 text-[13px] font-medium text-background transition-all duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-30"
         >
           {pending ? "Saving…" : "Save to wallet"}
         </button>
@@ -150,7 +150,7 @@ export default function CustomizePanel({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               role="status"
-              className="mt-3 text-center text-[12px] text-[#34c759]"
+              className="mt-3 text-center text-[12px] text-success"
             >
               Saved.
             </motion.p>

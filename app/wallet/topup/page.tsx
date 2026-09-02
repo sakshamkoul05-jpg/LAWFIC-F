@@ -29,7 +29,7 @@ export default async function TopUpPage() {
         <p className="text-[14px] opacity-60">Sign in to top up your wallet.</p>
         <Link
           href="/login?next=/wallet/topup"
-          className="mt-5 inline-block rounded-full bg-[#5856d6] px-6 py-2.5 text-[13px] font-medium text-white"
+          className="mt-5 inline-block rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background"
         >
           Sign in
         </Link>

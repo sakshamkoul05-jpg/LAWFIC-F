@@ -7,7 +7,8 @@ import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
 import WalletPocket from "@/components/wallet/WalletPocket";
 import WalletDemo from "@/components/wallet/WalletDemo";
-import DiceBearAvatar from "@/components/wallet/DiceBearAvatar";
+import WalletAvatar from "@/components/wallet/WalletAvatar";
+import WalletOnboarding from "@/components/wallet/WalletOnboarding";
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -49,6 +50,8 @@ export default async function WalletPage() {
 
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+      <WalletOnboarding />
+
       {isRazorpayTestMode && (
         <p className="mb-6 text-center text-[12px] opacity-40">
           Test mode — no real money moves
@@ -63,7 +66,7 @@ export default async function WalletPage() {
           </p>
           <h1 className="text-[20px] font-semibold tracking-tight">My Wallet</h1>
         </div>
-        <DiceBearAvatar seed={prefs.avatarSeed} size={40} />
+        <WalletAvatar seed={prefs.avatarSeed} size={40} />
       </div>
 
       {/* Card in pocket */}
@@ -151,7 +154,7 @@ export default async function WalletPage() {
             </p>
             <Link
               href="/wallet/topup"
-              className="mt-5 inline-block rounded-full bg-[#5856d6] px-5 py-2.5 text-[13px] font-medium text-white"
+              className="mt-5 inline-block rounded-full bg-primary px-5 py-2.5 text-[13px] font-medium text-background"
             >
               Add money
             </Link>
@@ -177,7 +180,7 @@ export default async function WalletPage() {
                   </div>
                   <p
                     className={`shrink-0 font-mono text-[13px] tabular-nums ${
-                      r.direction === "credit" ? "text-[#34c759]" : "opacity-50"
+                      r.direction === "credit" ? "text-success" : "opacity-50"
                     }`}
                   >
                     {formatEntry(r.direction, r.amount_paise)}

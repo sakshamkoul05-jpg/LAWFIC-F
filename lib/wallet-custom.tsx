@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
  * The LAWFIC wallet "collector card" customization kit.
  *
  * A wallet feels owned when it can become yours: a card type that reflects
- * your identity, and an avatar (DiceBear) that represents you on the card.
+ * your identity, and a generated avatar (drawn locally — see WalletAvatar)
+ * that represents you on the card.
  * Everything here is cosmetic — a card type or avatar never touches a balance,
  * the ledger, or an order. That boundary is the point of the feature.
  *
@@ -108,6 +109,9 @@ export const DEFAULT_PREFS: WalletPrefs = {
 };
 
 /** Pre-set avatar seeds for the picker — names that produce good lorelei avatars. */
+/* Stable keys, not names shown to anyone — each one hashes to a fixed
+   colour ramp and facet arrangement in WalletAvatar. Order is the order they
+   appear in the picker. */
 export const AVATAR_SEEDS = [
   "Felix", "Aneka", "Jasper", "Lola", "Milo",
   "Nala", "Oscar", "Piper", "Quinn", "Remy",

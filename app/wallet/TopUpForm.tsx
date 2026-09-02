@@ -56,9 +56,9 @@ export default function TopUpForm({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="relative z-10 mb-5 rounded-xl border border-[#34c759]/20 bg-[#34c759]/8 px-4 py-3"
+            className="relative z-10 mb-5 rounded-xl border border-success/20 bg-success/10 px-4 py-3"
           >
-            <p className="text-[11px] font-medium text-[#34c759]">
+            <p className="text-[11px] font-medium text-success">
               + {formatPaise(credited)} added. New balance {formatPaise(balance)}.
             </p>
           </motion.div>
@@ -81,7 +81,7 @@ export default function TopUpForm({
               aria-pressed={active}
               className="rounded-xl px-3 py-3 font-mono text-[13px] tabular-nums transition-all duration-200 disabled:opacity-30"
               style={{
-                background: active ? "#5856d6" : "var(--wallet-btn-bg)",
+                background: active ? "var(--brand)" : "var(--wallet-btn-bg)",
                 color: active ? "#ffffff" : "var(--wallet-fg)",
               }}
             >
@@ -92,7 +92,7 @@ export default function TopUpForm({
       </div>
 
       <div
-        className="mt-3 flex items-center gap-2 rounded-xl border px-3.5 focus-within:ring-1 focus-within:ring-[#5856d6]/40"
+        className="mt-3 flex items-center gap-2 rounded-xl border px-3.5 focus-within:ring-1 focus-within:ring-primary/40"
         style={{ borderColor: "var(--wallet-input-border)", background: "var(--wallet-input-bg)" }}
       >
         <span className="font-mono text-[14px] opacity-40">₹</span>
@@ -118,7 +118,7 @@ export default function TopUpForm({
         type="button"
         onClick={startTopUp}
         disabled={!check.ok || busy || !paymentsReady}
-        className="mt-5 w-full rounded-full bg-[#5856d6] py-3.5 text-[13px] font-medium text-white transition-all duration-200 hover:bg-[#4a49b8] disabled:cursor-not-allowed disabled:opacity-30"
+        className="mt-5 w-full rounded-full bg-primary py-3.5 text-[13px] font-medium text-background transition-all duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-30"
       >
         {label}
       </button>

@@ -5,7 +5,8 @@ import { useState } from "react";
 import { CARD_TYPES, AVATAR_SEEDS, type WalletPrefs, type CardTypeId } from "@/lib/wallet-custom";
 import WalletCard from "@/components/wallet/WalletCard";
 import WalletPocket from "@/components/wallet/WalletPocket";
-import DiceBearAvatar from "@/components/wallet/DiceBearAvatar";
+import WalletAvatar from "@/components/wallet/WalletAvatar";
+import WalletOnboarding from "@/components/wallet/WalletOnboarding";
 
 const DEMO_BALANCE_PAISE = 2435000;
 
@@ -39,13 +40,15 @@ export default function WalletDemo() {
 
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+      <WalletOnboarding />
+
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>Welcome to</p>
           <h1 className="text-[20px] font-semibold tracking-tight">LAWFiC Wallet</h1>
         </div>
-        <DiceBearAvatar seed={draft.avatarSeed} size={40} />
+        <WalletAvatar seed={draft.avatarSeed} size={40} />
       </div>
 
       {/* Card in pocket */}
@@ -119,14 +122,14 @@ export default function WalletDemo() {
         <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
           {DEMO_TXNS.map((t) => (
             <li key={t.id} className="flex items-center gap-4 px-5 py-3.5">
-              <DiceBearAvatar seed={t.avatar} size={36} />
+              <WalletAvatar seed={t.avatar} size={36} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-medium">{t.reason}</p>
                 <p className="mt-0.5 font-mono text-[11px] opacity-35">{t.date}</p>
               </div>
               <p
                 className={`shrink-0 font-mono text-[13px] tabular-nums ${
-                  t.dir === "credit" ? "text-[#34c759]" : "opacity-50"
+                  t.dir === "credit" ? "text-success" : "opacity-50"
                 }`}
               >
                 {t.dir === "credit" ? "+" : "−"}₹{Math.abs(t.amount / 100).toLocaleString("en-IN")}
@@ -186,7 +189,7 @@ export default function WalletDemo() {
                     color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
                   }}
                 >
-                  <DiceBearAvatar seed={seed} size={20} />
+                  <WalletAvatar seed={seed} size={20} />
                   {seed}
                 </button>
               ))}
@@ -196,7 +199,7 @@ export default function WalletDemo() {
               value={customSeed}
               onChange={(e) => applySeed(e.target.value)}
               placeholder="Or type your name…"
-              className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-[#5856d6]/40"
+              className="mt-3 w-full rounded-xl border px-3.5 py-2.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-primary/40"
               style={{
                 borderColor: "var(--wallet-input-border)",
                 background: "var(--wallet-input-bg)",
@@ -209,7 +212,7 @@ export default function WalletDemo() {
         <div className="mt-8 text-center">
           <Link
             href="/login?next=/wallet"
-            className="inline-flex items-center gap-2 rounded-full bg-[#5856d6] px-7 py-3 text-[13px] font-medium text-white transition-all duration-200 hover:bg-[#4a49b8]"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-[13px] font-medium text-white transition-all duration-200 hover:bg-primary-hover"
           >
             Sign in to keep this card
           </Link>

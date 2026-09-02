@@ -62,7 +62,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
           </p>
           <p
             className={`mt-2 text-[40px] leading-none tabular-nums tracking-tight font-semibold ${
-              entry.direction === "credit" ? "text-[#34c759]" : ""
+              entry.direction === "credit" ? "text-success" : ""
             }`}
           >
             {formatEntry(entry.direction, entry.amount_paise)}

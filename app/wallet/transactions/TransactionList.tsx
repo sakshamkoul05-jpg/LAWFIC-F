@@ -43,8 +43,8 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
             aria-pressed={filter === f.key}
             className="rounded-full px-3 py-1.5 text-[12px] font-medium transition-all duration-200"
             style={{
-              background: filter === f.key ? "#5856d6" : "var(--wallet-btn-bg)",
-              color: filter === f.key ? "#ffffff" : "var(--wallet-fg-muted)",
+              background: filter === f.key ? "var(--brand)" : "var(--wallet-btn-bg)",
+              color: filter === f.key ? "var(--bg)" : "var(--wallet-fg-muted)",
             }}
           >
             {f.label}
@@ -90,7 +90,7 @@ export default function TransactionList({ rows }: { rows: WalletEntry[] }) {
                   </div>
                   <p
                     className={`shrink-0 font-mono text-[13px] tabular-nums ${
-                      r.direction === "credit" ? "text-[#34c759]" : ""
+                      r.direction === "credit" ? "text-success" : ""
                     }`}
                   >
                     {formatEntry(r.direction, r.amount_paise)}

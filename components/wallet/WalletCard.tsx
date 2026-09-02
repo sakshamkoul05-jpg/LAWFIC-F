@@ -1,10 +1,18 @@
 "use client";
 
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+} from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { formatPaise } from "@/lib/money";
 import { getCardType, type WalletPrefs } from "@/lib/wallet-custom";
-import DiceBearAvatar from "./DiceBearAvatar";
+import WalletAvatar from "./WalletAvatar";
 
 export type CardPhase = "idle" | "forming" | "settled";
 
@@ -38,6 +46,44 @@ export default function WalletCard({
   }, [balancePaise, animateBalance, reduced, shown]);
   const balanceLabel = animateBalance ? shownText : formatPaise(balancePaise);
 
+  /* Pointer tilt.
+     The card leans towards the cursor and a specular highlight tracks it, so
+     the surface reads as something physical catching a light rather than a
+     flat rectangle. Springs rather than raw values, so it settles instead of
+     snapping, and the whole thing is inert under reduced motion or on a
+     device with no hover — a phone would otherwise leave the card stuck at
+     whatever angle the last tap implied. */
+  const faceRef = useRef<HTMLDivElement>(null);
+  const [canHover, setCanHover] = useState(false);
+  useEffect(() => {
+    setCanHover(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+  }, []);
+
+  const tiltActive = canHover && !reduced;
+
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const sx = useSpring(px, { stiffness: 220, damping: 22, mass: 0.6 });
+  const sy = useSpring(py, { stiffness: 220, damping: 22, mass: 0.6 });
+  const rotateY = useTransform(sx, [-0.5, 0.5], [-9, 9]);
+  const rotateX = useTransform(sy, [-0.5, 0.5], [7, -7]);
+  const glareX = useTransform(sx, [-0.5, 0.5], ["18%", "82%"]);
+  const glareY = useTransform(sy, [-0.5, 0.5], ["12%", "88%"]);
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!tiltActive) return;
+    const el = faceRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    px.set((e.clientX - r.left) / r.width - 0.5);
+    py.set((e.clientY - r.top) / r.height - 0.5);
+  };
+
+  const resetTilt = () => {
+    px.set(0);
+    py.set(0);
+  };
+
   return (
     <motion.div
       className={`relative aspect-[1.586] w-full max-w-sm select-none ${className}`}
@@ -47,8 +93,16 @@ export default function WalletCard({
       transition={{ type: "spring", stiffness: 100, damping: 20, mass: 1 }}
     >
       <motion.div
+        ref={faceRef}
+        onPointerMove={onPointerMove}
+        onPointerLeave={resetTilt}
         className="absolute inset-0 overflow-hidden rounded-2xl"
-        style={{ background: ct.gradient }}
+        style={{
+          background: ct.gradient,
+          rotateX: tiltActive ? rotateX : 0,
+          rotateY: tiltActive ? rotateY : 0,
+          transformStyle: "preserve-3d",
+        }}
         animate={
           phase === "forming"
             ? { boxShadow: `0 24px 80px -20px ${ct.accent}40, inset 0 0 0 1px ${ct.accent}30` }
@@ -71,6 +125,19 @@ export default function WalletCard({
           style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.1)" }}
           aria-hidden
         />
+
+        {/* Specular highlight that follows the pointer. */}
+        {tiltActive && (
+          <motion.div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: `radial-gradient(180px circle at var(--gx) var(--gy), ${ct.accent}22, transparent 70%)`,
+              ["--gx" as string]: glareX,
+              ["--gy" as string]: glareY,
+            }}
+            aria-hidden
+          />
+        )}
 
         {/* Shine sweep on settle */}
         <AnimatePresence>
@@ -122,7 +189,7 @@ export default function WalletCard({
               className="rounded-full"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}
             >
-              <DiceBearAvatar seed={prefs.avatarSeed} size={52} />
+              <WalletAvatar seed={prefs.avatarSeed} size={52} />
             </motion.div>
             <div>
               <span className="text-[14px] font-semibold tracking-tight" style={{ color: ct.accent }}>
