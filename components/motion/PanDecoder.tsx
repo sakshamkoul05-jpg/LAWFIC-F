@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { useInViewSafe, useObserverBroken } from "@/lib/use-in-view-safe";
 import { useEffect, useRef, useState } from "react";
 
 const PAN = "AAPFU0939F";
@@ -40,8 +41,12 @@ const parts = [
 
 export default function PanDecoder() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const inView = useInViewSafe(ref, { once: true, amount: 0.4 });
   const reduced = useReducedMotion();
+  /* No animation frames means motion cannot apply a target state, so
+     start AT the target instead of animating toward it. Same reasoning as
+     reduced motion: the content must exist either way. */
+  const degraded = useObserverBroken();
   const [active, setActive] = useState(1);
   const [auto, setAuto] = useState(true);
 
@@ -57,13 +62,13 @@ export default function PanDecoder() {
     <div ref={ref} className="flex w-full flex-col items-center gap-7">
       {/* specimen card */}
       <motion.div
-        className="relative w-[335px] max-w-full overflow-hidden rounded-xl border border-line-2 bg-gradient-to-br from-surface-2 via-surface to-ink-2 p-5 shadow-2xl shadow-black/60"
-        initial={reduced ? false : { opacity: 0, y: 20, rotateX: 12 }}
+        className="relative w-[335px] max-w-full overflow-hidden rounded-xl border border-border-2 bg-gradient-to-br from-surface-2 via-surface to-surface p-5 shadow-2xl shadow-black/60"
+        initial={reduced || degraded ? false : { opacity: 0, y: 20, rotateX: 12 }}
         animate={inView || reduced ? { opacity: 1, y: 0, rotateX: 0 } : {}}
         transition={{ duration: 0.7, ease: [0.2, 0.7, 0.3, 1] }}
         style={{ perspective: 800 }}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/50 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
         <span
           className="pointer-events-none absolute inset-0 grid place-items-center font-display text-[42px] tracking-[0.3em] text-bone/[0.045] select-none"
           aria-hidden
@@ -73,8 +78,8 @@ export default function PanDecoder() {
 
         <div className="relative z-2">
           <div className="flex items-start justify-between">
-            <p className="label text-brass">Specimen · Permanent Account Number</p>
-            <span className="label rounded-sm border border-line-3 px-1.5 py-1 text-slate">
+            <p className="label text-primary">Specimen · Permanent Account Number</p>
+            <span className="label rounded-sm border border-border-3 px-1.5 py-1 text-muted">
               NOT VALID
             </span>
           </div>
@@ -94,13 +99,13 @@ export default function PanDecoder() {
             })}
           </p>
 
-          <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4">
+          <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
             <div>
-              <dt className="label text-slate">Name</dt>
+              <dt className="label text-muted">Name</dt>
               <dd className="text-[13.5px] text-bone">Anjali R. Deshmukh</dd>
             </div>
             <div>
-              <dt className="label text-slate">Date of birth</dt>
+              <dt className="label text-muted">Date of birth</dt>
               <dd className="text-[13.5px] text-bone tnum">14 / 08 / 1994</dd>
             </div>
           </dl>
@@ -123,10 +128,10 @@ export default function PanDecoder() {
                 aria-label={`${parts[pi].title}, character ${i + 1}`}
                 className={`grid size-10 place-items-center rounded border font-mono text-[16px] transition-colors duration-300 ${
                   on
-                    ? "border-brass bg-brass/12 text-brass-hi"
-                    : "border-line-2 bg-surface/70 text-ash hover:border-line-3"
+                    ? "border-primary bg-primary/12 text-primary-hover"
+                    : "border-border-2 bg-surface/70 text-muted-foreground hover:border-border-3"
                 }`}
-                initial={reduced ? false : { opacity: 0, scale: 0.8 }}
+                initial={reduced || degraded ? false : { opacity: 0, scale: 0.8 }}
                 animate={inView || reduced ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.35, delay: reduced ? 0 : 0.5 + i * 0.05 }}
               >
@@ -137,10 +142,10 @@ export default function PanDecoder() {
         </div>
       </div>
 
-      <div className="min-h-[104px] w-full max-w-lg rounded border border-line bg-surface/45 p-5">
-        <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-          <p className="label mb-2 text-brass">{current.title}</p>
-          <p className="text-[14.5px] leading-relaxed text-ash">{current.body}</p>
+      <div className="min-h-[104px] w-full max-w-lg rounded border border-border bg-surface/45 p-5">
+        <motion.div key={active} initial={reduced || degraded ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+          <p className="label mb-2 text-primary">{current.title}</p>
+          <p className="text-[14.5px] leading-relaxed text-muted-foreground">{current.body}</p>
         </motion.div>
       </div>
     </div>

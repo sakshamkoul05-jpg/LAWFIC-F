@@ -33,14 +33,14 @@ export default function OrderRow({ order }: { order: Row }) {
   }
 
   return (
-    <div className="bg-ink-2 p-6">
+    <div className="bg-surface p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-mono text-[11.5px] tracking-[0.08em] text-slate">{order.reference}</p>
+          <p className="font-mono text-[11.5px] tracking-[0.08em] text-muted">{order.reference}</p>
           <h3 className="mt-1.5 font-display text-[19px] leading-snug text-bone">
             {order.service_name}
           </h3>
-          <p className="mt-1 text-[13px] text-ash">
+          <p className="mt-1 text-[13px] text-muted-foreground">
             {order.customer_name || "Unnamed customer"}
             {order.customer_phone ? ` · ${order.customer_phone}` : ""}
           </p>
@@ -55,7 +55,7 @@ export default function OrderRow({ order }: { order: Row }) {
       </div>
 
       {order.details && (
-        <p className="mt-4 rounded border border-line bg-ink/50 px-4 py-3 text-[13px] leading-relaxed text-ash">
+        <p className="mt-4 rounded border border-border bg-background/50 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">
           {order.details}
         </p>
       )}
@@ -103,7 +103,7 @@ export default function OrderRow({ order }: { order: Row }) {
         )}
 
         {order.status === "quoted" && (
-          <span className="self-center text-[12.5px] text-slate">
+          <span className="self-center text-[12.5px] text-muted">
             Waiting for the customer to pay.
           </span>
         )}
@@ -118,7 +118,7 @@ export default function OrderRow({ order }: { order: Row }) {
                 run(quoteOrder, fd);
               }}
             >
-              <p className="label mb-4 text-brass">Price it</p>
+              <p className="label mb-4 text-primary">Price it</p>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
@@ -135,19 +135,19 @@ export default function OrderRow({ order }: { order: Row }) {
                 />
               </div>
 
-              <label className="label mt-5 block text-slate">
+              <label className="label mt-5 block text-muted">
                 Note for the customer (optional)
                 <textarea
                   name="notes"
                   rows={2}
-                  className="mt-2 w-full rounded border border-line-2 bg-ink/60 px-3 py-2.5 font-sans text-[13.5px] normal-case tracking-normal text-bone outline-none focus:border-brass-lo"
+                  className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-sans text-[13.5px] normal-case tracking-normal text-bone outline-none focus:border-primary/50"
                 />
               </label>
 
               <button
                 type="submit"
                 disabled={pending}
-                className="mt-5 rounded-full bg-brass px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-brass-hi disabled:opacity-60"
+                className="mt-5 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
                 {pending ? "Saving…" : "Send quote"}
               </button>
@@ -164,7 +164,7 @@ export default function OrderRow({ order }: { order: Row }) {
               }}
             >
               <p className="label mb-3 text-rust">Close and refund</p>
-              <p className="mb-4 max-w-lg text-[13px] leading-relaxed text-ash">
+              <p className="mb-4 max-w-lg text-[13px] leading-relaxed text-muted-foreground">
                 Anything already paid is credited straight back to the customer&apos;s wallet, in
                 the same transaction as the closure. They will see this reason.
               </p>
@@ -173,7 +173,7 @@ export default function OrderRow({ order }: { order: Row }) {
                 rows={2}
                 required
                 placeholder="Address proof was not accepted by the officer"
-                className="w-full rounded border border-line-2 bg-ink/60 px-3 py-2.5 text-[13.5px] text-bone outline-none focus:border-brass-lo placeholder:text-slate/60"
+                className="w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 text-[13.5px] text-bone outline-none focus:border-primary/50 placeholder:text-muted/60"
               />
               <button
                 type="submit"
@@ -201,7 +201,7 @@ function Panel({ children }: { children: React.ReactNode }) {
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="overflow-hidden"
     >
-      <div className="mt-5 rounded border border-line-2 bg-surface/40 p-5">{children}</div>
+      <div className="mt-5 rounded border border-border-2 bg-surface/40 p-5">{children}</div>
     </motion.div>
   );
 }
@@ -218,7 +218,7 @@ function Field({
   note: string;
 }) {
   return (
-    <label className="label block text-slate">
+    <label className="label block text-muted">
       {label}
       <input
         name={name}
@@ -226,9 +226,9 @@ function Field({
         min={0}
         step={1}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded border border-line-2 bg-ink/60 px-3 py-2.5 font-mono text-[15px] tracking-normal text-bone outline-none focus:border-brass-lo tnum"
+        className="mt-2 w-full rounded border border-border-2 bg-background/60 px-3 py-2.5 font-mono text-[15px] tracking-normal text-bone outline-none focus:border-primary/50 tnum"
       />
-      <span className="mt-1.5 block text-[11.5px] normal-case tracking-normal text-slate">
+      <span className="mt-1.5 block text-[11.5px] normal-case tracking-normal text-muted">
         {note}
       </span>
     </label>
@@ -255,8 +255,8 @@ function Action({
       disabled={disabled}
       className={`rounded-full px-5 py-2 text-[13px] transition-colors disabled:opacity-60 ${
         primary
-          ? "bg-brass text-ink hover:bg-brass-hi"
-          : "border border-line-2 text-ash hover:border-line-3 hover:text-bone"
+          ? "bg-primary text-background hover:bg-primary-hover"
+          : "border border-border-2 text-muted-foreground hover:border-border-3 hover:text-bone"
       }`}
     >
       {children}

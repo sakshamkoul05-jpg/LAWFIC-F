@@ -76,21 +76,21 @@ export default function JobFeed() {
 
   return (
     <>
-      <div className="mb-8 flex flex-wrap items-center gap-3 rounded border border-line-2 bg-surface/40 px-6 py-4">
-        <span className="size-1.5 rounded-full bg-brass" aria-hidden />
+      <div className="mb-8 flex flex-wrap items-center gap-3 rounded border border-border-2 bg-surface/40 px-6 py-4">
+        <span className="size-1.5 rounded-full bg-primary" aria-hidden />
         {matched && firstName ? (
-          <p className="text-[14px] text-ash">
+          <p className="text-[14px] text-muted-foreground">
             Re-ordered by your track, <span className="text-bone font-medium">{firstName}</span>.{" "}
-            <Link href="/profile/setup" className="text-brass hover:text-brass-hi">
+            <Link href="/profile/setup" className="text-primary hover:text-primary-hover">
               Edit interests
             </Link>
           </p>
         ) : !ready ? (
-          <p className="text-[14px] text-ash">Matching jobs to your profile…</p>
+          <p className="text-[14px] text-muted-foreground">Matching jobs to your profile…</p>
         ) : (
-          <p className="text-[14px] text-ash">
+          <p className="text-[14px] text-muted-foreground">
             Showing a sample feed.{" "}
-            <Link href="/login?next=/jobs" className="text-brass hover:text-brass-hi">
+            <Link href="/login?next=/jobs" className="text-primary hover:text-primary-hover">
               Sign in
             </Link>{" "}
             to match these to your profile.
@@ -98,32 +98,32 @@ export default function JobFeed() {
         )}
       </div>
 
-      <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-line bg-line">
+      <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-border bg-border">
         {list.map((j, i) => (
           <Reveal key={j.role} delay={i * 0.05}>
             <article className="card grid gap-5 border-0! p-7 md:grid-cols-[1.5fr_1fr_auto] md:items-center md:gap-8">
               <div>
-                <p className="label text-brass">{j.tag}</p>
+                <p className="label text-primary">{j.tag}</p>
                 <h2 className="mt-3 font-display text-[21px] leading-snug text-bone">{j.role}</h2>
-                <p className="mt-1.5 text-[14px] text-ash">{j.firm}</p>
+                <p className="mt-1.5 text-[14px] text-muted-foreground">{j.firm}</p>
               </div>
 
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-1 md:gap-2.5">
                 <div>
-                  <dt className="label text-slate">Location</dt>
-                  <dd className="mt-0.5 text-[13.5px] text-ash">{j.city}</dd>
+                  <dt className="label text-muted">Location</dt>
+                  <dd className="mt-0.5 text-[13.5px] text-muted-foreground">{j.city}</dd>
                 </div>
                 <div>
-                  <dt className="label text-slate">Experience</dt>
-                  <dd className="mt-0.5 text-[13.5px] text-ash">{j.exp}</dd>
+                  <dt className="label text-muted">Experience</dt>
+                  <dd className="mt-0.5 text-[13.5px] text-muted-foreground">{j.exp}</dd>
                 </div>
                 <div>
-                  <dt className="label text-slate">Monthly</dt>
+                  <dt className="label text-muted">Monthly</dt>
                   <dd className="mt-0.5 font-mono text-[13px] text-bone tnum">{j.pay}</dd>
                 </div>
               </dl>
 
-              <span className="justify-self-start rounded-full border border-line-2 px-5 py-2.5 text-[13px] text-bone transition-colors md:justify-self-end">
+              <span className="justify-self-start rounded-full border border-border-2 px-5 py-2.5 text-[13px] text-bone transition-colors md:justify-self-end">
                 Apply
               </span>
             </article>

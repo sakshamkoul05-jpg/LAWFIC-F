@@ -84,11 +84,11 @@ export default async function AdminPage() {
 
   return (
     <>
-      <section className="border-b border-line bg-ink-2">
+      <section className="border-b border-border bg-surface">
         <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="label text-brass">Back office</p>
+              <p className="label text-primary">Back office</p>
               <h1 className="mt-4 font-display text-[32px] leading-tight text-bone">
                 {needsAction === 0 ? "Nothing waiting on you" : `${needsAction} waiting on you`}
               </h1>
@@ -104,7 +104,7 @@ export default async function AdminPage() {
 
       <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
         {rows.length === 0 ? (
-          <p className="rounded-lg border border-line bg-ink-2 px-6 py-16 text-center text-[15px] text-ash">
+          <p className="rounded-lg border border-border bg-surface px-6 py-16 text-center text-[15px] text-muted-foreground">
             No orders yet.
           </p>
         ) : (
@@ -116,10 +116,10 @@ export default async function AdminPage() {
                 <div key={g.status}>
                   <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
                     <h2 className="font-display text-[21px] text-bone">{g.heading}</h2>
-                    <span className="font-mono text-[12px] text-brass tnum">{group.length}</span>
-                    {g.note && <span className="text-[13px] text-slate">{g.note}</span>}
+                    <span className="font-mono text-[12px] text-primary tnum">{group.length}</span>
+                    {g.note && <span className="text-[13px] text-muted">{g.note}</span>}
                   </div>
-                  <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-line bg-line">
+                  <div className="flex flex-col gap-px overflow-hidden rounded-lg border border-border bg-border">
                     {group.map((r) => (
                       <OrderRow key={r.id} order={r} />
                     ))}
@@ -137,7 +137,7 @@ export default async function AdminPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="label text-slate">{label}</dt>
+      <dt className="label text-muted">{label}</dt>
       <dd className="mt-1.5 font-mono text-[18px] text-bone tnum">{value}</dd>
     </div>
   );
@@ -147,15 +147,15 @@ function Locked({ title, body, signIn }: { title: string; body: string; signIn?:
   return (
     <section className="grain relative min-h-[70vh] overflow-hidden">
       <div className="relative z-2 mx-auto max-w-6xl px-5 py-24 sm:px-8">
-        <p className="label text-brass">Back office</p>
+        <p className="label text-primary">Back office</p>
         <h1 className="mt-6 font-display text-[clamp(28px,4vw,40px)] leading-[1.1] text-bone">
           {title}
         </h1>
-        <p className="mt-6 max-w-lg text-[16px] leading-relaxed text-ash">{body}</p>
+        <p className="mt-6 max-w-lg text-[16px] leading-relaxed text-muted-foreground">{body}</p>
         {signIn && (
           <Link
             href="/login?next=/admin"
-            className="mt-8 inline-block rounded-full bg-brass px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
+            className="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
           >
             Sign in
           </Link>

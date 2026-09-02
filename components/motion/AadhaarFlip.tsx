@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { useInViewSafe, useObserverBroken } from "@/lib/use-in-view-safe";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -13,8 +14,12 @@ import { useEffect, useRef, useState } from "react";
  */
 export default function AadhaarFlip() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.5 });
+  const inView = useInViewSafe(ref, { once: true, amount: 0.5 });
   const reduced = useReducedMotion();
+  /* No animation frames means motion cannot apply a target state, so
+     start AT the target instead of animating toward it. Same reasoning as
+     reduced motion: the content must exist either way. */
+  const degraded = useObserverBroken();
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
@@ -45,7 +50,7 @@ export default function AadhaarFlip() {
           aria-label={flipped ? "Show front of specimen card" : "Show back of specimen card"}
           className="relative block w-[335px] max-w-full cursor-pointer rounded-xl"
           style={{ transformStyle: "preserve-3d" }}
-          initial={{ rotateY: 0, opacity: 0, y: 18 }}
+          initial={reduced || degraded ? false : { rotateY: 0, opacity: 0, y: 18 }}
           animate={
             inView
               ? { rotateY: flipped ? 180 : 0, opacity: 1, y: 0 }
@@ -69,7 +74,7 @@ export default function AadhaarFlip() {
         </motion.button>
       </div>
 
-      <p className="label text-slate">
+      <p className="label text-muted">
         {flipped ? "Reverse — address & QR" : "Front — identity details"} · tap to turn
       </p>
     </div>
@@ -78,9 +83,9 @@ export default function AadhaarFlip() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative h-[211px] w-full overflow-hidden rounded-xl border border-line-2 bg-gradient-to-br from-surface-2 via-surface to-ink-2 text-left shadow-2xl shadow-black/60">
+    <div className="relative h-[211px] w-full overflow-hidden rounded-xl border border-border-2 bg-gradient-to-br from-surface-2 via-surface to-surface text-left shadow-2xl shadow-black/60">
       {/* brass edge light */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       <div
         className="pointer-events-none absolute -right-8 -top-10 size-40 rounded-full opacity-[0.07]"
         style={{ background: "radial-gradient(circle, var(--color-brass), transparent 65%)" }}
@@ -102,19 +107,19 @@ function CardFront() {
       <div className="relative z-2 flex h-full flex-col p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="label text-brass">Specimen · Identity</p>
-            <p className="mt-1 font-display text-[15px] tracking-[0.14em] text-ash">
+            <p className="label text-primary">Specimen · Identity</p>
+            <p className="mt-1 font-display text-[15px] tracking-[0.14em] text-muted-foreground">
               AADHAAR SERVICES
             </p>
           </div>
-          <span className="label rounded-sm border border-line-3 px-1.5 py-1 text-slate">
+          <span className="label rounded-sm border border-border-3 px-1.5 py-1 text-muted">
             NOT VALID
           </span>
         </div>
 
         <div className="mt-5 flex gap-4">
           {/* photo well */}
-          <div className="grid h-[74px] w-[58px] shrink-0 place-items-center rounded border border-line-2 bg-ink/60">
+          <div className="grid h-[74px] w-[58px] shrink-0 place-items-center rounded border border-border-2 bg-background/60">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
               <circle cx="12" cy="8.5" r="3.6" stroke="var(--color-slate)" strokeWidth="1.2" />
               <path
@@ -133,8 +138,8 @@ function CardFront() {
           </dl>
         </div>
 
-        <div className="mt-auto border-t border-line pt-3">
-          <p className="label text-slate">Number</p>
+        <div className="mt-auto border-t border-border pt-3">
+          <p className="label text-muted">Number</p>
           <p className="font-mono text-[19px] tracking-[0.22em] text-bone tnum">
             XXXX XXXX 1234
           </p>
@@ -148,12 +153,12 @@ function CardBack() {
   return (
     <Shell>
       <div className="relative z-2 flex h-full flex-col p-5">
-        <p className="label text-brass">Reverse</p>
+        <p className="label text-primary">Reverse</p>
 
         <div className="mt-4 flex gap-4">
           <div className="min-w-0 flex-1">
-            <p className="label text-slate">Address</p>
-            <p className="mt-1.5 text-[12.5px] leading-relaxed text-ash">
+            <p className="label text-muted">Address</p>
+            <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
               Flat 402, Sanskriti Residency
               <br />
               Baner Road, Pune
@@ -163,13 +168,13 @@ function CardBack() {
           </div>
 
           {/* QR stand-in — a deterministic pattern, not a scannable code */}
-          <div className="grid size-[72px] shrink-0 grid-cols-7 gap-px rounded border border-line-2 bg-ink/60 p-1.5">
+          <div className="grid size-[72px] shrink-0 grid-cols-7 gap-px rounded border border-border-2 bg-background/60 p-1.5">
             {Array.from({ length: 49 }).map((_, i) => {
               const on = (i * 7 + ((i % 5) * 3) + Math.floor(i / 7)) % 3 !== 0;
               return (
                 <span
                   key={i}
-                  className={on ? "bg-ash/70" : "bg-transparent"}
+                  className={on ? "bg-muted-foreground/70" : "bg-transparent"}
                   style={{ borderRadius: 0.5 }}
                 />
               );
@@ -177,12 +182,12 @@ function CardBack() {
           </div>
         </div>
 
-        <div className="mt-auto flex items-end justify-between border-t border-line pt-3">
+        <div className="mt-auto flex items-end justify-between border-t border-border pt-3">
           <div>
-            <p className="label text-slate">Number</p>
-            <p className="font-mono text-[15px] tracking-[0.2em] text-ash tnum">XXXX XXXX 1234</p>
+            <p className="label text-muted">Number</p>
+            <p className="font-mono text-[15px] tracking-[0.2em] text-muted-foreground tnum">XXXX XXXX 1234</p>
           </div>
-          <p className="label text-right text-slate">
+          <p className="label text-right text-muted">
             Illustration only
             <br />
             LAWFIC specimen
@@ -196,7 +201,7 @@ function CardBack() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="label text-slate">{label}</dt>
+      <dt className="label text-muted">{label}</dt>
       <dd className="truncate text-[13.5px] text-bone">{value}</dd>
     </div>
   );

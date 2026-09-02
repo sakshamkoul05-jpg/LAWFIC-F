@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { useInViewSafe, useObserverBroken } from "@/lib/use-in-view-safe";
 import { useRef, useState } from "react";
 
 const GSTIN = "27AAPFU0939F1ZV";
@@ -54,8 +55,12 @@ const segments: Segment[] = [
 
 export default function GstinAssembler() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const inView = useInViewSafe(ref, { once: true, amount: 0.4 });
   const reduced = useReducedMotion();
+  /* No animation frames means motion cannot apply a target state, so
+     start AT the target instead of animating toward it. Same reasoning as
+     reduced motion: the content must exist either way. */
+  const degraded = useObserverBroken();
   const [active, setActive] = useState(1);
 
   const current = segments[active];
@@ -78,10 +83,10 @@ export default function GstinAssembler() {
                 aria-label={`${segments[seg].title}, character ${i + 1}`}
                 className={`grid size-9 place-items-center rounded border font-mono text-[15px] transition-colors duration-300 sm:size-11 sm:text-[17px] ${
                   isActive
-                    ? "border-brass bg-brass/12 text-brass-hi"
-                    : "border-line-2 bg-surface/70 text-ash hover:border-line-3"
+                    ? "border-primary bg-primary/12 text-primary-hover"
+                    : "border-border-2 bg-surface/70 text-muted-foreground hover:border-border-3"
                 }`}
-                initial={reduced ? false : { opacity: 0, y: -14, rotateX: -60 }}
+                initial={reduced || degraded ? false : { opacity: 0, y: -14, rotateX: -60 }}
                 animate={inView || reduced ? { opacity: 1, y: 0, rotateX: 0 } : {}}
                 transition={{
                   duration: 0.4,
@@ -99,7 +104,7 @@ export default function GstinAssembler() {
       {/* segment rail */}
       <motion.div
         className="mt-2 overflow-x-auto"
-        initial={reduced ? false : { opacity: 0 }}
+        initial={reduced || degraded ? false : { opacity: 0 }}
         animate={inView || reduced ? { opacity: 1 } : {}}
         transition={{ delay: reduced ? 0 : 1.3, duration: 0.5 }}
       >
@@ -119,12 +124,12 @@ export default function GstinAssembler() {
               >
                 <span
                   className={`h-px w-full transition-colors duration-300 ${
-                    isActive ? "bg-brass" : "bg-line-2 group-hover:bg-line-3"
+                    isActive ? "bg-primary" : "bg-border-2 group-hover:bg-border-3"
                   }`}
                 />
                 <span
                   className={`label whitespace-nowrap transition-colors duration-300 ${
-                    isActive ? "text-brass" : "text-slate"
+                    isActive ? "text-primary" : "text-muted"
                   }`}
                 >
                   {s.label}
@@ -137,14 +142,14 @@ export default function GstinAssembler() {
 
       {/* explanation */}
       <motion.div
-        className="mx-auto mt-7 min-h-[112px] max-w-lg rounded border border-line bg-surface/45 p-5"
-        initial={reduced ? false : { opacity: 0, y: 10 }}
+        className="mx-auto mt-7 min-h-[112px] max-w-lg rounded border border-border bg-surface/45 p-5"
+        initial={reduced || degraded ? false : { opacity: 0, y: 10 }}
         animate={inView || reduced ? { opacity: 1, y: 0 } : {}}
         transition={{ delay: reduced ? 0 : 1.45, duration: 0.5 }}
       >
-        <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-          <p className="label mb-2 text-brass">{current.title}</p>
-          <p className="text-[14.5px] leading-relaxed text-ash">{current.body}</p>
+        <motion.div key={active} initial={reduced || degraded ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+          <p className="label mb-2 text-primary">{current.title}</p>
+          <p className="text-[14.5px] leading-relaxed text-muted-foreground">{current.body}</p>
         </motion.div>
       </motion.div>
 

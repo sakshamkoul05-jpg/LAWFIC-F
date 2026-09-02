@@ -55,7 +55,7 @@ export default function PayButton({
         className="rounded border border-jade/40 bg-jade/10 px-5 py-4"
       >
         <p className="label text-jade">Paid</p>
-        <p className="mt-2 text-[14px] leading-relaxed text-ash">
+        <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
           {amountLabel} has been taken from your wallet. We will start work on this now.
         </p>
       </motion.div>
@@ -64,13 +64,13 @@ export default function PayButton({
 
   if (short) {
     return (
-      <div className="rounded border border-line-2 bg-surface/50 px-5 py-4">
-        <p className="text-[14px] leading-relaxed text-ash">
+      <div className="rounded border border-border-2 bg-surface/50 px-5 py-4">
+        <p className="text-[14px] leading-relaxed text-muted-foreground">
           This costs {amountLabel} and your wallet holds less than that.
         </p>
         <Link
           href="/wallet"
-          className="mt-4 inline-block rounded-full bg-brass px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-brass-hi"
+          className="mt-4 inline-block rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
         >
           Top up your wallet
         </Link>
@@ -84,14 +84,14 @@ export default function PayButton({
         type="button"
         onClick={pay}
         disabled={pending}
-        className="w-full rounded-full bg-brass py-3.5 text-sm font-medium text-ink transition-colors hover:bg-brass-hi disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-slate sm:w-auto sm:px-8"
+        className="w-full rounded-full bg-primary py-3.5 text-sm font-medium text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-muted sm:w-auto sm:px-8"
       >
         {pending ? "Taking payment…" : `Pay ${amountLabel} from wallet`}
       </button>
 
       {error && <p className="mt-4 text-[13px] leading-relaxed text-rust">{error}</p>}
 
-      <p className="mt-4 text-[12.5px] leading-relaxed text-slate">
+      <p className="mt-4 text-[12.5px] leading-relaxed text-muted">
         Paid from your prepaid balance. Government fee and our fee appear as separate lines on
         your statement.
       </p>

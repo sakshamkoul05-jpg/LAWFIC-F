@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { useInViewSafe, useObserverBroken } from "@/lib/use-in-view-safe";
 import { useRef } from "react";
 
 /**
@@ -10,31 +11,35 @@ import { useRef } from "react";
  */
 export default function UdyamCertificate() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.35 });
+  const inView = useInViewSafe(ref, { once: true, amount: 0.35 });
   const reduced = useReducedMotion();
+  /* No animation frames means motion cannot apply a target state, so
+     start AT the target instead of animating toward it. Same reasoning as
+     reduced motion: the content must exist either way. */
+  const degraded = useObserverBroken();
 
   const show = inView || reduced === true;
 
   return (
     <div ref={ref} className="flex w-full justify-center">
       <motion.article
-        className="relative w-[420px] max-w-full origin-top overflow-hidden rounded-lg border border-line-2 bg-gradient-to-b from-surface-2 to-ink-2 shadow-2xl shadow-black/60"
-        initial={reduced ? false : { scaleY: 0.04, opacity: 0 }}
+        className="relative w-[420px] max-w-full origin-top overflow-hidden rounded-lg border border-border-2 bg-gradient-to-b from-surface-2 to-surface shadow-2xl shadow-black/60"
+        initial={reduced || degraded ? false : { scaleY: 0.04, opacity: 0 }}
         animate={show ? { scaleY: 1, opacity: 1 } : {}}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/60 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
         <motion.div
           className="p-7"
-          initial={reduced ? false : { opacity: 0 }}
+          initial={reduced || degraded ? false : { opacity: 0 }}
           animate={show ? { opacity: 1 } : {}}
           transition={{ delay: reduced ? 0 : 0.55, duration: 0.5 }}
         >
           <Row delay={0.65} show={show} reduced={reduced}>
             <div className="flex items-center justify-between">
-              <p className="label text-brass">Specimen certificate</p>
-              <span className="label rounded-sm border border-line-3 px-1.5 py-1 text-slate">
+              <p className="label text-primary">Specimen certificate</p>
+              <span className="label rounded-sm border border-border-3 px-1.5 py-1 text-muted">
                 ILLUSTRATION
               </span>
             </div>
@@ -47,9 +52,9 @@ export default function UdyamCertificate() {
           </Row>
 
           <Row delay={0.85} show={show} reduced={reduced}>
-            <div className="mt-5 rounded border border-line bg-ink/50 px-4 py-3">
-              <p className="label text-slate">Udyam registration number</p>
-              <p className="mt-1 font-mono text-[17px] tracking-[0.14em] text-brass-hi tnum">
+            <div className="mt-5 rounded border border-border bg-background/50 px-4 py-3">
+              <p className="label text-muted">Udyam registration number</p>
+              <p className="mt-1 font-mono text-[17px] tracking-[0.14em] text-primary-hover tnum">
                 UDYAM-MH-26-0114592
               </p>
             </div>
@@ -66,32 +71,32 @@ export default function UdyamCertificate() {
             ].map(([k, v], i) => (
               <Row key={k} delay={0.95 + i * 0.07} show={show} reduced={reduced}>
                 <div>
-                  <dt className="label text-slate">{k}</dt>
+                  <dt className="label text-muted">{k}</dt>
                   <dd className="mt-0.5 text-[13.5px] text-bone">{v}</dd>
                 </div>
               </Row>
             ))}
           </dl>
 
-          <div className="mt-6 flex items-end justify-between border-t border-line pt-5">
+          <div className="mt-6 flex items-end justify-between border-t border-border pt-5">
             {/* QR settles into place */}
             <motion.div
-              className="grid size-[74px] grid-cols-8 gap-px rounded border border-line-2 bg-ink/60 p-1.5"
-              initial={reduced ? false : { opacity: 0, scale: 0.7, filter: "blur(6px)" }}
+              className="grid size-[74px] grid-cols-8 gap-px rounded border border-border-2 bg-background/60 p-1.5"
+              initial={reduced || degraded ? false : { opacity: 0, scale: 0.7, filter: "blur(6px)" }}
               animate={show ? { opacity: 1, scale: 1, filter: "blur(0px)" } : {}}
               transition={{ delay: reduced ? 0 : 1.45, duration: 0.55, ease: "easeOut" }}
               aria-hidden
             >
               {Array.from({ length: 64 }).map((_, i) => {
                 const on = (i * 5 + Math.floor(i / 8) * 3 + (i % 7)) % 3 !== 0;
-                return <span key={i} className={on ? "bg-ash/70" : ""} />;
+                return <span key={i} className={on ? "bg-muted-foreground/70" : ""} />;
               })}
             </motion.div>
 
             {/* the seal lands last */}
             <motion.div
               className="relative grid size-[86px] place-items-center"
-              initial={reduced ? false : { opacity: 0, scale: 2.4, rotate: -18 }}
+              initial={reduced || degraded ? false : { opacity: 0, scale: 2.4, rotate: -18 }}
               animate={show ? { opacity: 1, scale: 1, rotate: -8 } : {}}
               transition={{ delay: reduced ? 0 : 1.75, duration: 0.45, ease: [0.7, 0, 0.3, 1.2] }}
               aria-hidden
@@ -134,9 +139,10 @@ function Row({
   show: boolean;
   reduced: boolean | null;
 }) {
+  const degraded = useObserverBroken();
   return (
     <motion.div
-      initial={reduced ? false : { opacity: 0, y: 8 }}
+      initial={reduced || degraded ? false : { opacity: 0, y: 8 }}
       animate={show ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: reduced ? 0 : delay, duration: 0.4, ease: "easeOut" }}
     >

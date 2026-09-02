@@ -45,19 +45,19 @@ export default function HeroStack() {
           >
             <Link
               href={`/services/${d.slug}`}
-              className="group relative block overflow-hidden rounded-xl border border-line-2 bg-gradient-to-br from-surface-2 via-surface to-ink-2 px-5 py-4 shadow-2xl shadow-black/70 transition-colors hover:border-brass-lo"
+              className="group relative block overflow-hidden rounded-xl border border-border-2 bg-gradient-to-br from-surface-2 via-surface to-surface px-5 py-4 shadow-2xl shadow-black/70 transition-colors hover:border-primary/50"
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
             >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/40 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="label text-brass">{d.meta}</p>
+                  <p className="label text-primary">{d.meta}</p>
                   <p className="mt-1 font-display text-[17px] tracking-[0.1em] text-bone">
                     {d.label}
                   </p>
                 </div>
-                <p className="shrink-0 font-mono text-[11.5px] tracking-[0.12em] text-slate tnum">
+                <p className="shrink-0 font-mono text-[11.5px] tracking-[0.12em] text-muted tnum">
                   {d.line}
                 </p>
               </div>
