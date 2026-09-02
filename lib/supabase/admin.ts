@@ -3,13 +3,22 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
 /**
  * Service-role client. Bypasses RLS entirely.
  *
- * There are exactly two legitimate callers:
+ * There are exactly three legitimate callers:
  *
  *   1. the Razorpay webhook, which arrives with no user session but is
  *      authenticated by an HMAC signature over the raw body, and has to write
  *      a wallet credit — something no client role may ever do;
  *   2. the top-up route, which records a payment_intent after checking the
- *      caller's session itself.
+ *      caller's session itself;
+ *   3. the résumé upload, which verifies the session, then builds the storage
+ *      path from that session's user id so the caller cannot influence where
+ *      the file lands. The `resumes` bucket carries no policies on
+ *      storage.objects, so a user-session client is refused outright; the
+ *      route enforces the same per-user scoping one layer up instead.
+ *
+ * Note the shape common to all three: the caller is verified first, and the
+ * service role is then used for one narrow write whose target this code
+ * decides. None of them lets a request choose what gets touched.
  *
  * Rules for this file:
  *   - never import it into a client component, or anything reachable from one;

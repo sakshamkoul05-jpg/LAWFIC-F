@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +46,25 @@ export async function POST(request: Request) {
 
   const path = `${auth.user.id}/resume.${ext}`;
 
-  const { error } = await supabase.storage
+  /* The write goes through the service-role client, and the path is built
+     here from the verified session — never from anything the caller sent. A
+     user can therefore only ever write under their own id, which is the same
+     guarantee a storage RLS policy would give, enforced one layer up.
+     
+     Why not RLS: the `resumes` bucket has no policies on storage.objects, so
+     a user-session client is refused outright and every upload failed. The
+     policies are still worth having as defence in depth — they are in
+     supabase/migrations/002_resume_storage.sql — but the route must not
+     depend on someone having run them.
+     
+     The bucket itself enforces the 2 MB limit and the accepted MIME types, so
+     those checks above are the friendly error, not the only guard. */
+  const admin = createAdminClient();
+  if (!admin) {
+    return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
+  }
+
+  const { error } = await admin.storage
     .from("resumes")
     .upload(path, file, { upsert: true, contentType: file.type });
 
