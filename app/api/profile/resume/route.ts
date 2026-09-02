@@ -51,7 +51,17 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error("[profile/resume] upload failed", error.message);
-    return NextResponse.json({ error: "upload_failed" }, { status: 502 });
+
+    /* A missing bucket is our misconfiguration, not a bad file, and the two
+       must not be reported the same way. Telling someone their PDF was
+       rejected when the truth is that storage was never set up sends them off
+       to re-export a perfectly good file. The caller uses this to choose its
+       wording; either way onboarding continues. */
+    const bucketMissing = /bucket not found|does not exist/i.test(error.message);
+    return NextResponse.json(
+      { error: bucketMissing ? "storage_unavailable" : "upload_failed" },
+      { status: bucketMissing ? 503 : 502 },
+    );
   }
 
   return NextResponse.json({ resumePath: path });
