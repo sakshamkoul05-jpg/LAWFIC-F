@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
 /**
  * Service-role client. Bypasses RLS entirely.
  *
- * There are exactly three legitimate callers:
+ * There are exactly four legitimate callers:
  *
  *   1. the Razorpay webhook, which arrives with no user session but is
  *      authenticated by an HMAC signature over the raw body, and has to write
@@ -14,7 +14,11 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
  *      path from that session's user id so the caller cannot influence where
  *      the file lands. The `resumes` bucket carries no policies on
  *      storage.objects, so a user-session client is refused outright; the
- *      route enforces the same per-user scoping one layer up instead.
+ *      route enforces the same per-user scoping one layer up instead;
+ *   4. the sign-up route, which creates a user from an email and password it
+ *      has validated, marked confirmed, because Supabase's own sign-up mails a
+ *      confirmation and this project's mailer fails. It mints no session — the
+ *      browser signs in with the password immediately afterwards.
  *
  * Note the shape common to all three: the caller is verified first, and the
  * service role is then used for one narrow write whose target this code

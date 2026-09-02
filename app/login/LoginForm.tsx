@@ -15,10 +15,11 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  * is a sign-in page that cannot sign anybody in. A password needs no mail at
  * all, so the site works today and OTP can come back the moment mail does.
  *
- * One caveat this form has to handle honestly: Supabase can still be set to
- * require a confirmation email on sign-up, which puts mail back in the path.
- * When that happens the API returns a user with no session, and the copy below
- * says to check the inbox rather than pretending the account is ready.
+ * Sign-up does not go through supabase.auth.signUp either, for the same
+ * reason: that call mails a confirmation, and with a failing mailer it
+ * returned 500 and created no user at all. It posts to /api/auth/signup, which
+ * creates the account already confirmed and is where the trade-off of doing
+ * that is written down.
  */
 
 type Mode = "signin" | "signup";
@@ -90,18 +91,30 @@ export default function LoginForm() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-          setError(readable(error.message));
+        /* Created through our own route rather than supabase.auth.signUp,
+           because Supabase's sign-up mails a confirmation and this project's
+           mailer fails — it returned 500 and created no user at all. The route
+           marks the account confirmed on creation. See the note there about
+           what that trades away, and how to reverse it once SMTP exists. */
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error ?? "Could not create that account.");
           return;
         }
-        /* No session means the project requires a confirmation email. The
-           account exists but cannot be used yet, and saying "welcome" here
-           would be a lie the customer discovers one click later. */
-        if (!data.session) {
-          setNotice(
-            "Account created. Check your email for a confirmation link, then come back and sign in.",
-          );
+
+        /* Sign in straight away with the password just chosen, so the account
+           is created and used in one step and nobody is asked to type the
+           same credentials twice. */
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          setNotice("Account created. Sign in with your new password.");
+          setMode("signin");
           return;
         }
         router.push("/profile/setup");
