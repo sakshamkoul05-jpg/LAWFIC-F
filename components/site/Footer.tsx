@@ -173,6 +173,23 @@ export default function Footer() {
                 Wallet is closed-loop
               </Link>
             </div>
+
+            {/* Required by the licence on the avatar artwork, not optional
+                politeness: the `micah` set is CC BY 4.0. If this line ever
+                goes, the avatar style has to change back at the same time.
+                See components/wallet/WalletAvatar.tsx. */}
+            <p className="mt-4 text-[10.5px] leading-relaxed text-subtle">
+              Avatar artwork by Micah Lanier, licensed under{" "}
+              <a
+                href="https://creativecommons.org/licenses/by/4.0/"
+                rel="noopener noreferrer license"
+                target="_blank"
+                className="underline underline-offset-2 hover:text-muted"
+              >
+                CC BY 4.0
+              </a>
+              .
+            </p>
           </div>
         </div>
       </div>

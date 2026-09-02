@@ -1,53 +1,61 @@
 /**
- * A customer's wallet card preferences.
+ * A customer's wallet preferences.
  *
- * What changed and why: this used to hold a `cardType` chosen from Standard,
- * Premium, Business, Student and Advocate. Those were five gradients wearing
- * the costume of a tier system — nothing gated them, nothing earned them, and
- * "Premium" on an account holding ₹0 asserted something untrue. Picking one
- * was picking a wallpaper that pretended to be a status.
+ * The card is gone. It held an `entity` and a `finish` — a statutory
+ * identifier and a surface treatment for a credit-card face — and that whole
+ * metaphor was untrue: LAWFIC issues no card, and nothing it holds can be
+ * tapped or swiped. What a customer actually has is a prepaid balance for
+ * filings, so the object is now a leather wallet and the choices are the ones
+ * a wallet offers.
  *
- * They are replaced by two stored choices that are each honest about what they
- * are, defined in `lib/wallet-card.ts`:
+ *   hide       — the leather. Five, each with its own grain and stitch.
+ *   plate      — the metal nameplate: brass, steel or blackened.
+ *   thread     — the stitching: tonal, contrast or brass.
+ *   nameplate  — what is stamped on it. A person's name or their firm's.
+ *   avatarSeed — unchanged; the avatar moves onto the wallet.
  *
- *   entity — what the holder actually is (individual, proprietor, firm,
- *            company, professional). It changes what the card *says*: which
- *            statutory identifier it carries. Different information.
+ * The filing signature is not stored and never was: it derives from the
+ * customer's real ledger at render time.
  *
- *   finish — matte, gloss, brushed or etched. Openly cosmetic, and the only
- *            thing here that is.
- *
- * The third layer, the part that makes a card unique to its holder, is not
- * stored at all: it is derived from their real filing history every time the
- * card renders. See `signatureFor`.
- *
- * Everything in this file is still cosmetic — none of it touches a balance,
- * the ledger, or an order. That boundary is the point of the feature.
- *
- * Validation lives here because the server route, the customize form and the
- * card all need one idea of what a valid choice is.
+ * Everything here is cosmetic. None of it touches a balance, the ledger or an
+ * order — the boundary the card model kept, kept.
  */
 
-import { ENTITIES, FINISHES, getEntity, getFinish, type EntityId, type FinishId } from "./wallet-card";
+import {
+  HIDES,
+  PLATES,
+  THREADS,
+  getHide,
+  getPlate,
+  normalizeNameplate,
+  NAMEPLATE_MAX,
+  type HideId,
+  type PlateId,
+  type ThreadId,
+} from "./wallet-leather";
 
-export { ENTITIES, FINISHES, getEntity, getFinish };
-export type { EntityId, FinishId };
+export { HIDES, PLATES, THREADS, getHide, getPlate, normalizeNameplate, NAMEPLATE_MAX };
+export type { HideId, PlateId, ThreadId };
 
 export type WalletPrefs = {
-  entity: EntityId;
-  finish: FinishId;
+  hide: HideId;
+  plate: PlateId;
+  thread: ThreadId;
+  nameplate: string;
   avatarSeed: string;
 };
 
 export const DEFAULT_PREFS: WalletPrefs = {
-  entity: "individual",
-  finish: "matte",
+  hide: "midnight",
+  plate: "brass",
+  thread: "contrast",
+  nameplate: "",
   avatarSeed: "Felix",
 };
 
 /**
- * Seeds for the avatar picker. Internal keys, never shown — each one produces
- * a fixed face from the lorelei set. Order is the order they appear.
+ * Seeds for the avatar picker. Internal keys, never shown — each produces a
+ * fixed face.
  */
 export const AVATAR_SEEDS = [
   "Felix", "Aneka", "Jasper", "Lola", "Milo",
@@ -56,36 +64,26 @@ export const AVATAR_SEEDS = [
 ];
 
 /**
- * Accepts anything and returns a valid preference set, or null.
- *
- * It also reads the old `cardType` field, because rows written before this
- * change still hold one and a customer should not lose their avatar because
- * the card model moved on. The five retired types map onto the closest
- * surviving finish; nothing maps onto an entity, since the old types never
- * carried that information in the first place.
+ * Rows written before the wallet existed still hold a card `finish`, and
+ * before that a `cardType`. Neither maps onto anything meaningful now — a
+ * surface treatment for a plastic card says nothing about which leather
+ * someone would pick — so they map onto the default hide rather than a guess
+ * dressed up as a migration. What a customer chose that still matters, their
+ * avatar, survives untouched.
  */
-const RETIRED_TYPE_TO_FINISH: Record<string, FinishId> = {
-  standard: "matte",
-  premium: "etched",
-  business: "brushed",
-  student: "gloss",
-  advocate: "etched",
-};
-
 export function normalizePrefs(input: unknown): WalletPrefs | null {
   if (!input || typeof input !== "object") return null;
   const obj = input as Record<string, unknown>;
 
   const rawSeed = typeof obj.avatarSeed === "string" ? obj.avatarSeed.trim() : "";
   if (!rawSeed) return null;
-  const avatarSeed = rawSeed.slice(0, 64);
 
-  const entity = getEntity(String(obj.entity ?? ""))?.id ?? DEFAULT_PREFS.entity;
-
-  const finish =
-    getFinish(String(obj.finish ?? ""))?.id ??
-    RETIRED_TYPE_TO_FINISH[String(obj.cardType ?? "")] ??
-    DEFAULT_PREFS.finish;
-
-  return { entity, finish, avatarSeed };
+  return {
+    hide: getHide(String(obj.hide ?? ""))?.id ?? DEFAULT_PREFS.hide,
+    plate: getPlate(String(obj.plate ?? ""))?.id ?? DEFAULT_PREFS.plate,
+    thread:
+      THREADS.find((t) => t.id === String(obj.thread ?? ""))?.id ?? DEFAULT_PREFS.thread,
+    nameplate: normalizeNameplate(obj.nameplate),
+    avatarSeed: rawSeed.slice(0, 64),
+  };
 }

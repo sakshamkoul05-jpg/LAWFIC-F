@@ -2,15 +2,18 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { formatPaise, MIN_TOPUP_PAISE } from "@/lib/money";
-import WalletCelebration from "@/components/wallet/WalletCelebration";
+import LeatherWallet from "@/components/wallet/LeatherWallet";
+import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
 
 export default function TopUpForm({
   initialBalancePaise,
   paymentsReady,
+  look,
 }: {
   initialBalancePaise: number;
   paymentsReady: boolean;
+  look: WalletPrefs;
 }) {
   const {
     amount,
@@ -48,7 +51,18 @@ export default function TopUpForm({
 
   return (
     <div className="glass-panel relative overflow-hidden rounded-2xl p-6 sm:p-8" style={{ color: "var(--wallet-fg)" }}>
-      <WalletCelebration playing={phase === "landed"} />
+      {/* The wallet, above the form.
+          It is perfectly still while an amount is being entered and paid —
+          the standing rule that nothing animates on a screen where money is
+          being committed. Notes fly only once `landed` says the credit is in
+          the ledger, so what you watch is a fact rather than a hope. */}
+      <div className="relative z-10 mb-8 flex justify-center">
+        <LeatherWallet
+          look={look}
+          balancePaise={balance}
+          depositPaise={phase === "landed" ? credited : 0}
+        />
+      </div>
 
       <AnimatePresence>
         {phase === "landed" && (

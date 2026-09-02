@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isRazorpayConfigured } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import TopUpForm from "../TopUpForm";
+import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 
 export const metadata: Metadata = {
   title: "Top up wallet",
@@ -37,15 +38,30 @@ export default async function TopUpPage() {
     );
   }
 
-  const { data: balanceData } = await supabase.rpc("my_wallet_balance");
+  const [{ data: balanceData }, { data: prefsRow }] = await Promise.all([
+    supabase.rpc("my_wallet_balance"),
+    supabase.from("wallet_prefs").select("*").eq("user_id", auth.user.id).maybeSingle(),
+  ]);
   const balancePaise = Number(balanceData ?? 0);
+
+  const p = prefsRow as Record<string, unknown> | null;
+  const prefs =
+    normalizePrefs(
+      p && {
+        hide: p.hide,
+        plate: p.plate,
+        thread: p.thread,
+        nameplate: p.nameplate,
+        avatarSeed: p.avatar_seed,
+      },
+    ) ?? DEFAULT_PREFS;
 
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
       <p className="mb-6 text-center text-[14px] leading-relaxed opacity-40">
         Top up with UPI, card or net banking. The money lands in your wallet and pays for filings.
       </p>
-      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isRazorpayConfigured} />
+      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isRazorpayConfigured} look={prefs} />
     </div>
   );
 }

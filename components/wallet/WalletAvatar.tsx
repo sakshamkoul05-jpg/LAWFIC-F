@@ -2,35 +2,41 @@
 
 import { useMemo } from "react";
 import { createAvatar } from "@dicebear/core";
-import { lorelei } from "@dicebear/collection";
+import { micah } from "@dicebear/collection";
 
 /**
  * A generated character avatar.
  *
- * Drawn by DiceBear's `lorelei` set, rendered **locally** through the npm
- * package rather than fetched from api.dicebear.com. That distinction is the
- * whole point: the objection to the original implementation was never the
- * artwork, it was the HTTP call — a third-party request carrying the user's
- * chosen seed, issued from a signed-in money screen, that broke offline and
- * cost a round trip per avatar. The package does the same drawing with no
- * network involved at all.
+ * Drawn by DiceBear's `micah` set, rendered **locally** through the npm
+ * package rather than fetched from api.dicebear.com. That distinction matters:
+ * the HTTP API put a third-party request carrying the user's chosen seed on a
+ * signed-in money screen, broke offline, and cost a round trip per avatar. The
+ * package does the same drawing with no network involved at all.
  *
- * It also replaces a hand-authored SVG face I wrote in between. That version
- * was honest work but it was never going to reach this standard; hand-drawing
- * portraits path by path has a ceiling well below a set an illustrator made.
+ * WHY MICAH AND NOT LORELEI
  *
- * Licensing, since this is a commercial site: `lorelei` is CC0 1.0 — public
- * domain, no attribution required. Several of the prettier DiceBear sets
- * (adventurer, micah, personas, bigSmile) are CC BY 4.0 and would oblige
- * LAWFIC to carry a credit line; those are deliberately not used here. The
- * other CC0 options are `notionists` (monochrome, editorial), `openPeeps`
- * and `thumbs` — switching is the one import and the one constant below.
+ * `lorelei` is fine line-art — portraits drawn at hairline weight. At the 40px
+ * an avatar actually appears at on a wallet, those lines fall below the weight
+ * a screen can resolve and the face turns to grey mush. That is what "the
+ * avatars look vague" was describing, and it was a rendering problem rather
+ * than a matter of taste. `micah` is flat colour blocks with blush cheeks and
+ * heavy features: it survives being small, and it matches the illustrated
+ * reference the client supplied.
+ *
+ * THE LICENCE COST, ACCEPTED DELIBERATELY
+ *
+ * `micah` is CC BY 4.0, so LAWFIC carries a credit line in the footer —
+ * see components/site/Footer.tsx. `lorelei` was CC0 and needed none. Every
+ * DiceBear set that matches the reference is CC BY; every CC0 one is line-art
+ * or monochrome. One sentence in a footer, against avatars a customer can see,
+ * is the right side of that trade. If the credit is ever removed, the style
+ * must change back at the same time.
  *
  * The same seed always produces the same person, so a customer's card looks
  * identical on every device they sign in from.
  */
 
-const STYLE = lorelei;
+const STYLE = micah;
 
 /** Tinted grounds drawn from the brand's warm family, picked by seed. */
 const GROUNDS = ["D0AE55", "C9B78F", "E3A079", "86D3AB", "96C2DD", "D9A8C4"];

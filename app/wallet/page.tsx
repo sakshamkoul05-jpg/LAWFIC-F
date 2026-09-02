@@ -4,10 +4,7 @@ import { formatEntry } from "@/lib/money";
 import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
-import { spendByCategory } from "@/lib/wallet-card";
-import { allServices } from "@/lib/catalogue";
-import WalletCard from "@/components/wallet/WalletCard";
-import WalletPocket from "@/components/wallet/WalletPocket";
+import LeatherWallet from "@/components/wallet/LeatherWallet";
 import WalletDemo from "@/components/wallet/WalletDemo";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
@@ -37,7 +34,7 @@ export default async function WalletPage() {
   const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   if (!auth.user) return <WalletDemo />;
 
-  const [{ data: balanceData }, { data: entries }, { data: prefsRow }, { data: allDebits }, { data: orders }] =
+  const [{ data: balanceData }, { data: entries }, { data: prefsRow }] =
     await Promise.all([
       supabase.rpc("my_wallet_balance"),
       supabase
@@ -46,13 +43,6 @@ export default async function WalletPage() {
         .order("seq", { ascending: false })
         .limit(6),
       supabase.from("wallet_prefs").select("*").eq("user_id", auth.user.id).maybeSingle(),
-      // The card's signature is drawn from every debit ever made, not just the
-      // six shown below, so it keeps accruing as a record of the whole history.
-      supabase
-        .from("wallet_entries")
-        .select("direction, amount_paise, order_id")
-        .eq("direction", "debit"),
-      supabase.from("service_orders").select("id, service_slug"),
     ]);
 
   const balancePaise = Number(balanceData ?? 0);
@@ -61,26 +51,14 @@ export default async function WalletPage() {
   const prefs =
     normalizePrefs(
       prefsInput && {
-        entity: prefsInput.entity,
-        finish: prefsInput.finish ?? prefsInput.card_type,
-        cardType: prefsInput.card_type,
+        hide: prefsInput.hide,
+        plate: prefsInput.plate,
+        thread: prefsInput.thread,
+        nameplate: prefsInput.nameplate,
         avatarSeed: prefsInput.avatar_seed,
       },
     ) ?? DEFAULT_PREFS;
   const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
-
-  /* Resolve each debit to the service category it paid for: entry → order →
-     service slug → catalogue category. A debit with no order behind it (an
-     adjustment, say) simply contributes nothing to the signature. */
-  const slugByOrder = new Map((orders ?? []).map((o) => [o.id as string, o.service_slug as string]));
-  const categoryBySlug = new Map(allServices.map((s) => [s.slug, s.categoryId]));
-  const spend = spendByCategory(
-    (allDebits ?? []).map((d) => ({
-      direction: d.direction as string,
-      amount_paise: Number(d.amount_paise),
-      category: categoryBySlug.get(slugByOrder.get(d.order_id as string) ?? "") ?? null,
-    })),
-  );
 
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
@@ -104,40 +82,24 @@ export default async function WalletPage() {
       </div>
 
       {/* Card in pocket */}
-      <WalletPocket
-        actions={
-          <div className="flex items-center gap-3">
-            <Link
-              href="/wallet/topup"
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-medium transition-all duration-200"
-              style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M8 3v10M3 8h10" />
-              </svg>
-              Add Balance
-            </Link>
-            <Link
-              href="/wallet/customize"
-              className="flex items-center justify-center rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-200"
-              style={{ background: "var(--wallet-btn-bg)", color: "var(--wallet-btn-text)" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12.5 1.5l2 2-9 9H3.5v-2l9-9z" />
-              </svg>
-            </Link>
-          </div>
-        }
-      >
-        <WalletCard
-          prefs={prefs}
-          balancePaise={balancePaise}
-          accountId={auth.user.id}
-          spend={spend}
-          holderName={displayName}
-          animateBalance
-        />
-      </WalletPocket>
+      <div className="flex justify-center">
+        <LeatherWallet look={prefs} balancePaise={balancePaise} />
+      </div>
+
+      <div className="mt-6 flex items-center justify-center gap-3">
+        <Link
+          href="/wallet/topup"
+          className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
+        >
+          Add money
+        </Link>
+        <Link
+          href="/wallet/customize"
+          className="rounded-full border border-border-2 px-6 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
+        >
+          Customise
+        </Link>
+      </div>
 
       <WalletActions />
 
