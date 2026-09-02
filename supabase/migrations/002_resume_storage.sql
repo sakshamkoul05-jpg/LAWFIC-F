@@ -1,11 +1,16 @@
 -- Resume storage: a private bucket where each user can only see and
 -- write files under their own user_id prefix.
+--
+-- Every policy drops before it is created, so this file can be re-run. Without
+-- that, a second run fails on the first `create policy` and leaves the rest of
+-- the migration unapplied — which is a bad way to find out you already ran it.
 
 insert into storage.buckets (id, name, public)
 values ('resumes', 'resumes', false)
 on conflict (id) do nothing;
 
 -- Authenticated users may upload under resumes/<their user id>/ only.
+drop policy if exists "resumes_select_own" on storage.objects;
 create policy "resumes_select_own"
   on storage.objects for select
   to authenticated
@@ -14,6 +19,7 @@ create policy "resumes_select_own"
     and (storage.foldername(name))[1] = (select auth.uid()::text)
   );
 
+drop policy if exists "resumes_insert_own" on storage.objects;
 create policy "resumes_insert_own"
   on storage.objects for insert
   to authenticated
@@ -22,6 +28,7 @@ create policy "resumes_insert_own"
     and (storage.foldername(name))[1] = (select auth.uid()::text)
   );
 
+drop policy if exists "resumes_update_own" on storage.objects;
 create policy "resumes_update_own"
   on storage.objects for update
   to authenticated
@@ -30,6 +37,7 @@ create policy "resumes_update_own"
     and (storage.foldername(name))[1] = (select auth.uid()::text)
   );
 
+drop policy if exists "resumes_delete_own" on storage.objects;
 create policy "resumes_delete_own"
   on storage.objects for delete
   to authenticated
