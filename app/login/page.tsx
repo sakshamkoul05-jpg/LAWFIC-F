@@ -4,7 +4,7 @@ import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to LAWFIC with your email or phone number.",
+  description: "Sign in to LAWFIC, or create an account with your email address.",
 };
 
 export default function LoginPage() {
@@ -15,10 +15,10 @@ export default function LoginPage() {
         <div>
           <p className="type-label text-primary">Your account</p>
           <h1 className="type-display mt-6 max-w-md text-foreground">
-            One code. Every filing you have ever sent us.
+            One account. Every filing you have ever sent us.
           </h1>
           <p className="type-body mt-7 max-w-md text-muted">
-            Enter your email or phone, get a one-time code, and you&apos;re in.
+            Sign in with your email and password. New here? Create an account in one step.
             Wallet, order tracking, and a jobs feed matched to your profile.
           </p>
 

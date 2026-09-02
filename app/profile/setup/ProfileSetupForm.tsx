@@ -115,6 +115,14 @@ export default function ProfileSetupForm() {
     }
   }
 
+  /* Going back is always safe: every field reads from `profile`, which is held
+     here rather than per-step, so nothing typed is lost by moving between
+     steps. Clear any error on the way — it belonged to the step being left. */
+  function goBackTo(target: Stage) {
+    setError("");
+    setStage(target);
+  }
+
   const inputCls =
     "mt-2.5 w-full rounded border border-border bg-surface-2 px-3.5 py-3.5 text-[15px] text-foreground outline-none transition-colors focus:border-primary placeholder:text-subtle";
   const labelCls = "label text-muted";
@@ -127,7 +135,7 @@ export default function ProfileSetupForm() {
 
   return (
     <div className="mt-10">
-      <ProgressDots stage={stage} />
+      <ProgressDots stage={stage} onJump={goBackTo} />
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
         <div className="border-b border-border px-7 py-5">
           <p className="label text-muted">{stepLabel(stage)}</p>
@@ -361,6 +369,7 @@ export default function ProfileSetupForm() {
               primary="Save profile"
               primaryBusy={busy}
               onPrimary={saveBasics}
+              onBack={() => goBackTo("basics")}
               secondary="Skip — choose later"
               onSecondary={() => {
                 patch({ examsPreparing: [], jobsLooking: [] });
@@ -374,6 +383,7 @@ export default function ProfileSetupForm() {
               primary={file ? "Upload resume" : "Continue without resume"}
               primaryBusy={busy}
               onPrimary={uploadResume}
+              onBack={() => goBackTo("interests")}
             />
           )}
 
@@ -385,6 +395,12 @@ export default function ProfileSetupForm() {
                 router.push("/");
                 router.refresh();
               }}
+              /* The last chance to fix something before the page changes.
+                 Without it the only route back to a mistyped name is to
+                 discover /profile on your own. */
+              onBack={() => goBackTo("basics")}
+              secondary="Edit in my profile"
+              onSecondary={() => router.push("/profile")}
             />
           )}
         </div>
@@ -393,21 +409,43 @@ export default function ProfileSetupForm() {
   );
 }
 
-function ProgressDots({ stage }: { stage: Stage }) {
+function ProgressDots({
+  stage,
+  onJump,
+}: {
+  stage: Stage;
+  onJump: (s: Stage) => void;
+}) {
   const order: Stage[] = ["basics", "interests", "resume"];
   const current = order.indexOf(stage);
   if (current < 0) return null;
+
+  /* A step you have already completed is a step you may go back and change.
+     The bar was decoration before — it showed how far along you were and gave
+     you no way to act on it, which is the worst combination when the thing you
+     have spotted is a typo two steps back. Forward stays locked: skipping
+     ahead would submit answers that were never filled in. */
   return (
     <div className="mx-auto mb-6 flex max-w-xs items-center gap-1.5">
-      {order.map((s, i) => (
-        <div
-          key={s}
-          className="h-1 flex-1 rounded-full transition-colors"
-          style={{
-            background: i <= current ? "var(--color-primary)" : "var(--color-border)",
-          }}
-        />
-      ))}
+      {order.map((s, i) => {
+        const visited = i <= current;
+        return (
+          <button
+            key={s}
+            type="button"
+            disabled={!visited || i === current}
+            onClick={() => onJump(s)}
+            aria-label={visited ? `Go back to ${stepTitle(s)}` : stepTitle(s)}
+            aria-current={i === current ? "step" : undefined}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              visited && i !== current ? "cursor-pointer hover:opacity-80" : "cursor-default"
+            }`}
+            style={{
+              background: visited ? "var(--color-primary)" : "var(--color-border)",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -417,12 +455,15 @@ function FooterActions({
   secondary,
   onPrimary,
   onSecondary,
+  onBack,
   primaryBusy,
 }: {
   primary: string;
   secondary?: string;
   onPrimary: () => void;
   onSecondary?: () => void;
+  /** Omitted on the first step, where there is nowhere to go back to. */
+  onBack?: () => void;
   primaryBusy?: boolean;
 }) {
   return (
@@ -431,18 +472,44 @@ function FooterActions({
         type="button"
         onClick={onPrimary}
         disabled={primaryBusy}
-        className="w-full rounded-full bg-primary py-3.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
+        className="w-full rounded-full bg-primary py-3.5 text-sm font-medium text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle"
       >
         {primaryBusy ? "Saving…" : primary}
       </button>
-      {secondary && (
-        <button
-          type="button"
-          onClick={onSecondary}
-          className="mt-3 w-full text-center text-[13px] text-muted hover:text-foreground"
-        >
-          {secondary}
-        </button>
+
+      {(onBack || secondary) && (
+        <div className="mt-3 flex items-center justify-between gap-4">
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-foreground"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path
+                  d="M7.5 2.5 4 6l3.5 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back
+            </button>
+          ) : (
+            <span />
+          )}
+
+          {secondary && (
+            <button
+              type="button"
+              onClick={onSecondary}
+              className="text-[13px] text-muted transition-colors hover:text-foreground"
+            >
+              {secondary}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
