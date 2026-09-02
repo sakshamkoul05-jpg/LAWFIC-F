@@ -1,25 +1,32 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 /**
  * Physical card pocket — the card sits inside with a serrated top edge.
  * Click to pull the card out; click again to put it back.
  * All motion respects prefers-reduced-motion.
+ *
+ * The pocket owns whether the card is out. It used to take that as a prop
+ * along with an `onToggleCard` callback, which meant a Server Component
+ * rendering this had to hand a function across the boundary — and React
+ * refuses: "Event handlers cannot be passed to Client Component props". The
+ * signed-in wallet page threw on every request because of it.
+ *
+ * The state was never anything but presentational, so it belongs here. No
+ * caller has to pass a handler, and no Server Component can break this again
+ * by forgetting that it cannot.
  */
 export default function WalletPocket({
-  cardOut,
-  onToggleCard,
   children,
   actions,
 }: {
-  cardOut: boolean;
-  onToggleCard: () => void;
   children: ReactNode;
   actions?: ReactNode;
 }) {
   const reduced = useReducedMotion();
+  const [cardOut, setCardOut] = useState(false);
 
   return (
     <div className="wallet-pocket relative px-4 pt-6 pb-5 sm:px-6">
@@ -48,7 +55,7 @@ export default function WalletPocket({
             : { type: "spring", stiffness: 260, damping: 24, mass: 0.8 }
         }
         className="cursor-pointer"
-        onClick={onToggleCard}
+        onClick={() => setCardOut((v) => !v)}
       >
         {children}
       </motion.div>

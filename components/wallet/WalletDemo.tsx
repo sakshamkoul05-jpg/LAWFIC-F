@@ -32,7 +32,6 @@ const DEMO_TXNS = [
 
 export default function WalletDemo() {
   const [draft, setDraft] = useState<WalletPrefs>(DEFAULT_PREFS);
-  const [cardOut, setCardOut] = useState(false);
   const [customSeed, setCustomSeed] = useState("");
 
   const applySeed = (seed: string) => {
@@ -62,7 +61,7 @@ export default function WalletDemo() {
       </div>
 
       {/* Card in pocket */}
-      <WalletPocket cardOut={cardOut} onToggleCard={() => setCardOut((v) => !v)}>
+      <WalletPocket>
         <WalletCard
           prefs={draft}
           balancePaise={DEMO_BALANCE_PAISE}

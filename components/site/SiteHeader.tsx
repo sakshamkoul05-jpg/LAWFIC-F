@@ -110,6 +110,30 @@ export default function SiteHeader() {
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
+          {/* The wallet is the one signed-in destination worth a permanent
+              shortcut: it holds money, and hunting for it through a 21-tab
+              strip is not a reasonable way to check a balance. Shown only when
+              signed in, since it means nothing to a visitor. */}
+          {mounted && user && (
+            <Link
+              href="/wallet"
+              aria-label="Your wallet"
+              title="Wallet"
+              aria-current={isActive("/wallet") ? "page" : undefined}
+              className={`grid size-9 place-items-center rounded-full border transition-colors ${
+                isActive("/wallet")
+                  ? "border-primary/50 bg-primary-light text-primary"
+                  : "border-border text-muted hover:border-border-3 hover:text-foreground"
+              }`}
+            >
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.4" />
+                <circle cx="14" cy="12.5" r="1.15" fill="currentColor" />
+              </svg>
+            </Link>
+          )}
+
           <ThemeToggle />
 
           {mounted && user ? (
