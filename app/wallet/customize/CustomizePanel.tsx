@@ -102,22 +102,27 @@ export default function CustomizePanel({
         {/* Avatar seed picker */}
         <div className="mt-8">
           <p className="mb-3 text-[13px] font-medium">Your avatar</p>
-          <div className="flex flex-wrap gap-1.5">
-            {AVATAR_SEEDS.map((seed) => (
-              <button
-                key={seed}
-                type="button"
-                onClick={() => applySeed(seed)}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200"
-                style={{
-                  background: draft.avatarSeed === seed && !customSeed ? "var(--wallet-btn-bg-hover)" : "var(--wallet-btn-bg)",
-                  color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
-                }}
-              >
-                <WalletAvatar seed={seed} size={20} />
-                {seed}
-              </button>
-            ))}
+          {/* Faces, not names — see the note in WalletDemo. */}
+          <div className="grid grid-cols-5 gap-2">
+            {AVATAR_SEEDS.map((seed) => {
+              const on = draft.avatarSeed === seed && !customSeed;
+              return (
+                <button
+                  key={seed}
+                  type="button"
+                  onClick={() => applySeed(seed)}
+                  aria-label={`Choose avatar ${seed}`}
+                  aria-pressed={on}
+                  className="rounded-full transition-transform duration-200 hover:scale-105"
+                  style={{
+                    outline: on ? "2px solid var(--wallet-icon-fg)" : "2px solid transparent",
+                    outlineOffset: 2,
+                  }}
+                >
+                  <WalletAvatar seed={seed} size={44} />
+                </button>
+              );
+            })}
           </div>
           <input
             type="text"

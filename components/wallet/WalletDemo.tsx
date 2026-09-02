@@ -7,6 +7,8 @@ import WalletCard from "@/components/wallet/WalletCard";
 import WalletPocket from "@/components/wallet/WalletPocket";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
+import WalletActions from "@/components/wallet/WalletActions";
+import WalletMenu from "@/components/wallet/WalletMenu";
 
 const DEMO_BALANCE_PAISE = 2435000;
 
@@ -78,33 +80,7 @@ export default function WalletDemo() {
         </div>
       </WalletPocket>
 
-      {/* Quick actions */}
-      {/* See the note in app/wallet/page.tsx: this wallet never pays out, so
-          no payout affordance belongs here — not even a disabled one. */}
-      <div className="mt-8 grid grid-cols-3 gap-3">
-        {[
-          { label: "Add money", icon: "M8 3v10M3 8h10" },
-          { label: "Statement", icon: "M4 6h8M4 10h8" },
-          { label: "Your filings", icon: "M3 3h10v10H3z" },
-        ].map((a) => (
-          <button
-            key={a.label}
-            type="button"
-            className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
-            style={{ color: "var(--wallet-fg)" }}
-          >
-            <div
-              className="flex size-9 items-center justify-center rounded-full"
-              style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d={a.icon} />
-              </svg>
-            </div>
-            {a.label}
-          </button>
-        ))}
-      </div>
+      <WalletActions />
 
       {/* Recent transactions */}
       <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
@@ -138,6 +114,8 @@ export default function WalletDemo() {
           ))}
         </ul>
       </div>
+
+      <WalletMenu />
 
       {/* Customize section */}
       <div id="demo-customize" className="mt-10 scroll-mt-24">
@@ -177,22 +155,29 @@ export default function WalletDemo() {
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
               Your avatar
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              {AVATAR_SEEDS.map((seed) => (
-                <button
-                  key={seed}
-                  type="button"
-                  onClick={() => applySeed(seed)}
-                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200"
-                  style={{
-                    background: draft.avatarSeed === seed && !customSeed ? "var(--wallet-btn-bg-hover)" : "var(--wallet-btn-bg)",
-                    color: draft.avatarSeed === seed && !customSeed ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
-                  }}
-                >
-                  <WalletAvatar seed={seed} size={20} />
-                  {seed}
-                </button>
-              ))}
+            {/* A grid of faces, not a list of names. The seeds are internal
+                keys — showing "Felix" next to a 20px thumbnail asked people to
+                pick a word when what they are choosing is a face. */}
+            <div className="grid grid-cols-5 gap-2">
+              {AVATAR_SEEDS.map((seed) => {
+                const on = draft.avatarSeed === seed && !customSeed;
+                return (
+                  <button
+                    key={seed}
+                    type="button"
+                    onClick={() => applySeed(seed)}
+                    aria-label={`Choose avatar ${seed}`}
+                    aria-pressed={on}
+                    className="rounded-full transition-transform duration-200 hover:scale-105"
+                    style={{
+                      outline: on ? "2px solid var(--wallet-icon-fg)" : "2px solid transparent",
+                      outlineOffset: 2,
+                    }}
+                  >
+                    <WalletAvatar seed={seed} size={44} />
+                  </button>
+                );
+              })}
             </div>
             <input
               type="text"

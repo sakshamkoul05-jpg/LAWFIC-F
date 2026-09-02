@@ -9,6 +9,8 @@ import WalletPocket from "@/components/wallet/WalletPocket";
 import WalletDemo from "@/components/wallet/WalletDemo";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
+import WalletActions from "@/components/wallet/WalletActions";
+import WalletMenu from "@/components/wallet/WalletMenu";
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -100,37 +102,7 @@ export default async function WalletPage() {
         <WalletCard prefs={prefs} balancePaise={balancePaise} animateBalance />
       </WalletPocket>
 
-      {/* Quick actions */}
-      {/* Three actions, not four. "Transfer" and "Withdraw" were here marked
-          "coming soon" — but this wallet is a closed-loop prepaid balance and
-          it never pays out: no withdrawal to a bank, no user-to-user transfer,
-          no third-party spend. That is the whole basis of the closed-system PPI
-          exemption it operates under, so advertising a payout as forthcoming is
-          not a harmless placeholder. Do not add them back. */}
-      <div className="mt-8 grid grid-cols-3 gap-3">
-        {[
-          { label: "Add money", icon: "M8 3v10M3 8h10", href: "/wallet/topup" },
-          { label: "Statement", icon: "M4 6h8M4 10h8", href: "/wallet/transactions" },
-          { label: "Your filings", icon: "M3 3h10v10H3z", href: "/orders" },
-        ].map((a) => (
-            <Link
-              key={a.label}
-              href={a.href}
-              className="wallet-glass flex flex-col items-center gap-2.5 rounded-2xl py-4 text-[11px] font-medium transition-all duration-200 hover:scale-[1.03]"
-              style={{ color: "var(--wallet-fg)" }}
-            >
-              <div
-                className="flex size-9 items-center justify-center rounded-full"
-                style={{ background: "var(--wallet-icon-circle)", color: "var(--wallet-icon-fg)" }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={a.icon} />
-                </svg>
-              </div>
-              {a.label}
-            </Link>
-        ))}
-      </div>
+      <WalletActions />
 
       {/* Recent transactions */}
       <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
@@ -195,6 +167,8 @@ export default async function WalletPage() {
           Balance is usable only for LAWFIC services.
         </p>
       </div>
+
+      <WalletMenu />
 
       {!isRazorpayConfigured && (
         <p className="mt-4 text-center text-[12px] opacity-30">
