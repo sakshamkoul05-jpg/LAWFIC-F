@@ -5,6 +5,7 @@ import AadhaarFlip from "./AadhaarFlip";
 import GstinAssembler from "./GstinAssembler";
 import PanDecoder from "./PanDecoder";
 import UdyamCertificate from "./UdyamCertificate";
+import DocumentSpecimen from "./DocumentSpecimen";
 
 /**
  * One signature interaction per service. Each teaches something true.
@@ -33,7 +34,11 @@ export default function ServiceVisual({ slug }: { slug: string }) {
       case "msme-udyam":
         return <UdyamCertificate />;
       default:
-        return null;
+        /* Everything else falls through to the generated specimen, so a
+           service page is never left with an empty column. The four above
+           are hand-built because they teach something a generic renderer
+           cannot; the rest are data. */
+        return <DocumentSpecimen slug={slug} />;
     }
   })();
 

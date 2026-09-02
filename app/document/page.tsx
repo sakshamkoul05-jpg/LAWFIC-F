@@ -52,21 +52,20 @@ export default function DocumentPage() {
                   </div>
                   <p className="mt-2 text-[12.5px] leading-relaxed text-muted">{d.blurb}</p>
                   <div className="mt-4 pt-3">
-                    {d.live ? (
-                      <Link
-                        href={d.href}
-                        className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:text-primary-hover"
-                      >
-                        View & start
-                        <svg width="11" height="11" viewBox="0 0 10 10" fill="none" aria-hidden>
-                          <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </Link>
-                    ) : (
-                      <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
-                        Coming soon
-                      </span>
-                    )}
+                    {/* Every document now has somewhere to go: a full service
+                        page when the filing flow exists, otherwise its own page
+                        with the specimen. "Coming soon" used to sit here as
+                        plain text, which made two-thirds of the catalogue a
+                        dead end even though we have something to show. */}
+                    <Link
+                      href={d.href}
+                      className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:text-primary-hover"
+                    >
+                      {d.live ? "View & start" : "See the document"}
+                      <svg width="11" height="11" viewBox="0 0 10 10" fill="none" aria-hidden>
+                        <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
               ))}
