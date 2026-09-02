@@ -11,7 +11,7 @@ import {
   type UserProfile,
 } from "@/lib/profile";
 
-type Stage = "loading" | "basics" | "interests" | "resume" | "password" | "done";
+type Stage = "loading" | "basics" | "interests" | "resume" | "done";
 
 export default function ProfileSetupForm() {
   const router = useRouter();
@@ -21,8 +21,6 @@ export default function ProfileSetupForm() {
   const [error, setError] = useState("");
   /* Something went wrong but the flow continues — never rendered as a blocker. */
   const [skipped, setSkipped] = useState("");
-  const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [savedName, setSavedName] = useState("");
 
@@ -83,7 +81,7 @@ export default function ProfileSetupForm() {
 
   async function uploadResume() {
     if (!file) {
-      setStage("password");
+      setStage("done");
       return;
     }
     setBusy(true);
@@ -99,7 +97,7 @@ export default function ProfileSetupForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ ...profile, resumePath }),
       });
-      setStage("password");
+      setStage("done");
     } else {
       /* A failed résumé upload must never strand someone mid-onboarding.
          It is the one optional field in this flow, and the cost of blocking
@@ -113,31 +111,7 @@ export default function ProfileSetupForm() {
       setSkipped(body.error === "storage_unavailable"
         ? "We could not store your résumé just now. Everything else is saved — you can add it later from your profile."
         : "That file could not be uploaded. Everything else is saved — you can add a résumé later from your profile.");
-      setStage("password");
-    }
-  }
-
-  async function savePassword() {
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (password !== password2) {
-      setError("Passwords do not match.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    const res = await fetch("/api/profile/password", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    setBusy(false);
-    if (res.ok) {
       setStage("done");
-    } else {
-      setError("Could not set the password. You can do this later from your profile.");
     }
   }
 
@@ -328,54 +302,6 @@ export default function ProfileSetupForm() {
               </motion.div>
             )}
 
-            {stage === "password" && (
-              <motion.div
-                key="password"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -12 }}
-                transition={{ duration: 0.22 }}
-                className="space-y-5"
-              >
-                {skipped && (
-                  <p
-                    role="status"
-                    className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-[12.5px] leading-relaxed text-muted"
-                  >
-                    {skipped}
-                  </p>
-                )}
-                <p className="text-[14px] text-muted">
-                  Pick a password so you can sign in with your email or phone too, even without an
-                  OTP link.
-                </p>
-                <div>
-                  <label htmlFor="pw" className={labelCls}>Password</label>
-                  <input
-                    id="pw"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="At least 8 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="pw2" className={labelCls}>Confirm password</label>
-                  <input
-                    id="pw2"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Repeat the password"
-                    value={password2}
-                    onChange={(e) => setPassword2(e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-              </motion.div>
-            )}
-
             {stage === "done" && (
               <motion.div
                 key="done"
@@ -391,6 +317,17 @@ export default function ProfileSetupForm() {
                 <p className="mt-5 font-display text-[22px] text-foreground">
                   You are all set, {profile.fullName.split(" ")[0]}!
                 </p>
+                {/* The résumé step can fail without stopping onboarding, so the
+                    news has to surface somewhere. Here, at the end, rather than
+                    as a blocker mid-flow. */}
+                {skipped && (
+                  <p
+                    role="status"
+                    className="mx-auto mt-5 max-w-sm rounded-xl border border-border bg-surface-2 px-4 py-3 text-[12.5px] leading-relaxed text-muted"
+                  >
+                    {skipped}
+                  </p>
+                )}
                 <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted">
                   Your home page is now tailored to{" "}
                   <span className="text-foreground">
@@ -440,13 +377,6 @@ export default function ProfileSetupForm() {
             />
           )}
 
-          {stage === "password" && (
-            <FooterActions
-              primary="Save & finish"
-              primaryBusy={busy}
-              onPrimary={savePassword}
-            />
-          )}
 
           {stage === "done" && (
             <FooterActions
@@ -464,7 +394,7 @@ export default function ProfileSetupForm() {
 }
 
 function ProgressDots({ stage }: { stage: Stage }) {
-  const order: Stage[] = ["basics", "interests", "resume", "password"];
+  const order: Stage[] = ["basics", "interests", "resume"];
   const current = order.indexOf(stage);
   if (current < 0) return null;
   return (
@@ -520,10 +450,9 @@ function FooterActions({
 
 function stepLabel(stage: Stage): string {
   switch (stage) {
-    case "basics": return "Step 1 of 4";
-    case "interests": return "Step 2 of 4";
-    case "resume": return "Step 3 of 4";
-    case "password": return "Step 4 of 4";
+    case "basics": return "Step 1 of 3";
+    case "interests": return "Step 2 of 3";
+    case "resume": return "Step 3 of 3";
     case "done": return "Complete";
     default: return "";
   }
@@ -534,7 +463,6 @@ function stepTitle(stage: Stage): string {
     case "basics": return "Tell us about yourself";
     case "interests": return "Your track";
     case "resume": return "Your resume (optional)";
-    case "password": return "Set a password";
     case "done": return "All set";
     default: return "";
   }
