@@ -126,7 +126,7 @@ export default function ClassicCategoryTabs() {
           <div
             key={ri}
             ref={ri === 0 ? scrollerRef : undefined}
-            className={`classic-tabs-nav mx-auto flex max-w-6xl items-stretch overflow-x-auto px-4 sm:px-7 ${
+            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:overflow-visible lg:px-6 ${
               ri === 1 ? "border-t border-border/60" : ""
             }`}
           >
@@ -142,7 +142,11 @@ export default function ClassicCategoryTabs() {
                   onMouseEnter={(e) => open(tab, e.currentTarget)}
                   onFocus={(e) => open(tab, e.currentTarget)}
                   style={{ ["--tab-accent" as string]: accent }}
-                  className={`group relative shrink-0 whitespace-nowrap px-3 py-2.5 text-[12.5px] transition-colors ${
+                  /* Below the breakpoint the row scrolls, so tabs keep their
+                     natural width. At lg and up they share the bar evenly and
+                     it spans the full page, which is the only arrangement that
+                     does not leave a stretch of empty rule after Contact. */
+                  className={`group relative shrink-0 whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:flex-1 lg:shrink lg:px-2 ${
                     active ? "font-medium" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -151,7 +155,7 @@ export default function ClassicCategoryTabs() {
                       current or under the pointer. */}
                   <span
                     aria-hidden
-                    className={`absolute inset-x-2.5 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
+                    className={`absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
                       active ? "opacity-100" : "opacity-20 group-hover:opacity-70"
                     }`}
                     style={{ background: accent }}

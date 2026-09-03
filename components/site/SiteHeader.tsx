@@ -76,7 +76,7 @@ export default function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-5 sm:px-7">
+        <div className="flex w-full items-center gap-3 px-3 py-2.5 sm:gap-5 sm:px-5 lg:px-6">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -98,7 +98,7 @@ export default function SiteHeader() {
             <Wordmark />
           </Link>
 
-          <HeaderSearch className="hidden min-w-0 flex-1 md:block" />
+          <HeaderSearch className="hidden min-w-0 flex-1 md:block lg:mx-4" />
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
             <IconLink
@@ -145,7 +145,7 @@ export default function SiteHeader() {
         </div>
 
         {/* On a narrow screen the search moves under the row rather than off it */}
-        <div className="border-t border-border/60 px-4 py-2 md:hidden">
+        <div className="border-t border-border/60 px-3 py-2 md:hidden">
           <HeaderSearch />
         </div>
       </header>
