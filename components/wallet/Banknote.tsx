@@ -1,36 +1,48 @@
 "use client";
 
+import { useId } from "react";
 import { devanagari, getDenomination, LARGEST_MM } from "@/lib/denominations";
 
 /**
  * One Indian banknote.
  *
- * Read the header of `lib/denominations.ts` before changing anything here. The
- * short version: everything that makes a note *recognisable* is drawn, and
- * nothing that makes it *authentic*.
+ * WHERE THE LINE IS, AND WHY IT DOES NOT MOVE
  *
- * Drawn, because it is what the eye actually uses to identify a note across a
- * room — the official colour of the series, the real milled size, the
- * denomination in both Latin and Devanagari, the guilloché rosette, the
- * intaglio border, the watermark window, the security-thread band, and the
- * bleed lines on the right edge.
+ * Drawn: the official colour of the series, the real milled size, the
+ * denomination in Latin and Devanagari, guilloché, an intaglio border, the
+ * watermark window, the security-thread band, the bleed lines, paper fibre and
+ * the crease a note picks up from living folded in a wallet.
  *
- * Never drawn: the Ashoka Lion Capital, the portrait, the Reserve Bank's name,
- * seal, legend or signature, a real-format serial, or microtext. Those are the
- * marks that would make this a facsimile rather than a picture of one, and the
- * emblem in particular is protected by statute whatever the context.
+ * NOT drawn, ever: the Ashoka Lion Capital, the portrait of Mahatma Gandhi, and
+ * the words "Reserve Bank of India" or "भारतीय रिज़र्व बैंक". The emblem is
+ * protected by the Emblems and Names (Prevention of Improper Use) Act 1950
+ * whatever the context, and those three elements together are precisely what
+ * turn a picture of money into a facsimile of it. IPC 489A–489E cover
+ * counterfeiting and the making of materials for it.
  *
- * SIZE IS PER DENOMINATION, NOT A CONSTANT
+ * That line has been asked about more than once. It is not a matter of taste
+ * and it is not a placeholder waiting to be upgraded: everything that makes a
+ * note RECOGNISABLE is here, and nothing that would make it AUTHENTIC is. If a
+ * future change adds an emblem, a portrait or the issuer's name, it is not an
+ * improvement to this file, it is a different and much worse kind of object.
+ *
+ * WHAT MAKES IT READ AS PAPER RATHER THAN A COLOURED RECTANGLE
+ *
+ * Four things, none of which is colour: fibre in the stock, a crease down the
+ * middle from being folded, ink that sits at different weights across the note,
+ * and a warm edge where the paper has handled. A flat fill with a numeral on it
+ * reads as a card no matter how accurate the hue is — which is exactly what the
+ * first several versions of this were.
+ *
+ * SIZE IS PER DENOMINATION
  *
  * Indian notes step in length by denomination and in height at ₹50. A ₹500 is
- * 150×66mm; a ₹10 is 123×63. Drawing them all at one ratio was the loudest
- * tell that the money was invented, so `width` here means "width of a ₹500"
- * and every smaller note is scaled off the real millimetres against it. Pass
- * one `width` for a whole stack and the stack sizes itself correctly.
+ * 150×66mm; a ₹10 is 123×63. `width` means "width of a ₹500" and every smaller
+ * note is scaled off the real millimetres against it, so passing one width for
+ * a whole stack sizes the stack correctly.
  */
 export default function Banknote({
   value,
-  /** Rendered width of a ₹500. Smaller notes come out proportionally smaller. */
   width = 240,
   className = "",
   style,
@@ -40,11 +52,10 @@ export default function Banknote({
   className?: string;
   style?: React.CSSProperties;
 }) {
+  const uid = useId().replace(/:/g, "");
   const d = getDenomination(value);
   if (!d) return null;
 
-  /* Four user units per millimetre: enough resolution for the guilloché
-     without the numbers getting silly. */
   const U = 4;
   const w = d.widthMm * U;
   const h = d.heightMm * U;
@@ -52,8 +63,11 @@ export default function Banknote({
   const px = (width * d.widthMm) / LARGEST_MM;
   const py = (px * d.heightMm) / d.widthMm;
 
-  const rosette = `rose-${value}`;
-  const guilloche = `guil-${value}`;
+  const fibre = `fib-${uid}`;
+  const guilloche = `gui-${uid}`;
+  const rosette = `ros-${uid}`;
+  const crease = `crs-${uid}`;
+  const edgeWear = `wear-${uid}`;
 
   return (
     <svg
@@ -66,185 +80,189 @@ export default function Banknote({
       aria-label={`₹${value} note`}
     >
       <defs>
-        {/* Fine cross-hatch standing in for security printing. A generic
-            geometric fill — it copies no pattern from any real note. */}
+        {/* Paper tooth. Currency stock is cotton rag and it shows — this is the
+            single thing that stops the note reading as printed plastic. */}
+        <filter id={fibre} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" seed="5" result="n" />
+          <feColorMatrix
+            in="n"
+            type="matrix"
+            values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.13 0"
+            result="grain"
+          />
+          <feComposite in="grain" in2="SourceAlpha" operator="in" />
+        </filter>
+
         <pattern
           id={guilloche}
-          width="9"
-          height="9"
+          width="8"
+          height="8"
           patternUnits="userSpaceOnUse"
-          patternTransform="rotate(35)"
+          patternTransform="rotate(32)"
         >
-          <path d="M0 0 V9" stroke={d.paperEdge} strokeWidth="0.7" opacity="0.34" />
-          <path d="M4.5 0 V9" stroke={d.paperEdge} strokeWidth="0.35" opacity="0.2" />
+          <path d="M0 0 V8" stroke={d.paperEdge} strokeWidth="0.6" opacity="0.32" />
+          <path d="M4 0 V8" stroke={d.paperEdge} strokeWidth="0.3" opacity="0.18" />
         </pattern>
 
         <radialGradient id={rosette}>
-          <stop offset="0%" stopColor={d.paperEdge} stopOpacity="0.5" />
-          <stop offset="70%" stopColor={d.paperEdge} stopOpacity="0.16" />
+          <stop offset="0%" stopColor={d.paperEdge} stopOpacity="0.55" />
+          <stop offset="68%" stopColor={d.paperEdge} stopOpacity="0.15" />
           <stop offset="100%" stopColor={d.paperEdge} stopOpacity="0" />
         </radialGradient>
+
+        {/* A note that lives in a wallet is a folded note. */}
+        <linearGradient id={crease} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="44%" stopColor="#000" stopOpacity="0" />
+          <stop offset="49.5%" stopColor="#000" stopOpacity="0.2" />
+          <stop offset="50.5%" stopColor="#fff" stopOpacity="0.14" />
+          <stop offset="56%" stopColor="#000" stopOpacity="0" />
+        </linearGradient>
+
+        {/* Handled paper darkens at the edges before anywhere else. */}
+        <linearGradient id={edgeWear} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#000" stopOpacity="0.16" />
+          <stop offset="14%" stopColor="#000" stopOpacity="0" />
+          <stop offset="86%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.2" />
+        </linearGradient>
       </defs>
 
-      {/* Paper */}
-      <rect x="0" y="0" width={w} height={h} rx="7" fill={d.paper} />
-      <rect x="0" y="0" width={w} height={h} rx="7" fill={`url(#${guilloche})`} />
+      <rect x="0" y="0" width={w} height={h} rx="6" fill={d.paper} />
+      <rect x="0" y="0" width={w} height={h} rx="6" fill={`url(#${guilloche})`} />
 
-      {/* Security thread: a broken vertical band, left of centre as on the real
-          note. No lettering in it — that is one of the things microtext does
-          and one of the things this must not. */}
-      <g opacity="0.42">
+      {/* The tonal band down the left, which every note in the series carries */}
+      <rect x="0" y="0" width={w * 0.2} height={h} rx="6" fill={d.paperEdge} opacity="0.24" />
+      <rect x={w * 0.2 - 1.5} y="6" width="1.5" height={h - 12} fill={d.ink} opacity="0.2" />
+
+      {/* Security thread: a broken band, left of centre. No lettering in it. */}
+      <g opacity="0.4">
         {Array.from({ length: 9 }).map((_, i) => (
           <rect
             key={i}
-            x={w * 0.335}
-            y={Number((4 + (i * (h - 8)) / 9).toFixed(2))}
-            width="3.2"
-            height={Number(((h - 8) / 9 - 3.4).toFixed(2))}
+            x={w * 0.33}
+            y={Number((5 + (i * (h - 10)) / 9).toFixed(2))}
+            width="2.8"
+            height={Number(((h - 10) / 9 - 3.6).toFixed(2))}
             fill={d.ink}
           />
         ))}
       </g>
 
-      {/* Watermark window: the pale oval a real note holds up to the light.
-          Empty, deliberately — what sits in a real one is the portrait. */}
-      <ellipse
-        cx={w * 0.815}
-        cy={h * 0.5}
-        rx={w * 0.085}
-        ry={h * 0.3}
-        fill="#FFFFFF"
-        opacity="0.3"
-      />
+      {/* Watermark window — empty, because what fills a real one is the portrait */}
+      <ellipse cx={w * 0.83} cy={h * 0.52} rx={w * 0.08} ry={h * 0.29} fill="#FFF" opacity="0.28" />
 
-      {/* A rosette in the position the portrait occupies. A radial burst rather
-          than a face: it fills the space the eye expects to be busy without
-          reproducing anything. */}
-      <g transform={`translate(${w * 0.53} ${h * 0.5})`}>
+      {/* A rosette where the portrait sits: a radial burst, not a face. */}
+      <g transform={`translate(${w * 0.54} ${h * 0.52})`}>
         <circle r={h * 0.3} fill={`url(#${rosette})`} />
-        {Array.from({ length: 20 }).map((_, i) => {
-          const a = (i / 20) * Math.PI * 2;
-          const r1 = h * 0.12;
-          const r2 = h * 0.29;
-          /* Rounded, and not for tidiness. React serialises these to strings on
-             the server and sets them as raw floats on the client, and the two
-             disagree in the last digit — "-24.76842136458718" against
-             -24.768421364587184 — which is a hydration mismatch on every spoke
-             of every note. Two decimals is far finer than a pixel here. */
+        {Array.from({ length: 22 }).map((_, i) => {
+          const a = (i / 22) * Math.PI * 2;
           const r = (n: number) => Number(n.toFixed(2));
           return (
             <line
               key={i}
-              x1={r(Math.cos(a) * r1)}
-              y1={r(Math.sin(a) * r1)}
-              x2={r(Math.cos(a) * r2)}
-              y2={r(Math.sin(a) * r2)}
+              x1={r(Math.cos(a) * h * 0.11)}
+              y1={r(Math.sin(a) * h * 0.11)}
+              x2={r(Math.cos(a) * h * 0.28)}
+              y2={r(Math.sin(a) * h * 0.28)}
               stroke={d.ink}
-              strokeWidth="0.55"
-              opacity="0.3"
+              strokeWidth="0.5"
+              opacity="0.28"
             />
           );
         })}
-        <circle r={h * 0.115} fill="none" stroke={d.ink} strokeWidth="0.8" opacity="0.35" />
-        <circle r={h * 0.075} fill="none" stroke={d.ink} strokeWidth="0.5" opacity="0.25" />
+        <circle r={h * 0.11} fill="none" stroke={d.ink} strokeWidth="0.7" opacity="0.32" />
       </g>
 
-      {/* Intaglio border, doubled the way a note's frame is */}
+      {/* Intaglio frame */}
       <rect
-        x="5"
-        y="5"
-        width={w - 10}
-        height={h - 10}
+        x="4.5"
+        y="4.5"
+        width={w - 9}
+        height={h - 9}
         rx="4"
         fill="none"
         stroke={d.ink}
-        strokeWidth="1.1"
-        opacity="0.45"
+        strokeWidth="1"
+        opacity="0.42"
       />
       <rect
-        x="9"
-        y="9"
-        width={w - 18}
-        height={h - 18}
+        x="8.5"
+        y="8.5"
+        width={w - 17}
+        height={h - 17}
         rx="3"
         fill="none"
         stroke={d.ink}
-        strokeWidth="0.5"
-        opacity="0.28"
+        strokeWidth="0.45"
+        opacity="0.24"
       />
 
-      {/* THE TOP BAND CARRIES THE IDENTITY.
-
-          Both denomination panels sit in the top quarter, and that is a layout
-          decision the wallet forces rather than a copy of the real note. Only
-          the strip above the fold is ever visible in a wallet, so anything
-          lower is decoration for the moment the note is in flight. Putting the
-          value here is what lets the note tuck in deep enough to look held. */}
+      {/* THE TOP BAND CARRIES THE IDENTITY. Only the strip above the leather is
+          ever visible in a wallet, so both denomination panels live up here. */}
       <text
-        x="17"
-        y={h * 0.25}
+        x="14"
+        y={h * 0.26}
         fontFamily="ui-monospace, monospace"
-        fontSize={h * 0.2}
-        fontWeight="700"
-        fill={d.ink}
-      >
-        {value}
-      </text>
-
-      {/* Devanagari, the other end of the same band. Digits in another script
-          are still digits — this reproduces no wording. */}
-      <text
-        x={w - 20}
-        y={h * 0.25}
-        textAnchor="end"
-        fontSize={h * 0.18}
-        fill={d.ink}
-        opacity="0.8"
-      >
-        {devanagari(value)}
-      </text>
-
-      {/* The big numeral, right of the portrait position, as on the note. Sits
-          below the fold line on purpose — it is what you see when the note
-          flies in, not what you read off the stack. */}
-      <text
-        x={w - 22}
-        y={h * 0.72}
-        textAnchor="end"
-        fontFamily="ui-monospace, monospace"
-        fontSize={h * 0.34}
+        fontSize={h * 0.21}
         fontWeight="700"
         fill={d.ink}
       >
         ₹{value}
       </text>
+      <text
+        x={w - 16}
+        y={h * 0.26}
+        textAnchor="end"
+        fontSize={h * 0.19}
+        fill={d.ink}
+        opacity="0.82"
+      >
+        {devanagari(value)}
+      </text>
 
-      {/* Bleed lines: raised bars that tell denominations apart by touch. Real,
-          functional, and different per note — ₹500 five, ₹200 and ₹100 four,
-          nothing below that. */}
+      {/* The big numeral, below the fold line — what you see in flight. */}
+      <text
+        x={w - 20}
+        y={h * 0.76}
+        textAnchor="end"
+        fontFamily="ui-monospace, monospace"
+        fontSize={h * 0.3}
+        fontWeight="700"
+        fill={d.ink}
+        opacity="0.9"
+      >
+        ₹{value}
+      </text>
+
+      {/* Bleed lines: raised bars telling denominations apart by touch. Real,
+          functional, and different per note. */}
       {Array.from({ length: d.bleedLines }).map((_, i) => (
         <rect
           key={i}
-          x={w - 17 - i * 6}
-          y={h * 0.38}
-          width="2.6"
-          height={h * 0.46}
-          rx="1.3"
+          x={w - 15 - i * 5.5}
+          y={h * 0.4}
+          width="2.4"
+          height={h * 0.44}
+          rx="1.2"
           fill={d.ink}
-          opacity="0.5"
+          opacity="0.45"
         />
       ))}
 
-      {/* The edge, slightly darker as printed paper is */}
+      {/* Fibre, crease and wear, over everything — they are properties of the
+          paper, not of the printing. */}
+      <rect x="0" y="0" width={w} height={h} rx="6" filter={`url(#${fibre})`} />
+      <rect x="0" y="0" width={w} height={h} rx="6" fill={`url(#${crease})`} />
+      <rect x="0" y="0" width={w} height={h} rx="6" fill={`url(#${edgeWear})`} />
       <rect
-        x="0.6"
-        y="0.6"
-        width={w - 1.2}
-        height={h - 1.2}
-        rx="7"
+        x="0.5"
+        y="0.5"
+        width={w - 1}
+        height={h - 1}
+        rx="6"
         fill="none"
         stroke={d.paperEdge}
-        strokeWidth="1.2"
+        strokeWidth="1"
       />
     </svg>
   );

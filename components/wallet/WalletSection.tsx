@@ -9,19 +9,26 @@ import PhysicalWallet from "./PhysicalWallet";
 import WalletSkinSelector from "./WalletSkinSelector";
 
 /**
- * The wallet, as the thing the page is about.
+ * The wallet section, composed as a product shot rather than a dashboard.
  *
- * The balance is deliberately not printed across the leather. A number stamped
- * on the front is what made the old version read as a bank card — objects do
- * not display their contents, and the moment this one did, every other cue
- * (grain, stitching, the notes) was arguing against the one loudest element.
- * So the wallet holds the money and the figure sits under it as a caption,
- * quiet when the wallet is shut and stated plainly once it is open.
+ * WHAT WAS WRONG WITH THE OLD ARRANGEMENT
  *
- * Choosing a leather saves through the existing prefs route when there is
- * someone to save it for, and is local-only otherwise. The change is applied
- * immediately either way: a save that fails should cost a preference, never the
- * interaction.
+ * It was `max-w-lg` — 512 pixels — with the wallet inside it, so however the
+ * wallet was built it could never be more than a few hundred pixels across, and
+ * it read as an icon floating in a field of black. Everything under it was a
+ * separate centred block with generous margins, which is the layout of a
+ * settings page. The object was the smallest thing on screen and the furthest
+ * from the eye's first landing point.
+ *
+ * Now the wallet is the widest element on the page and everything else is
+ * arranged around it: the name and the figure sit beside it on a wide screen
+ * and above it on a narrow one, close enough to read as captions to the object
+ * rather than as their own panels. The leather runs underneath as a single
+ * strip. Nothing is centred in its own column of empty space.
+ *
+ * The balance is deliberately not printed on the leather. A wallet does not
+ * display its own contents, and the moment this one did, every other cue was
+ * arguing against the loudest element on the object.
  */
 
 export default function WalletSection({
@@ -56,61 +63,77 @@ export default function WalletSection({
         body: JSON.stringify({ ...look, hide }),
       }).catch(() => {
         /* A cosmetic preference is not worth interrupting anyone over. The
-           wallet has already changed on screen; the next load will simply show
-           the old leather if this never landed. */
+           wallet has already changed on screen; the next load will show the old
+           leather if this never landed. */
       });
     },
     [look, persist],
   );
 
   return (
-    <section className={`mx-auto w-full max-w-lg ${className}`}>
-      {eyebrow}
+    <section className={`mx-auto w-full max-w-[1320px] ${className}`}>
+      {/* Beside the wallet on a wide screen, above it on a narrow one. The
+          figure is a caption to the object, so it stays near it either way. */}
+      <div className="grid items-center gap-x-10 gap-y-4 lg:grid-cols-[minmax(210px,265px)_1fr]">
+        <div className="order-1 text-center lg:text-left">
+          {eyebrow}
 
-      <PhysicalWallet
-        hide={look.hide}
-        plate={look.plate}
-        thread={look.thread}
-        nameplate={look.nameplate}
-        balancePaise={balancePaise}
-        landing={landing}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
-        className="mt-2"
-      />
+          <motion.div
+            className="mt-5"
+            animate={{ opacity: open ? 1 : 0.82 }}
+            transition={{ duration: reduced ? 0 : 0.4 }}
+          >
+            <p
+              className="font-mono text-[10px] uppercase tracking-[0.28em]"
+              style={{ color: "var(--wallet-fg-muted)" }}
+            >
+              Wallet balance
+            </p>
+            <p
+              className="mt-2 font-mono text-[clamp(34px,5.4vw,52px)] font-semibold leading-none tabular-nums"
+              style={{ color: "var(--wallet-fg)" }}
+            >
+              {formatPaise(balancePaise)}
+            </p>
+            <p className="mx-auto mt-3 max-w-[22rem] text-[12px] leading-relaxed opacity-45 lg:mx-0">
+              Available for LAWFIC filings and government fees.
+            </p>
+          </motion.div>
 
-      {/* The figure, as a caption to the object rather than a panel of its own */}
-      <motion.div
-        className="mt-6 text-center"
-        animate={{ opacity: open ? 1 : 0.75 }}
-        transition={{ duration: reduced ? 0 : 0.4 }}
-      >
-        <p
-          className="font-mono text-[10px] uppercase tracking-[0.28em]"
-          style={{ color: "var(--wallet-fg-muted)" }}
-        >
-          Wallet balance
-        </p>
-        <motion.p
-          className="mt-1.5 font-mono text-[clamp(30px,9vw,44px)] font-semibold leading-none tabular-nums"
-          style={{ color: "var(--wallet-fg)" }}
-          animate={{ y: open ? 0 : 2, letterSpacing: open ? "-0.01em" : "0em" }}
-          transition={{ type: "spring", stiffness: 120, damping: 18 }}
-        >
-          {formatPaise(balancePaise)}
-        </motion.p>
-        <p className="mx-auto mt-2.5 max-w-[26rem] text-[11.5px] leading-relaxed opacity-40">
-          Spendable on LAWFIC filings and government fees.
-        </p>
-      </motion.div>
+          {actions}
+        </div>
 
-      {actions}
+        {/* The object. Widest thing on the page, and first in the eye's path on
+            a wide screen despite coming second in the source — reading order
+            keeps the heading first for anyone who is not looking. */}
+        <div className="order-2 min-w-0">
+          <PhysicalWallet
+            hide={look.hide}
+            plate={look.plate}
+            thread={look.thread}
+            nameplate={look.nameplate}
+            balancePaise={balancePaise}
+            landing={landing}
+            open={open}
+            onToggle={() => setOpen((o) => !o)}
+          />
+          <motion.p
+            className="-mt-1 text-center font-mono text-[10px] uppercase tracking-[0.24em]"
+            style={{ color: "var(--wallet-fg-muted)" }}
+            animate={{ opacity: open ? 0 : 0.5 }}
+            transition={{ duration: reduced ? 0 : 0.3 }}
+            aria-hidden
+          >
+            Click the wallet to open
+          </motion.p>
+        </div>
+      </div>
 
       <WalletSkinSelector
         value={look.hide}
         thread={look.thread}
         onChange={pickHide}
-        className="mt-9"
+        className="mt-8"
       />
     </section>
   );

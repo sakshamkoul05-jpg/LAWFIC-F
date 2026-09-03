@@ -61,7 +61,7 @@ export default async function WalletPage() {
   const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
 
   return (
-    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+    <div className="mx-auto w-full max-w-[1320px]" style={{ color: "var(--wallet-fg)" }}>
       <WalletOnboarding />
 
       {isRazorpayTestMode && (
@@ -86,7 +86,7 @@ export default async function WalletPage() {
           </div>
         }
         actions={
-          <div className="mt-7 flex items-center justify-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             <Link
               href="/wallet/topup"
               className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
@@ -103,6 +103,7 @@ export default async function WalletPage() {
         }
       />
 
+      <div className="mx-auto mt-10 max-w-lg">
       <WalletActions />
 
       {/* Recent transactions */}
@@ -176,6 +177,7 @@ export default async function WalletPage() {
           Payments are not switched on yet.
         </p>
       )}
+      </div>
     </div>
   );
 }

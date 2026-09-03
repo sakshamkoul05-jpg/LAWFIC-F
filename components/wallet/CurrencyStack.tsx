@@ -7,22 +7,23 @@ import Banknote from "./Banknote";
 /**
  * The notes in the bill compartment.
  *
- * Paper behaves like paper: it does not fly. Opening the wallet lets the stack
- * relax — each slip rises a little, rotates a little, and settles — with a
- * stagger down the stack so the top note moves first and the ones under it
- * follow. Nothing travels far, and nothing spins.
+ * They are FANNED, not stacked flush. A flush stack shows one note and a set of
+ * coloured edges behind it, which is why the earlier version read as strips of
+ * card: you could see that there was something there, but not what. Splaying
+ * them into a staircase — each one a step lower and a shade in front of the one
+ * behind — puts every denomination panel in view at once, so the wallet reads
+ * as holding ₹500, ₹200, ₹100 and ₹50 rather than holding some paper.
  *
- * TWO THINGS THAT LOOK LIKE STYLE AND ARE NOT
+ * Largest at the back and highest, smallest at the front and lowest, which is
+ * how a hand of notes actually sits when you thumb it open.
  *
- * z-index runs backwards down the stack, so the LOWEST note paints in FRONT.
- * In plain DOM order each note covers the one behind it, and since every note
- * but the topmost sits lower — and everything lower is behind the fold — a
- * stack of six renders as one cream slab. Ordering front-to-back is the
- * difference between a stack you can count and a rectangle.
+ * Paper behaves like paper: it does not fly. Opening the wallet lets the fan
+ * relax and settle a little deeper into the pocket, with a stagger down the
+ * stack so the top note moves first. Nothing travels far and nothing spins.
  *
- * The offsets are derived from the stack size rather than fixed. A deposit can
- * put a dozen notes in on top of whatever is resting, and at a fixed per-note
- * offset that stack climbs straight off the top of the leather.
+ * The transform origin is the BOTTOM of each note, because that is the end that
+ * is held in the compartment. Rotating about the centre makes the whole fan
+ * pivot in the air instead of splaying from a fixed point.
  */
 
 export type CurrencyStackProps = {
@@ -44,37 +45,42 @@ export default function CurrencyStack({
 }: CurrencyStackProps) {
   const all = [...notes, ...landing];
   const n = all.length;
+  if (n === 0) return null;
 
-  /* The stack always rises the same distance however many slips are in it. */
-  const step = Math.min(5, 22 / Math.max(1, n - 1));
-  const fan = (i: number) => (i % 2 ? 1 : -1) * (0.5 + Math.min(i, 6) * 0.34);
-  const drift = (i: number) => ((i % 3) - 1) * 2.6;
+  const mid = (n - 1) / 2;
 
   return (
     <div className={`pointer-events-none absolute ${className}`}>
       <AnimatePresence initial={false}>
         {all.map((value, i) => {
           const isLanding = i >= notes.length;
-          /* Opening lets the stack breathe: a few px of rise and a touch more
-             fan, largest at the top of the stack. */
-          const relax = open ? 1 : 0;
+          /* Step down the staircase. Open, the fan closes up and drops into the
+             pocket; shut, it is splayed and every denomination is legible. */
+          const spread = open ? 0.45 : 1;
+          const rise = (n - 1 - i) * 15 * spread;
+          const tilt = (i - mid) * 2.4 * spread;
+          const slide = (i - mid) * 1.6 * spread;
 
           return (
             <motion.div
               key={`${i}-${value}`}
               className="absolute bottom-0 left-1/2"
-              style={{ width: `${widthPct(value)}%`, zIndex: n - i }}
+              style={{
+                width: `${widthPct(value)}%`,
+                zIndex: i + 1,
+                transformOrigin: "50% 100%",
+              }}
               initial={
                 still
                   ? false
                   : isLanding
-                    ? { x: "-50%", y: -210, rotate: (i % 2 ? 1 : -1) * 20, opacity: 0, scale: 0.94 }
+                    ? { x: "-50%", y: -190, rotate: 18, opacity: 0, scale: 0.94 }
                     : false
               }
               animate={{
-                x: `calc(-50% + ${drift(i) + relax * (i % 2 ? 1.5 : -1.5)}px)`,
-                y: -i * step - relax * (2 + i * 0.9),
-                rotate: fan(i) * (1 + relax * 0.5),
+                x: `calc(-50% + ${slide}%)`,
+                y: `${-rise}%`,
+                rotate: tilt,
                 opacity: 1,
                 scale: 1,
               }}
@@ -83,18 +89,20 @@ export default function CurrencyStack({
                   ? { duration: 0 }
                   : {
                       type: "spring",
-                      stiffness: isLanding ? 190 : 150,
-                      damping: isLanding ? 17 : 19,
-                      mass: 0.7,
-                      // Down the stack, so the top note moves first.
-                      delay: isLanding ? 0 : (n - 1 - i) * 0.035,
+                      stiffness: isLanding ? 180 : 130,
+                      damping: isLanding ? 17 : 18,
+                      mass: 0.8,
+                      delay: isLanding ? 0 : i * 0.045,
                     }
               }
             >
               <Banknote
                 value={value}
                 className="block h-auto w-full"
-                style={{ filter: "drop-shadow(0 0.25cqw 0.35cqw rgba(0,0,0,0.5))" }}
+                style={{
+                  filter:
+                    "drop-shadow(0 0.35cqw 0.5cqw rgba(0,0,0,0.55)) drop-shadow(0 0.1cqw 0.15cqw rgba(0,0,0,0.4))",
+                }}
               />
             </motion.div>
           );

@@ -32,7 +32,7 @@ export default function WalletDemo() {
   const [seed, setSeed] = useState(DEFAULT_PREFS.avatarSeed);
 
   return (
-    <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
+    <div className="mx-auto w-full max-w-[1320px]" style={{ color: "var(--wallet-fg)" }}>
       <WalletOnboarding />
 
       <WalletSection
@@ -50,7 +50,7 @@ export default function WalletDemo() {
           </div>
         }
         actions={
-          <div className="mt-7 flex justify-center">
+          <div className="mt-6 flex justify-center lg:justify-start">
             <Link
               href="/login?next=/wallet"
               className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
@@ -61,6 +61,7 @@ export default function WalletDemo() {
         }
       />
 
+      <div className="mx-auto mt-10 max-w-lg">
       <WalletActions />
 
       {/* Recent transactions */}
@@ -127,6 +128,7 @@ export default function WalletDemo() {
         <p className="mt-5 text-center text-[12.5px] opacity-45">
           Sign in to stamp your name on the plate.
         </p>
+      </div>
       </div>
     </div>
   );

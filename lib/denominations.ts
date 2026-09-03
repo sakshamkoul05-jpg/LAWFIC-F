@@ -57,17 +57,17 @@ export type Denomination = {
 /** Highest first — `breakdown` depends on this ordering. */
 export const DENOMINATIONS: Denomination[] = [
   // Stone grey
-  { value: 500, widthMm: 150, heightMm: 66, paper: "#C9C3B0", paperEdge: "#8B8676", ink: "#33301E", bleedLines: 5 },
+  { value: 500, widthMm: 150, heightMm: 66, paper: "#D3CDBB", paperEdge: "#8B8676", ink: "#33301E", bleedLines: 5 },
   // Bright yellow
-  { value: 200, widthMm: 146, heightMm: 66, paper: "#F0C04B", paperEdge: "#C2932A", ink: "#4A3608", bleedLines: 4 },
+  { value: 200, widthMm: 146, heightMm: 66, paper: "#F2BE3F", paperEdge: "#C2932A", ink: "#4A3608", bleedLines: 4 },
   // Lavender
-  { value: 100, widthMm: 142, heightMm: 66, paper: "#C4B0D4", paperEdge: "#9880AE", ink: "#3B2B47", bleedLines: 4 },
+  { value: 100, widthMm: 142, heightMm: 66, paper: "#C0A6D6", paperEdge: "#9880AE", ink: "#3B2B47", bleedLines: 4 },
   // Fluorescent blue
-  { value: 50, widthMm: 135, heightMm: 66, paper: "#8FC3DD", paperEdge: "#5E97B8", ink: "#1B3A4B", bleedLines: 0 },
+  { value: 50, widthMm: 135, heightMm: 66, paper: "#84C2E2", paperEdge: "#5E97B8", ink: "#1B3A4B", bleedLines: 0 },
   // Greenish yellow
-  { value: 20, widthMm: 129, heightMm: 63, paper: "#CFD05F", paperEdge: "#A3A53C", ink: "#3A3B0E", bleedLines: 0 },
+  { value: 20, widthMm: 129, heightMm: 63, paper: "#D2D455", paperEdge: "#A3A53C", ink: "#3A3B0E", bleedLines: 0 },
   // Chocolate brown
-  { value: 10, widthMm: 123, heightMm: 63, paper: "#C1926A", paperEdge: "#96684A", ink: "#3E2A18", bleedLines: 0 },
+  { value: 10, widthMm: 123, heightMm: 63, paper: "#C68F5F", paperEdge: "#96684A", ink: "#3E2A18", bleedLines: 0 },
 ];
 
 /** Devanagari numerals, for the denomination panel a real note carries. */

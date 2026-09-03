@@ -51,12 +51,19 @@ import CurrencyStack from "./CurrencyStack";
  */
 
 /* Geometry, in cqw. A closed bifold is about 11.5 x 9.5cm, so a half is roughly
-   1.2:1, and it runs about 7mm thick per half against 115mm of width. */
-const PANEL_W = 40;
-const PANEL_H = 33;
-const DEPTH = 2.4;
+   1.2:1, and it runs about 7mm thick per half against 115mm of width.
+
+   The panel is 46cqw, not 40, and the container it sits in is far wider than it
+   was: open, the wallet spans 4cqw to 96cqw and very nearly fills its frame.
+   The previous version was the right shape and a quarter of the right size,
+   which is a worse failure than being the wrong shape — an object that small
+   reads as an icon whatever is drawn on it, and no amount of grain or stitching
+   registers at 230 pixels across. */
+const PANEL_W = 48;
+const PANEL_H = 40;
+const DEPTH = 3.6;
 const SPINE_X = 50;
-const PANEL_TOP = 15;
+const PANEL_TOP = 27;
 
 export type PhysicalWalletProps = {
   hide: HideId;
@@ -108,7 +115,8 @@ export default function PhysicalWallet({
   const shift = open ? 0 : -PANEL_W / 2;
 
   return (
-    <div className={`relative mx-auto w-full max-w-[600px] ${className}`}>
+    <div className={`relative mx-auto w-full ${className}`}
+        style={{ maxWidth: "clamp(340px, 94vw, 1060px)" }}>
       <button
         type="button"
         onClick={toggle}
@@ -122,8 +130,8 @@ export default function PhysicalWallet({
           className="relative w-full"
           style={{
             containerType: "inline-size",
-            aspectRatio: "100 / 62",
-            perspective: "150cqw",
+            aspectRatio: "100 / 78",
+            perspective: "135cqw",
             perspectiveOrigin: "50% 42%",
           }}
         >
@@ -162,7 +170,7 @@ export default function PhysicalWallet({
               className="absolute inset-0"
               style={{ transformStyle: "preserve-3d" }}
               initial={false}
-              animate={{ x: `${shift}cqw`, scale: open ? 1 : 1.12 }}
+              animate={{ x: `${shift}cqw`, scale: open ? 1.02 : 1.32 }}
               transition={leather}
             >
               {/* THE FIXED HALF — the back of the wallet, and the half the
@@ -217,7 +225,7 @@ export default function PhysicalWallet({
                   landing={landing}
                   open={open}
                   still={still}
-                  className="bottom-[57%] left-[7%] w-[86%]"
+                  className="bottom-[72%] left-[9%] w-[82%]"
                 />
               </div>
 
@@ -315,7 +323,7 @@ export default function PhysicalWallet({
                   position: "absolute",
                   left: `${SPINE_X}cqw`,
                   top: `${PANEL_TOP}cqw`,
-                  width: `${DEPTH * 2}cqw`,
+                  width: `${DEPTH * 2.4}cqw`,
                   height: `${PANEL_H}cqw`,
                   transformOrigin: "0% 50%",
                   transform: `rotateY(90deg) translateZ(${DEPTH}cqw)`,
@@ -331,7 +339,7 @@ export default function PhysicalWallet({
                   position: "absolute",
                   left: `${SPINE_X}cqw`,
                   top: `${PANEL_TOP}cqw`,
-                  width: `${DEPTH * 1.6}cqw`,
+                  width: `${DEPTH * 2.2}cqw`,
                   height: `${PANEL_H}cqw`,
                   transform: "translateX(-50%) translateZ(0.05cqw)",
                   background: `linear-gradient(90deg, ${hide.edgeHi}33, ${hide.liningDeep} 30%, #000 50%, ${hide.liningDeep} 70%, ${hide.edgeHi}33)`,
