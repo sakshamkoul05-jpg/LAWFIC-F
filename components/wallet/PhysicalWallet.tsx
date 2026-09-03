@@ -1,12 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getHide, getPlate } from "@/lib/wallet-leather";
 import type { HideId, PlateId, ThreadId } from "@/lib/wallet-leather";
 import { restingStack } from "@/lib/denominations";
 import { useObserverBroken } from "@/lib/use-in-view-safe";
 import WalletLeaf from "./leather/WalletLeaf";
+import WalletZip from "./leather/WalletZip";
 import CurrencyStack from "./CurrencyStack";
 
 /**
@@ -75,6 +76,12 @@ export type PhysicalWalletProps = {
   landing?: number[];
   /** Controlled open state. Omit both to let the wallet manage its own. */
   open?: boolean;
+  /**
+   * 0 shut and zipped, 1 fully open. Given, it drives the whole sequence and
+   * `open` is ignored for animation; omitted, `open` maps to 0 or 1 so callers
+   * that only want a toggle keep working.
+   */
+  progress?: number;
   onToggle?: () => void;
   className?: string;
 };
@@ -87,6 +94,7 @@ export default function PhysicalWallet({
   balancePaise,
   landing = [],
   open: openProp,
+  progress,
   onToggle,
   className = "",
 }: PhysicalWalletProps) {
@@ -109,19 +117,124 @@ export default function PhysicalWallet({
     ? { duration: 0 }
     : { type: "spring" as const, stiffness: 78, damping: 15, mass: 1.15 };
 
+  /* ONE TIMELINE, THREE STAGES, in the order the range sheet shows them:
+     the zip runs, the top edge gapes, and only then does the wallet unfold.
+     A wallet whose halves start parting while the zip is still travelling is
+     the tell that the zip is decoration, so the stages do not overlap. */
+  const target = progress ?? (open ? 1 : 0);
+  const [prog, setProg] = useState(target);
+  const progRef = useRef(prog);
+  progRef.current = prog;
+  const tween = useRef<number | null>(null);
+  const drag = useRef<{ x: number; from: number } | null>(null);
+  /* A tap fires pointerup AND click; a drag fires only pointerup. Taps are
+     therefore handled in onClick — which is also what a <button> synthesises
+     for Enter and Space, so the keyboard keeps working — and a drag sets this
+     to swallow the click that follows it. Handling taps in onPointerUp instead
+     silently breaks keyboard operation, which is exactly what it did. */
+  const swallowClick = useRef(false);
+
+  const watchdog = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopTween = useCallback(() => {
+    if (tween.current !== null) cancelAnimationFrame(tween.current);
+    tween.current = null;
+    if (watchdog.current !== null) clearTimeout(watchdog.current);
+    watchdog.current = null;
+  }, []);
+
+  /* Walk to a target over time. 900ms end to end, which is long enough to read
+     as three separate things happening and short enough not to feel slow. */
+  const runTo = useCallback(
+    (to: number) => {
+      stopTween();
+      if (still) return setProg(to);
+      const from = progRef.current;
+      if (Math.abs(to - from) < 0.001) return;
+      const ms = 900 * Math.abs(to - from);
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / ms);
+        const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        setProg(from + (to - from) * e);
+        tween.current = k < 1 ? requestAnimationFrame(step) : null;
+      };
+      tween.current = requestAnimationFrame(step);
+
+      /* Frames are not guaranteed. Browsers pause requestAnimationFrame for a
+         hidden or backgrounded tab, and some embedded contexts never deliver it
+         at all — so without this the wallet reports itself open, reads as open
+         to a screen reader, and sits there visibly shut. A timer is not
+         throttled the same way, so it lands the animation wherever the frames
+         gave up. A wallet must never be stuck half-unzipped because a browser
+         declined to composite. */
+      watchdog.current = setTimeout(() => {
+        if (tween.current !== null) {
+          cancelAnimationFrame(tween.current);
+          tween.current = null;
+        }
+        setProg(to);
+      }, ms + 260);
+    },
+    [still, stopTween],
+  );
+
+  useEffect(() => {
+    runTo(target);
+  }, [target, runTo]);
+  useEffect(() => stopTween, [stopTween]);
+
+  const p = prog;
+  const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+  const zipT = clamp01(p / 0.45);
+  const gapeT = clamp01((p - 0.45) / 0.15);
+  const foldT = clamp01((p - 0.6) / 0.4);
+  const lerp = (a: number, b: number) => a + (b - a) * foldT;
+
   /* Shut, the pair sits on the right of its own box, so the assembly shifts
      left to centre. Kept off the camera element: combining the translate with
      the rotation makes the wallet swing rather than slide. */
-  const shift = open ? 0 : -PANEL_W / 2;
+  const shift = lerp(-PANEL_W / 2, 0);
 
   return (
     <div className={`relative mx-auto w-full ${className}`}
         style={{ maxWidth: "clamp(340px, 94vw, 1060px)" }}>
       <button
         type="button"
-        onClick={toggle}
         onPointerEnter={() => setHover(true)}
         onPointerLeave={() => setHover(false)}
+        onPointerDown={(e) => {
+          stopTween();
+          drag.current = { x: e.clientX, from: progRef.current };
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          setProg(Math.max(0, Math.min(1, d.from + (e.clientX - d.x) / 260)));
+        }}
+        onClick={() => {
+          if (swallowClick.current) {
+            swallowClick.current = false;
+            return;
+          }
+          toggle();
+        }}
+        onPointerUp={() => {
+          const d = drag.current;
+          drag.current = null;
+          if (!d) return;
+          /* Barely moved? Leave it to the click that is about to arrive. */
+          if (Math.abs(progRef.current - d.from) < 0.02) return;
+          swallowClick.current = true;
+          const wantOpen = progRef.current > 0.5;
+          if (wantOpen === open) runTo(wantOpen ? 1 : 0);
+          else toggle();
+        }}
+        onPointerCancel={() => {
+          drag.current = null;
+          runTo(target);
+        }}
         aria-expanded={open}
         aria-label={open ? "Close your wallet" : "Open your wallet"}
         className="block w-full cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
@@ -143,10 +256,10 @@ export default function PhysicalWallet({
             style={{ bottom: "6cqw", background: "rgba(0,0,0,0.6)", x: "-50%" }}
             initial={false}
             animate={{
-              width: open ? "76cqw" : "42cqw",
-              height: open ? "7cqw" : "6cqw",
-              filter: hover && !open ? "blur(3.2cqw)" : "blur(2.2cqw)",
-              opacity: open ? 0.5 : hover ? 0.45 : 0.72,
+              width: `${lerp(42, 76)}cqw`,
+              height: `${lerp(6, 7)}cqw`,
+              filter: hover && foldT === 0 ? "blur(3.2cqw)" : "blur(2.2cqw)",
+              opacity: hover && foldT === 0 ? 0.45 : lerp(0.72, 0.5),
             }}
             transition={leather}
           />
@@ -159,10 +272,10 @@ export default function PhysicalWallet({
             style={{ transformStyle: "preserve-3d" }}
             initial={false}
             animate={{
-              rotateX: open ? 26 : 17,
-              rotateY: open ? 6 : 21,
-              rotateZ: open ? 0 : -1.5,
-              y: hover && !open ? "-1.6cqw" : "0cqw",
+              rotateX: lerp(17, 26),
+              rotateY: lerp(21, 6),
+              rotateZ: lerp(-1.5, 0),
+              y: hover && foldT === 0 ? "-1.6cqw" : "0cqw",
             }}
             transition={leather}
           >
@@ -170,7 +283,7 @@ export default function PhysicalWallet({
               className="absolute inset-0"
               style={{ transformStyle: "preserve-3d" }}
               initial={false}
-              animate={{ x: `${shift}cqw`, scale: open ? 1.02 : 1.32 }}
+              animate={{ x: `${shift}cqw`, scale: lerp(1.32, 1.02) }}
               transition={leather}
             >
               {/* THE FIXED HALF — the back of the wallet, and the half the
@@ -221,6 +334,7 @@ export default function PhysicalWallet({
                 }}
               >
                 <CurrencyStack
+                  style={{ opacity: foldT }}
                   notes={notes}
                   landing={landing}
                   open={open}
@@ -241,7 +355,14 @@ export default function PhysicalWallet({
                   transformOrigin: "100% 50%",
                 }}
                 initial={false}
-                animate={{ rotateY: open ? 0 : 180 }}
+                animate={{
+                  /* The gape: the folding half tips off the stack by a few
+                     degrees before the hinge starts, which is what the sheet's
+                     "ZIP OPENED" frame shows and what stops the unfold from
+                     looking like a page turn. */
+                  rotateY: 180 - foldT * 180,
+                  rotateX: -gapeT * (1 - foldT) * 9,
+                }}
                 transition={leather}
               >
                 <WalletLeaf
@@ -265,6 +386,23 @@ export default function PhysicalWallet({
                   }
                   backChildren={
                     <>
+                      {/* The zip, on the face you are looking at when the
+                          wallet is shut. Drawn in the leaf's own user units so
+                          it scales with the panel. */}
+                      <svg
+                        viewBox={`0 0 300 ${Math.round((300 * PANEL_H) / PANEL_W)}`}
+                        className="pointer-events-none absolute inset-0 h-full w-full"
+                        preserveAspectRatio="none"
+                        aria-hidden
+                      >
+                        <WalletZip
+                          hide={hide}
+                          t={zipT}
+                          w={300}
+                          h={Math.round((300 * PANEL_H) / PANEL_W)}
+                        />
+                      </svg>
+
                       {/* Metal nameplate, sunk into the hide */}
                       <div
                         className="absolute rounded-[3px]"
@@ -331,7 +469,7 @@ export default function PhysicalWallet({
                   borderRadius: `${DEPTH}cqw`,
                 }}
                 initial={false}
-                animate={{ opacity: open ? 0 : 1 }}
+                animate={{ opacity: 1 - foldT }}
                 transition={{ duration: still ? 0 : 0.25 }}
               />
               <motion.div
@@ -346,7 +484,7 @@ export default function PhysicalWallet({
                   boxShadow: "0 0 1.4cqw 0.4cqw rgba(0,0,0,0.6)",
                 }}
                 initial={false}
-                animate={{ opacity: open ? 1 : 0 }}
+                animate={{ opacity: foldT }}
                 transition={{ duration: still ? 0 : 0.35 }}
               />
             </motion.div>

@@ -34,6 +34,8 @@ export type CurrencyStackProps = {
   open: boolean;
   still: boolean;
   className?: string;
+  /** Lets the wallet fade the money in as it opens. */
+  style?: React.CSSProperties;
 };
 
 export default function CurrencyStack({
@@ -42,6 +44,7 @@ export default function CurrencyStack({
   open,
   still,
   className = "",
+  style,
 }: CurrencyStackProps) {
   const all = [...notes, ...landing];
   const n = all.length;
@@ -50,7 +53,7 @@ export default function CurrencyStack({
   const mid = (n - 1) / 2;
 
   return (
-    <div className={`pointer-events-none absolute ${className}`}>
+    <div className={`pointer-events-none absolute ${className}`} style={style}>
       <AnimatePresence initial={false}>
         {all.map((value, i) => {
           const isLanding = i >= notes.length;
