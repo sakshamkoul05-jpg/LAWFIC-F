@@ -14,6 +14,10 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/sup
 
 const PROTECTED = ["/account", "/orders", "/admin"];
 
+/* Doors, which cannot be behind the locks they open. /admin/login sits under a
+   protected prefix, so without this it would redirect to itself forever. */
+const PUBLIC_WITHIN_PROTECTED = ["/admin/login"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -41,10 +45,28 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (!user && PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  const isPublicDoor = PUBLIC_WITHIN_PROTECTED.includes(pathname);
+  const isProtected =
+    !isPublicDoor &&
+    PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    /* Staff get sent to the staff door, customers to the customer one. Sending
+       an agent to the shopfront login and then bouncing them back through the
+       marketing site to reach a queue is a worse first minute of the working
+       day than it needs to be. */
+    const backOffice = pathname === "/admin" || pathname.startsWith("/admin/");
+    url.pathname = backOffice ? "/admin/login" : "/login";
     url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  /* Already signed in and standing at the staff door: go through it. */
+  if (user && pathname === "/admin/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

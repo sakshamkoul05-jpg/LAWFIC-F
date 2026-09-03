@@ -74,7 +74,7 @@ export function AdminGate({
 
         {signIn && (
           <Link
-            href="/login?next=/admin"
+            href="/admin/login?next=/admin"
             className="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
           >
             Sign in
