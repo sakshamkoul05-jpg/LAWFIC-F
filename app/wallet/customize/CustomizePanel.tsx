@@ -16,7 +16,7 @@ import {
   type PlateId,
   type ThreadId,
 } from "@/lib/wallet-custom";
-import LeatherWallet from "@/components/wallet/LeatherWallet";
+import PhysicalWallet from "@/components/wallet/PhysicalWallet";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 
 /**
@@ -80,7 +80,13 @@ export default function CustomizePanel({
       <div className="order-2 lg:order-1 lg:sticky lg:top-24">
         <p className="type-label text-primary">Your wallet</p>
         <div className="mt-6 flex justify-center">
-          <LeatherWallet look={draft} balancePaise={balancePaise} />
+          <PhysicalWallet
+            hide={draft.hide}
+            plate={draft.plate}
+            thread={draft.thread}
+            nameplate={draft.nameplate}
+            balancePaise={balancePaise}
+          />
         </div>
         <p className="mt-6 text-center text-[12.5px] leading-relaxed text-muted">
           {HIDES.find((h) => h.id === draft.hide)?.desc}

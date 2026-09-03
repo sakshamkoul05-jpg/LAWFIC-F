@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { formatPaise, MIN_TOPUP_PAISE } from "@/lib/money";
-import LeatherWallet from "@/components/wallet/LeatherWallet";
+import PhysicalWallet from "@/components/wallet/PhysicalWallet";
+import { animationPlan, breakdown } from "@/lib/denominations";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
 
@@ -57,10 +58,13 @@ export default function TopUpForm({
           being committed. Notes fly only once `landed` says the credit is in
           the ledger, so what you watch is a fact rather than a hope. */}
       <div className="relative z-10 mb-8 flex justify-center">
-        <LeatherWallet
-          look={look}
+        <PhysicalWallet
+          hide={look.hide}
+          plate={look.plate}
+          thread={look.thread}
+          nameplate={look.nameplate}
           balancePaise={balance}
-          depositPaise={phase === "landed" ? credited : 0}
+          landing={phase === "landed" ? animationPlan(breakdown(credited)).flying : []}
         />
       </div>
 

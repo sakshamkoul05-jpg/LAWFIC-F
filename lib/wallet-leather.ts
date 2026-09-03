@@ -1,5 +1,5 @@
 /**
- * The wallet as an object: hide, hardware, stitching, lining, nameplate.
+ * The wallet as a physical object: hide, hardware, stitching, lining.
  *
  * This replaces the card model entirely — the five "card types", the chip, the
  * card face. That metaphor was never true here: LAWFIC issues no card, nothing
@@ -7,115 +7,161 @@
  * balance for filings. Every fintech ships a rectangle with a chip on it. A
  * wallet is both more honest and, as it turns out, more distinctive.
  *
+ * WHY THERE IS A `material` BLOCK AND NOT JUST COLOURS
+ *
+ * A skin that only changes `background-color` is five of the same wallet. Real
+ * hides differ in how they take light before they differ in hue: nubuck has a
+ * fine nap that scatters everything and returns no highlight; pebbled cowhide
+ * has large raised grain that shades on one side; polished calf is nearly flat
+ * with one long specular sweep. So each skin carries the parameters that drive
+ * its SVG lighting — grain frequency, how deep the grain sits, and how much of
+ * a specular return the surface gives — and `LeatherPanel` builds a different
+ * filter for each. Midnight and burgundy get a specular pass; olive nubuck
+ * explicitly does not, which is what makes it read as suede rather than as
+ * green plastic.
+ *
  * Everything below is cosmetic. Nothing here touches a balance, the ledger, or
  * an order — the same boundary the card model kept.
  */
 
-export type HideId = "midnight" | "suede-green" | "brown" | "slate" | "tan";
+export type HideId = "midnight" | "slate" | "olive" | "tan" | "burgundy";
+
+/** Ids this replaced, kept so rows written before the rename still resolve. */
+const RENAMED: Record<string, HideId> = {
+  "suede-green": "olive",
+  brown: "burgundy",
+};
+
+export type Material = {
+  /**
+   * Turbulence frequency. Low is large pebbling, high is a fine nap. This is
+   * the single number that decides whether a hide reads as cowhide or suede.
+   */
+  grainFreq: number;
+  /** How raised the grain is. Nubuck is deep, polished calf is nearly flat. */
+  grainScale: number;
+  /** Specular return, 0 for a napped hide that has none. */
+  specular: number;
+  /** Tight and bright, or broad and soft. */
+  specularExp: number;
+};
 
 export type Hide = {
   id: HideId;
   name: string;
+  /** One line, said the way a leatherworker would say it. */
   desc: string;
   /** Outer leather, lit from the upper left like everything else on the site. */
   outer: [string, string, string];
-  /** Inside the fold, visible only when open. */
+  /** Inside the fold, visible only when the wallet is open. */
   lining: string;
+  /** The lining's own shadow, where it meets the spine. */
+  liningDeep: string;
   /** Cut edge, painted the way a finished leather edge is. */
   edge: string;
+  /** Where that edge catches light. Burnishing leaves a sheen. */
+  edgeHi: string;
   /** Default thread; the holder may override it. */
   stitch: string;
   /** Text that sits on this hide. */
   ink: string;
   inkSoft: string;
-  /** How much the grain shows: smooth calf barely, suede a lot. */
-  grain: number;
-  /** Suede scatters light instead of reflecting it. */
-  sheen: number;
+  material: Material;
 };
 
 export const HIDES: Hide[] = [
   {
     id: "midnight",
     name: "Midnight black",
-    desc: "Smooth calf. Almost no grain, a long slow highlight.",
-    outer: ["#2A2827", "#161514", "#0C0B0B"],
-    lining: "#1E1C1A",
+    desc: "Polished calf. Almost no grain, one long slow highlight.",
+    outer: ["#31302E", "#1A1918", "#0D0C0C"],
+    lining: "#302D2A",
+    liningDeep: "#131211",
     edge: "#0A0909",
-    stitch: "#6E6656",
-    ink: "#E8E3D9",
-    inkSoft: "rgba(232,227,217,0.55)",
-    grain: 0.35,
-    sheen: 0.5,
-  },
-  {
-    id: "suede-green",
-    name: "Suede green",
-    desc: "Napped finish. Drinks the light rather than returning it.",
-    outer: ["#42574A", "#2D3E34", "#1F2C25"],
-    lining: "#243128",
-    edge: "#1A251F",
-    stitch: "#C7B98F",
-    ink: "#EAF0E9",
-    inkSoft: "rgba(234,240,233,0.55)",
-    grain: 1,
-    sheen: 0.12,
-  },
-  {
-    id: "brown",
-    name: "Brown",
-    desc: "Pebbled hide. The grain you can feel across a desk.",
-    outer: ["#70492A", "#50321C", "#3A2413"],
-    lining: "#402917",
-    edge: "#2B1A0E",
-    stitch: "#D8B77A",
-    ink: "#F5E8D8",
-    inkSoft: "rgba(245,232,216,0.55)",
-    grain: 0.8,
-    sheen: 0.35,
+    edgeHi: "#4A4744",
+    stitch: "#7A7263",
+    ink: "#EFEAE0",
+    inkSoft: "rgba(239,234,224,0.5)",
+    material: { grainFreq: 0.11, grainScale: 0.55, specular: 0.14, specularExp: 30 },
   },
   {
     id: "slate",
     name: "Slate grey",
-    desc: "Fine grain, cool cast. The quietest of the five.",
-    outer: ["#5A5E62", "#41454A", "#2F3236"],
-    lining: "#383C40",
-    edge: "#25282B",
-    stitch: "#9AA1A8",
-    ink: "#EEF0F2",
-    inkSoft: "rgba(238,240,242,0.55)",
-    grain: 0.5,
-    sheen: 0.42,
+    desc: "Matte pebble grain, cool undertone, dark thread.",
+    outer: ["#6A6E73", "#494D52", "#31353A"],
+    lining: "#474C53",
+    liningDeep: "#22262A",
+    edge: "#22252A",
+    edgeHi: "#8A8F96",
+    stitch: "#2B2E33",
+    ink: "#F2F4F6",
+    inkSoft: "rgba(242,244,246,0.55)",
+    material: { grainFreq: 0.055, grainScale: 1.9, specular: 0.06, specularExp: 12 },
+  },
+  {
+    id: "olive",
+    name: "Suede olive",
+    desc: "Nubuck. Fine nap, drinks the light and returns none of it.",
+    outer: ["#5C6446", "#454B33", "#2F3423"],
+    lining: "#454B33",
+    liningDeep: "#22261A",
+    edge: "#252A1B",
+    edgeHi: "#6E7754",
+    stitch: "#2A2E1D",
+    ink: "#F0F2E8",
+    inkSoft: "rgba(240,242,232,0.55)",
+    // No specular at all. A napped hide has none, and adding one is the exact
+    // mistake that makes CGI suede look like painted plastic.
+    material: { grainFreq: 0.42, grainScale: 2.4, specular: 0, specularExp: 1 },
   },
   {
     id: "tan",
     name: "Tan",
-    desc: "Vegetable tanned. The one that will age visibly.",
-    outer: ["#CFA268", "#AE7F48", "#8C6234"],
-    lining: "#A97D46",
-    edge: "#754F26",
-    stitch: "#5C3A18",
-    ink: "#3A2410",
-    inkSoft: "rgba(58,36,16,0.62)",
-    grain: 0.7,
-    sheen: 0.4,
+    desc: "Cognac cowhide, natural grain, edges darkened with wear.",
+    outer: ["#C9955C", "#A9743F", "#84562B"],
+    lining: "#9C6C3B",
+    liningDeep: "#5C3D1F",
+    edge: "#6B451F",
+    edgeHi: "#E0B683",
+    stitch: "#4E3218",
+    ink: "#2C1B0B",
+    inkSoft: "rgba(44,27,11,0.6)",
+    material: { grainFreq: 0.05, grainScale: 2.2, specular: 0.09, specularExp: 14 },
+  },
+  {
+    id: "burgundy",
+    name: "Burgundy",
+    desc: "Oxblood, deep and slightly glossed. Brown under the red.",
+    outer: ["#7A2F31", "#5A1F22", "#3C1315"],
+    lining: "#5C2225",
+    liningDeep: "#2A0F11",
+    edge: "#2C0E10",
+    edgeHi: "#9B4A48",
+    stitch: "#3A1416",
+    ink: "#F7E9E6",
+    inkSoft: "rgba(247,233,230,0.55)",
+    material: { grainFreq: 0.07, grainScale: 1.4, specular: 0.12, specularExp: 22 },
   },
 ];
 
 export function getHide(id: string): Hide | undefined {
-  return HIDES.find((h) => h.id === id);
+  const key = RENAMED[id] ?? id;
+  return HIDES.find((h) => h.id === key);
 }
 
-/* ------------------------------------------------------------------------- */
+/** True for any id this app has ever written, so old rows are not thrown away. */
+export function isKnownHide(id: unknown): id is HideId {
+  return typeof id === "string" && Boolean(getHide(id));
+}
+
+/* ---------------------------------------------------------------- hardware */
 
 export type PlateId = "brass" | "steel" | "blackened";
 
 export type Plate = {
   id: PlateId;
   name: string;
-  /** The metal itself. */
   face: [string, string, string];
-  /** Stamped lettering: struck into metal, so darker than the metal. */
   letter: string;
   rim: string;
 };
@@ -124,23 +170,23 @@ export const PLATES: Plate[] = [
   {
     id: "brass",
     name: "Brass",
-    face: ["#E8CE86", "#C2A052", "#8A6A2C"],
-    letter: "#4A3712",
-    rim: "rgba(255,255,255,0.45)",
+    face: ["#E4C378", "#B8913F", "#8A6828"],
+    letter: "#3A2A0C",
+    rim: "#6E5220",
   },
   {
     id: "steel",
     name: "Steel",
-    face: ["#E6E9EC", "#B4BBC1", "#7E868D"],
-    letter: "#3D4348",
-    rim: "rgba(255,255,255,0.55)",
+    face: ["#E2E6EA", "#A8B0B8", "#767D85"],
+    letter: "#2A2F34",
+    rim: "#5E656C",
   },
   {
     id: "blackened",
     name: "Blackened",
-    face: ["#5A5754", "#3A3836", "#232120"],
-    letter: "#141312",
-    rim: "rgba(255,255,255,0.22)",
+    face: ["#4E4E52", "#2C2C30", "#171719"],
+    letter: "#C9C6C0",
+    rim: "#0E0E10",
   },
 ];
 
@@ -148,33 +194,35 @@ export function getPlate(id: string): Plate | undefined {
   return PLATES.find((p) => p.id === id);
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------- thread */
 
 export type ThreadId = "tonal" | "contrast" | "brass";
 
-export const THREADS: Array<{ id: ThreadId; name: string; desc: string }> = [
-  { id: "tonal", name: "Tonal", desc: "Thread close to the hide. Barely there." },
-  { id: "contrast", name: "Contrast", desc: "The hide's own stitch colour, clearly visible." },
-  { id: "brass", name: "Brass", desc: "Warm gold thread, matched to the hardware." },
+export const THREADS: { id: ThreadId; name: string; desc: string }[] = [
+  { id: "tonal", name: "Tonal", desc: "Thread the colour of the hide." },
+  { id: "contrast", name: "Contrast", desc: "The maker's stitch, pale against the leather." },
+  { id: "brass", name: "Brass", desc: "Warm thread picking up the hardware." },
 ];
 
-/** The thread actually drawn, given the hide and the holder's choice. */
 export function threadColour(hide: Hide, thread: ThreadId): string {
-  if (thread === "brass") return "#C9A84C";
   if (thread === "tonal") return hide.outer[2];
+  if (thread === "brass") return "#B8913F";
   return hide.stitch;
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------- nameplate */
 
-/**
- * A nameplate is small and stamped. A long name struck into it comes out
- * illegible, so it is capped and upper-cased — which is also how real stamped
- * plates read.
- */
+/** A plate is small and stamped. Longer than this renders as a smear. */
 export const NAMEPLATE_MAX = 22;
 
-export function normalizeNameplate(input: unknown): string {
-  if (typeof input !== "string") return "";
-  return input.replace(/\s+/g, " ").trim().slice(0, NAMEPLATE_MAX).toUpperCase();
+/* Takes unknown, not string: every caller is handing it a value straight off a
+   database row or a request body, and a nameplate that arrives as null should
+   come back as an empty plate rather than throw on the wallet page. */
+export function normalizeNameplate(raw: unknown): string {
+  return String(raw ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9 &.'-]/g, "")
+    .replace(/\s+/g, " ")
+    .trimStart()
+    .slice(0, NAMEPLATE_MAX);
 }

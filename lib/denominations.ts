@@ -161,6 +161,37 @@ export function getDenomination(value: number): Denomination | undefined {
   return DENOMINATIONS.find((d) => d.value === value);
 }
 
+/**
+ * The notes to draw sitting in the wallet at rest, for a given balance.
+ *
+ * Drawn from the real breakdown rather than invented, so the mix in the
+ * compartment is one the balance actually contains: ₹24,350 is forty-eight
+ * ₹500s, a ₹200, a ₹100 and a ₹50, and showing one of each of those plus a few
+ * ₹500s is both truthful and what a wallet holding that much would look like.
+ * A stack of identical ₹500s reads as wallpaper; a mix reads as money.
+ *
+ * Largest first, because that is the order they end up stacked in.
+ */
+export function restingStack(balancePaise: number, max = 6): number[] {
+  const runs = breakdown(balancePaise);
+  if (runs.length === 0) return [];
+
+  // One of every denomination present, so the mix is visible at all.
+  const picked = runs.slice(0, max).map((r) => r.value);
+
+  // Then fill the remaining room from the largest note, which is where the
+  // bulk of any real balance sits.
+  let i = 0;
+  while (picked.length < max && i < runs.length) {
+    const run = runs[i];
+    const alreadyShown = picked.filter((v) => v === run.value).length;
+    if (alreadyShown < run.count) picked.push(run.value);
+    else i++;
+  }
+
+  return picked.sort((a, b) => b - a);
+}
+
 /** Human summary of a breakdown: "5 × ₹500 · 1 × ₹200". */
 export function describeBreakdown(runs: NoteRun[]): string {
   return runs.map((r) => `${r.count} × ₹${r.value}`).join(" · ");

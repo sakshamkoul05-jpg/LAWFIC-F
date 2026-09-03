@@ -4,7 +4,7 @@ import { formatEntry } from "@/lib/money";
 import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
-import LeatherWallet from "@/components/wallet/LeatherWallet";
+import WalletSection from "@/components/wallet/WalletSection";
 import WalletDemo from "@/components/wallet/WalletDemo";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
@@ -70,36 +70,38 @@ export default async function WalletPage() {
         </p>
       )}
 
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>
-            Hi, {displayName}
-          </p>
-          <h1 className="text-[20px] font-semibold tracking-tight">My Wallet</h1>
-        </div>
-        <WalletAvatar seed={prefs.avatarSeed} size={40} />
-      </div>
-
-      {/* Card in pocket */}
-      <div className="flex justify-center">
-        <LeatherWallet look={prefs} balancePaise={balancePaise} />
-      </div>
-
-      <div className="mt-6 flex items-center justify-center gap-3">
-        <Link
-          href="/wallet/topup"
-          className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
-        >
-          Add money
-        </Link>
-        <Link
-          href="/wallet/customize"
-          className="rounded-full border border-border-2 px-6 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
-        >
-          Customise
-        </Link>
-      </div>
+      <WalletSection
+        prefs={prefs}
+        balancePaise={balancePaise}
+        persist
+        eyebrow={
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>
+                Hi, {displayName}
+              </p>
+              <h1 className="text-[20px] font-semibold tracking-tight">My Wallet</h1>
+            </div>
+            <WalletAvatar seed={prefs.avatarSeed} size={40} />
+          </div>
+        }
+        actions={
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <Link
+              href="/wallet/topup"
+              className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
+            >
+              Add money
+            </Link>
+            <Link
+              href="/wallet/customize"
+              className="rounded-full border border-border-2 px-6 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
+            >
+              Customise
+            </Link>
+          </div>
+        }
+      />
 
       <WalletActions />
 
