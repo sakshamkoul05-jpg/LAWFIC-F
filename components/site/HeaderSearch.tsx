@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { searchSuggest, type SearchHit } from "@/lib/search-index";
+import { categories } from "@/lib/catalogue";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * The header search, with suggestions.
@@ -34,12 +36,18 @@ export default function HeaderSearch({
 }) {
   const router = useRouter();
   const listId = useId();
+  const { t } = useLocale();
+  /* Scoping the search to a category, the way a storefront does. With
+     thirty-nine services across seven categories it is the difference between
+     "GST" returning one obvious answer and returning everything that mentions
+     tax. */
+  const [scope, setScope] = useState("");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const hits = useMemo(() => searchSuggest(query), [query]);
+  const hits = useMemo(() => searchSuggest(query, 8, scope || undefined), [query, scope]);
 
   useEffect(() => setCursor(-1), [query]);
 
@@ -65,7 +73,11 @@ export default function HeaderSearch({
     const q = query.trim();
     setOpen(false);
     onNavigate?.();
-    router.push(q ? `/services?q=${encodeURIComponent(q)}` : "/services");
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (scope) params.set("cat", scope);
+    const qs = params.toString();
+    router.push(qs ? `/services?${qs}` : "/services");
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -86,7 +98,20 @@ export default function HeaderSearch({
   return (
     <div ref={boxRef} className={`relative ${className}`}>
       <form onSubmit={submit} role="search">
-        <div className="flex w-full items-center gap-2.5 rounded-full border border-border bg-surface-2/60 px-4 transition-colors focus-within:border-primary/50 focus-within:bg-surface">
+        <div className="flex w-full items-center gap-2 rounded-full border border-border bg-surface-2/60 pr-4 transition-colors focus-within:border-primary/50 focus-within:bg-surface">
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value)}
+            aria-label={t("nav.searchIn")}
+            className="max-w-[8.5rem] shrink-0 cursor-pointer truncate rounded-l-full border-r border-border bg-transparent py-2 pl-4 pr-2 text-[12px] text-muted-foreground outline-none"
+          >
+            <option value="">All</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <svg width="15" height="15" viewBox="0 0 20 20" fill="none" className="shrink-0 text-subtle" aria-hidden>
             <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" strokeWidth="1.7" />
             <path d="M13 13l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -101,8 +126,8 @@ export default function HeaderSearch({
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            placeholder="Search services and documents"
-            aria-label="Search services and documents"
+            placeholder={t("nav.search")}
+            aria-label={t("nav.search")}
             role="combobox"
             aria-expanded={showList}
             aria-controls={listId}
@@ -117,7 +142,7 @@ export default function HeaderSearch({
         <ul
           id={listId}
           role="listbox"
-          aria-label="Suggestions"
+          aria-label={t("nav.suggestions")}
           className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[62vh] overflow-y-auto rounded-2xl border border-border bg-surface py-1.5 shadow-[0_18px_44px_-16px_rgba(0,0,0,0.5)]"
         >
           {hits.map((hit, i) => (
@@ -143,7 +168,7 @@ export default function HeaderSearch({
                 <span className="mt-0.5 shrink-0 text-[10px] uppercase tracking-[0.12em] text-subtle">
                   {/* Says what it is, and says when it is not open yet — a
                       result you cannot buy should not look like one you can. */}
-                  {hit.live ? hit.kind : "Soon"}
+                  {hit.live ? hit.kind : t("nav.soon")}
                 </span>
               </button>
             </li>

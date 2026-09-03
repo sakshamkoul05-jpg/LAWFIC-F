@@ -3,6 +3,7 @@ import { Schibsted_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 
 /* One UI family carries display and body alike — the way Apple ships SF and
    CRED ships Gilroy. Playfair Display (a high-contrast Didone) and Inter were
@@ -47,7 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <ThemeProvider>
+          <LocaleProvider>
           <ThemeShell>{children}</ThemeShell>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

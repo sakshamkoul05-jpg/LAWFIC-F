@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   classicTabs,
@@ -29,6 +30,7 @@ import {
  */
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
+  const { t } = useLocale();
   const [openId, setOpenId] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<{ left: number; top: number } | null>(null);
   const [edges, setEdges] = useState({ start: false, end: false });
@@ -126,8 +128,16 @@ export default function ClassicCategoryTabs() {
           <div
             key={ri}
             ref={ri === 0 ? scrollerRef : undefined}
-            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:overflow-visible lg:px-6 ${
-              ri === 1 ? "border-t border-border/60" : ""
+            style={
+              /* Half a cell of inset on the short row, so ten items centre
+                 under eleven and the two rows read as one block rather than
+                 two lists that happen to be stacked. */
+              ri === 1 ? { ["--row-inset" as string]: `${100 / 22}%` } : undefined
+            }
+            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-11 lg:overflow-visible lg:px-6 ${
+              ri === 1
+                ? "border-t border-border/60 lg:grid-cols-10 lg:[padding-inline:calc(1.5rem+var(--row-inset))]"
+                : ""
             }`}
           >
             {row.map((tab) => {
@@ -146,11 +156,13 @@ export default function ClassicCategoryTabs() {
                      natural width. At lg and up they share the bar evenly and
                      it spans the full page, which is the only arrangement that
                      does not leave a stretch of empty rule after Contact. */
-                  className={`group relative shrink-0 whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:flex-1 lg:shrink lg:px-2 ${
+                  className={`group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:px-2 ${
                     active ? "font-medium" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <span style={active ? { color: accent } : undefined}>{tab.label}</span>
+                  <span style={active ? { color: accent } : undefined}>
+                    {t(`tab.${tab.id}`, tab.label)}
+                  </span>
                   {/* The section's colour, quiet at rest and lit when the tab is
                       current or under the pointer. */}
                   <span

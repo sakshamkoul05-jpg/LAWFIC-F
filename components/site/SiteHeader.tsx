@@ -9,6 +9,8 @@ import HeaderSearch from "@/components/site/HeaderSearch";
 import ProfileMenu from "@/components/site/ProfileMenu";
 import SignInDialog from "@/components/site/SignInDialog";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { LanguageMenu, FilingStateMenu } from "@/components/site/HeaderMenus";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { classicTabs, tabAccent } from "@/lib/nav-tabs";
 
 /**
@@ -39,6 +41,7 @@ export default function SiteHeader() {
   const [drawer, setDrawer] = useState(false);
   const [signIn, setSignIn] = useState(false);
   const pathname = usePathname();
+  const { t } = useLocale();
 
   useEffect(() => {
     setMounted(true);
@@ -80,7 +83,7 @@ export default function SiteHeader() {
           <button
             type="button"
             onClick={() => setDrawer(true)}
-            aria-label="Open menu"
+            aria-label={t("nav.openMenu")}
             aria-expanded={drawer}
             className="grid size-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
           >
@@ -101,20 +104,22 @@ export default function SiteHeader() {
           <HeaderSearch className="hidden min-w-0 flex-1 md:block lg:mx-4" />
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
-            <IconLink
-              href="/wishlist"
-              label="Saved services"
-              active={isActive("/wishlist")}
-            >
+            <span className="hidden sm:contents">
+              <IconLink
+                href="/wishlist"
+                label={t("acct.saved")}
+                active={isActive("/wishlist")}
+              >
               <path
                 d="M10 16s-6-3.8-6-8a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 16 8c0 4.2-6 8-6 8Z"
                 stroke="currentColor"
                 strokeWidth="1.4"
-                strokeLinejoin="round"
-              />
-            </IconLink>
+                  strokeLinejoin="round"
+                />
+              </IconLink>
+            </span>
 
-            <IconLink href="/cart" label="Your cart" active={isActive("/cart")}>
+            <IconLink href="/cart" label={t("acct.cart")} active={isActive("/cart")}>
               <path
                 d="M3 4h2l1.7 8.2a1.4 1.4 0 0 0 1.4 1.1h6.1a1.4 1.4 0 0 0 1.4-1.1L17 7H6"
                 stroke="currentColor"
@@ -127,13 +132,17 @@ export default function SiteHeader() {
             </IconLink>
 
             {mounted && user && (
-              <IconLink href="/wallet" label="Your wallet" active={isActive("/wallet")}>
+              <IconLink href="/wallet" label={t("acct.wallet")} active={isActive("/wallet")}>
                 <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="currentColor" strokeWidth="1.4" />
                 <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.4" />
                 <circle cx="14" cy="12.5" r="1.15" fill="currentColor" />
               </IconLink>
             )}
 
+            <span className="hidden items-center gap-1.5 md:flex">
+              <FilingStateMenu />
+              <LanguageMenu />
+            </span>
             <ThemeToggle />
 
             {mounted ? (
@@ -152,7 +161,7 @@ export default function SiteHeader() {
 
       {/* Everything, in one place. Opened from the hamburger at any width. */}
       {drawer && (
-        <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="All sections">
+        <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={t("nav.allSections")}>
           <button
             type="button"
             aria-label="Close menu"
@@ -162,7 +171,7 @@ export default function SiteHeader() {
           <nav className="absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col overflow-y-auto border-r border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <span className="text-[13px] font-semibold tracking-tight text-foreground">
-                All sections
+                {t("nav.allSections")}
               </span>
               <button
                 type="button"
@@ -193,10 +202,12 @@ export default function SiteHeader() {
                         className="h-5 w-[3px] shrink-0 rounded-full"
                         style={{ background: tabAccent(tab.id), opacity: active ? 1 : 0.55 }}
                       />
-                      <span className={active ? "font-medium" : undefined}>{tab.label}</span>
+                      <span className={active ? "font-medium" : undefined}>
+                        {t(`tab.${tab.id}`, tab.label)}
+                      </span>
                       {!tab.live && (
                         <span className="ml-auto text-[10px] uppercase tracking-[0.12em] text-subtle">
-                          Soon
+                          {t("nav.soon")}
                         </span>
                       )}
                     </Link>
@@ -204,6 +215,19 @@ export default function SiteHeader() {
                 );
               })}
             </ul>
+
+            {/* The preferences that do not fit in a phone header. Labelled
+                here, which they cannot be up there. */}
+            <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border px-4 py-4 md:hidden">
+              <FilingStateMenu />
+              <LanguageMenu />
+              <Link
+                href="/wishlist"
+                className="rounded-full border border-border px-3 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("acct.saved")}
+              </Link>
+            </div>
           </nav>
         </div>
       )}

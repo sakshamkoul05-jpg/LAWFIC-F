@@ -26,6 +26,8 @@ export type SearchHit = {
   /** Not shown; matched against. */
   terms: string[];
   live: boolean;
+  /** Catalogue category id, for the scope control. Sections have none. */
+  cat?: string;
 };
 
 function build(): SearchHit[] {
@@ -41,6 +43,7 @@ function build(): SearchHit[] {
         blurb: s.blurb,
         terms: [s.name, s.blurb, cat.name, ...(s.aliases ?? [])].map((t) => t.toLowerCase()),
         live: s.status === "live",
+        cat: cat.id,
       });
     }
   }
@@ -83,13 +86,17 @@ export const searchIndex: SearchHit[] = build();
  * Live services outrank ones that are not open yet, because a result you can
  * actually buy is worth more than one you cannot.
  */
-export function searchSuggest(raw: string, limit = 8): SearchHit[] {
+export function searchSuggest(raw: string, limit = 8, scope?: string): SearchHit[] {
   const q = raw.trim().toLowerCase();
   if (q.length < 2) return [];
 
   const scored: { hit: SearchHit; score: number }[] = [];
 
   for (const hit of searchIndex) {
+    /* A scope is a promise that the answer is inside it, so it filters rather
+       than merely reweighting: a "Tax & Filings" search returning a passport
+       service because it scored well would make the control a lie. */
+    if (scope && hit.cat !== scope) continue;
     let best = 0;
     for (const term of hit.terms) {
       if (!term) continue;
