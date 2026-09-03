@@ -6,6 +6,8 @@ import { formatPaise } from "@/lib/money";
 import type { HideId } from "@/lib/wallet-leather";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import PhysicalWallet from "./PhysicalWallet";
+import WalletPhoto from "./WalletPhoto";
+import { getHide } from "@/lib/wallet-leather";
 import WalletSkinSelector from "./WalletSkinSelector";
 
 /**
@@ -52,6 +54,7 @@ export default function WalletSection({
   const reduced = useReducedMotion();
   const [look, setLook] = useState<WalletPrefs>(prefs);
   const [open, setOpen] = useState(false);
+  const hide = getHide(look.hide) ?? getHide("midnight")!;
 
   const pickHide = useCallback(
     (hide: HideId) => {
@@ -107,18 +110,28 @@ export default function WalletSection({
             a wide screen despite coming second in the source — reading order
             keeps the heading first for anyone who is not looking. */}
         <div className="order-2 min-w-0">
-          <PhysicalWallet
-            hide={look.hide}
-            plate={look.plate}
-            thread={look.thread}
-            nameplate={look.nameplate}
-            balancePaise={balancePaise}
-            landing={landing}
+          {/* Photography when the range has been shot, the drawn wallet when it
+              has not. WalletPhoto decides, because only it knows whether the
+              files actually loaded. */}
+          <WalletPhoto
+            hide={hide}
             open={open}
             onToggle={() => setOpen((o) => !o)}
+            fallback={
+              <PhysicalWallet
+                hide={look.hide}
+                plate={look.plate}
+                thread={look.thread}
+                nameplate={look.nameplate}
+                balancePaise={balancePaise}
+                landing={landing}
+                open={open}
+                onToggle={() => setOpen((o) => !o)}
+              />
+            }
           />
           <motion.p
-            className="-mt-1 text-center font-mono text-[10px] uppercase tracking-[0.24em]"
+            className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]"
             style={{ color: "var(--wallet-fg-muted)" }}
             animate={{ opacity: open ? 0 : 0.5 }}
             transition={{ duration: reduced ? 0 : 0.3 }}
@@ -128,6 +141,12 @@ export default function WalletSection({
           </motion.p>
         </div>
       </div>
+
+      <p className="mt-4 text-center text-[12.5px] text-muted-foreground">
+        <span className="font-medium text-foreground">{hide.name}</span>
+        <span className="mx-2 opacity-30">·</span>
+        {hide.desc}
+      </p>
 
       <WalletSkinSelector
         value={look.hide}

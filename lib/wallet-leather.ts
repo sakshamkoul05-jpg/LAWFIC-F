@@ -24,12 +24,26 @@
  * an order — the same boundary the card model kept.
  */
 
-export type HideId = "midnight" | "slate" | "olive" | "tan" | "burgundy";
+export type HideId =
+  | "midnight"
+  | "slate"
+  | "olive"
+  | "tan"
+  | "oxblood"
+  | "navy"
+  | "cognac"
+  | "forest"
+  | "concrete"
+  | "chocolate";
 
 /** Ids this replaced, kept so rows written before the rename still resolve. */
 const RENAMED: Record<string, HideId> = {
   "suede-green": "olive",
-  brown: "burgundy",
+  // brown, then burgundy, now oxblood — the same leather each time, renamed as
+  // the range got its own swatch card. Both old ids point at where it lives
+  // now rather than chaining through a name that no longer exists.
+  brown: "oxblood",
+  burgundy: "oxblood",
 };
 
 export type Material = {
@@ -51,6 +65,13 @@ export type Hide = {
   name: string;
   /** One line, said the way a leatherworker would say it. */
   desc: string;
+  /**
+   * Basename of the product photographs in /public/wallet — `<photo>-closed.jpg`
+   * and `<photo>-open.jpg`. When both exist the wallet renders as photography;
+   * when either is missing it falls back to the drawn one, which is why the
+   * material parameters below are still here and must not be deleted.
+   */
+  photo: string;
   /** Outer leather, lit from the upper left like everything else on the site. */
   outer: [string, string, string];
   /** Inside the fold, visible only when the wallet is open. */
@@ -72,8 +93,9 @@ export type Hide = {
 export const HIDES: Hide[] = [
   {
     id: "midnight",
-    name: "Midnight black",
-    desc: "Polished calf. Almost no grain, one long slow highlight.",
+    name: "Midnight Black",
+    desc: "Classic. Timeless. Elegant.",
+    photo: "midnight",
     outer: ["#31302E", "#1A1918", "#0D0C0C"],
     lining: "#302D2A",
     liningDeep: "#131211",
@@ -86,8 +108,9 @@ export const HIDES: Hide[] = [
   },
   {
     id: "slate",
-    name: "Slate grey",
-    desc: "Matte pebble grain, cool undertone, dark thread.",
+    name: "Slate Grey",
+    desc: "Modern. Sleek. Strong.",
+    photo: "slate",
     outer: ["#6A6E73", "#494D52", "#31353A"],
     lining: "#474C53",
     liningDeep: "#22262A",
@@ -100,8 +123,9 @@ export const HIDES: Hide[] = [
   },
   {
     id: "olive",
-    name: "Suede olive",
-    desc: "Nubuck. Fine nap, drinks the light and returns none of it.",
+    name: "Suede Olive",
+    desc: "Earthy. Unique. Refined.",
+    photo: "olive",
     outer: ["#5C6446", "#454B33", "#2F3423"],
     lining: "#454B33",
     liningDeep: "#22261A",
@@ -111,13 +135,14 @@ export const HIDES: Hide[] = [
     ink: "#F0F2E8",
     inkSoft: "rgba(240,242,232,0.55)",
     // No specular at all. A napped hide has none, and adding one is the exact
-    // mistake that makes CGI suede look like painted plastic.
+    // mistake that makes rendered suede look like painted plastic.
     material: { grainFreq: 0.42, grainScale: 2.4, specular: 0, specularExp: 1 },
   },
   {
     id: "tan",
     name: "Tan",
-    desc: "Cognac cowhide, natural grain, edges darkened with wear.",
+    desc: "Warm. Natural. Premium.",
+    photo: "tan",
     outer: ["#C9955C", "#A9743F", "#84562B"],
     lining: "#9C6C3B",
     liningDeep: "#5C3D1F",
@@ -129,9 +154,10 @@ export const HIDES: Hide[] = [
     material: { grainFreq: 0.05, grainScale: 2.2, specular: 0.09, specularExp: 14 },
   },
   {
-    id: "burgundy",
-    name: "Burgundy",
-    desc: "Oxblood, deep and slightly glossed. Brown under the red.",
+    id: "oxblood",
+    name: "Oxblood",
+    desc: "Bold. Rich. Distinctive.",
+    photo: "oxblood",
     outer: ["#7A2F31", "#5A1F22", "#3C1315"],
     lining: "#5C2225",
     liningDeep: "#2A0F11",
@@ -141,6 +167,81 @@ export const HIDES: Hide[] = [
     ink: "#F7E9E6",
     inkSoft: "rgba(247,233,230,0.55)",
     material: { grainFreq: 0.07, grainScale: 1.4, specular: 0.12, specularExp: 22 },
+  },
+  {
+    id: "navy",
+    name: "Navy Blue",
+    desc: "Deep. Versatile. Premium.",
+    photo: "navy",
+    outer: ["#2E3C5C", "#1E2A44", "#131B2C"],
+    lining: "#243050",
+    liningDeep: "#101623",
+    edge: "#0E1420",
+    edgeHi: "#4A5C82",
+    stitch: "#16203A",
+    ink: "#EAEEF7",
+    inkSoft: "rgba(234,238,247,0.55)",
+    material: { grainFreq: 0.09, grainScale: 1.1, specular: 0.11, specularExp: 24 },
+  },
+  {
+    id: "cognac",
+    name: "Cognac Brown",
+    desc: "Rich. Classic. Rugged.",
+    photo: "cognac",
+    outer: ["#A65C2A", "#8B4A22", "#653417"],
+    lining: "#7E441F",
+    liningDeep: "#472510",
+    edge: "#4E2812",
+    edgeHi: "#C98449",
+    stitch: "#3E200E",
+    ink: "#FBEFE4",
+    inkSoft: "rgba(251,239,228,0.55)",
+    material: { grainFreq: 0.05, grainScale: 2.4, specular: 0.1, specularExp: 15 },
+  },
+  {
+    id: "forest",
+    name: "Forest Green",
+    desc: "Bold. Natural. Distinct.",
+    photo: "forest",
+    outer: ["#33472C", "#22331F", "#151F13"],
+    lining: "#293B24",
+    liningDeep: "#111A10",
+    edge: "#101810",
+    edgeHi: "#4F6B46",
+    stitch: "#182415",
+    ink: "#EAF2E7",
+    inkSoft: "rgba(234,242,231,0.55)",
+    material: { grainFreq: 0.08, grainScale: 1.6, specular: 0.09, specularExp: 20 },
+  },
+  {
+    id: "concrete",
+    name: "Concrete Grey",
+    desc: "Minimal. Urban. Clean.",
+    photo: "concrete",
+    outer: ["#A6A69F", "#8A8A85", "#6A6A66"],
+    lining: "#7E7E79",
+    liningDeep: "#4E4E4A",
+    edge: "#55554F",
+    edgeHi: "#C6C6BF",
+    stitch: "#5E5E58",
+    ink: "#211F1D",
+    inkSoft: "rgba(33,31,29,0.6)",
+    material: { grainFreq: 0.06, grainScale: 2.0, specular: 0.05, specularExp: 10 },
+  },
+  {
+    id: "chocolate",
+    name: "Dark Chocolate",
+    desc: "Deep. Elegant. Timeless.",
+    photo: "chocolate",
+    outer: ["#513322", "#3A2318", "#241510"],
+    lining: "#402A1C",
+    liningDeep: "#1D110B",
+    edge: "#1E120C",
+    edgeHi: "#7A5236",
+    stitch: "#2A1810",
+    ink: "#F6EBE0",
+    inkSoft: "rgba(246,235,224,0.55)",
+    material: { grainFreq: 0.06, grainScale: 1.8, specular: 0.1, specularExp: 18 },
   },
 ];
 
