@@ -7,6 +7,7 @@ import type { HideId } from "@/lib/wallet-leather";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import PhysicalWallet from "./PhysicalWallet";
 import WalletPhoto from "./WalletPhoto";
+import WalletSequence from "./WalletSequence";
 import { getHide } from "@/lib/wallet-leather";
 import WalletSkinSelector from "./WalletSkinSelector";
 
@@ -110,35 +111,34 @@ export default function WalletSection({
             a wide screen despite coming second in the source — reading order
             keeps the heading first for anyone who is not looking. */}
         <div className="order-2 min-w-0">
-          {/* Photography when the range has been shot, the drawn wallet when it
-              has not. WalletPhoto decides, because only it knows whether the
-              files actually loaded. */}
-          <WalletPhoto
+          {/* Three tiers, each falling to the next when its assets are not
+              there: the zip-and-fold frame sequence, then the two-state
+              photograph, then the drawn wallet. The site works on the day only
+              some of the range has been shot, which is most days. */}
+          <WalletSequence
             hide={hide}
             open={open}
-            onToggle={() => setOpen((o) => !o)}
+            onOpenChange={setOpen}
             fallback={
-              <PhysicalWallet
-                hide={look.hide}
-                plate={look.plate}
-                thread={look.thread}
-                nameplate={look.nameplate}
-                balancePaise={balancePaise}
-                landing={landing}
+              <WalletPhoto
+                hide={hide}
                 open={open}
                 onToggle={() => setOpen((o) => !o)}
+                fallback={
+                  <PhysicalWallet
+                    hide={look.hide}
+                    plate={look.plate}
+                    thread={look.thread}
+                    nameplate={look.nameplate}
+                    balancePaise={balancePaise}
+                    landing={landing}
+                    open={open}
+                    onToggle={() => setOpen((o) => !o)}
+                  />
+                }
               />
             }
           />
-          <motion.p
-            className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]"
-            style={{ color: "var(--wallet-fg-muted)" }}
-            animate={{ opacity: open ? 0 : 0.5 }}
-            transition={{ duration: reduced ? 0 : 0.3 }}
-            aria-hidden
-          >
-            Click the wallet to open
-          </motion.p>
         </div>
       </div>
 
