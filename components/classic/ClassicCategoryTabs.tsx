@@ -3,20 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { classicTabs, type NavTab } from "@/lib/nav-tabs";
+import {
+  classicTabs,
+  tabAccent,
+  TABS_ROW_ONE,
+  TABS_ROW_TWO,
+  type NavTab,
+} from "@/lib/nav-tabs";
 
 /**
- * The 21-section navigation strip.
+ * The 21-section navigation strip, on two rows.
  *
- * A strip this dense lives or dies on restraint, so everything that can be
- * quiet is quiet: no dividers, no pills, no boxes. Inactive tabs are muted
- * text and nothing else; the active one is gold with a hairline underline, so
- * exactly one thing on the bar is loud at a time.
+ * One row of twenty-one only fits by scrolling, and a scroller hides about half
+ * its contents at any width: someone landing on /professionalism saw a bar that
+ * appeared not to contain their page. Eleven above and ten below shows every
+ * section at once on a desktop, which for a site whose whole proposition is
+ * breadth is worth the extra strip of height. Below the breakpoint the two rows
+ * become two scrollers, because two rows of eleven on a phone is a wall.
  *
- * Two affordances a 21-item scroller needs and the previous version lacked:
- * the edges fade so it reads as continuing rather than clipped, and the active
- * tab scrolls itself into view on load — otherwise someone landing on
- * /professionalism sees a strip that appears not to contain their page.
+ * Each tab carries its section's colour as a bottom border. With this many
+ * items of identical-looking text the eye has nothing to aim at, so a fixed
+ * colour per section is the thing that makes the bar learnable — see TAB_ACCENT
+ * for why they are muted rather than bright. The border sits at low opacity
+ * until a tab is hovered or current, so the resting strip is still calm.
  */
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
@@ -113,37 +122,45 @@ export default function ClassicCategoryTabs() {
       />
 
       <nav aria-label="Sections" onMouseLeave={scheduleClose}>
-        <div
-          ref={scrollerRef}
-          className="classic-tabs-nav mx-auto flex max-w-6xl items-stretch overflow-x-auto px-4 sm:px-7"
-        >
-          {classicTabs.map((tab) => {
-            const active = isActive(tab.href);
-            return (
-              <Link
-                key={tab.id}
-                href={tab.href}
-                data-active={active}
-                aria-current={active ? "page" : undefined}
-                onMouseEnter={(e) => open(tab, e.currentTarget)}
-                onFocus={(e) => open(tab, e.currentTarget)}
-                className={`relative shrink-0 whitespace-nowrap px-3 py-2.5 text-[12.5px] transition-colors ${
-                  active
-                    ? "font-medium text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.label}
-                {active && (
+        {[TABS_ROW_ONE, TABS_ROW_TWO].map((row, ri) => (
+          <div
+            key={ri}
+            ref={ri === 0 ? scrollerRef : undefined}
+            className={`classic-tabs-nav mx-auto flex max-w-6xl items-stretch overflow-x-auto px-4 sm:px-7 ${
+              ri === 1 ? "border-t border-border/60" : ""
+            }`}
+          >
+            {row.map((tab) => {
+              const active = isActive(tab.href);
+              const accent = tabAccent(tab.id);
+              return (
+                <Link
+                  key={tab.id}
+                  href={tab.href}
+                  data-active={active}
+                  aria-current={active ? "page" : undefined}
+                  onMouseEnter={(e) => open(tab, e.currentTarget)}
+                  onFocus={(e) => open(tab, e.currentTarget)}
+                  style={{ ["--tab-accent" as string]: accent }}
+                  className={`group relative shrink-0 whitespace-nowrap px-3 py-2.5 text-[12.5px] transition-colors ${
+                    active ? "font-medium" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span style={active ? { color: accent } : undefined}>{tab.label}</span>
+                  {/* The section's colour, quiet at rest and lit when the tab is
+                      current or under the pointer. */}
                   <span
                     aria-hidden
-                    className="absolute inset-x-3 -bottom-px h-px bg-primary"
+                    className={`absolute inset-x-2.5 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
+                      active ? "opacity-100" : "opacity-20 group-hover:opacity-70"
+                    }`}
+                    style={{ background: accent }}
                   />
-                )}
-              </Link>
-            );
-          })}
-        </div>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {openTab && anchor && openTab.sub.length > 0 && (

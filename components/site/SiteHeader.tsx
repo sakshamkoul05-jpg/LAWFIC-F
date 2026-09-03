@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Wordmark from "@/components/site/Wordmark";
+import HeaderSearch from "@/components/site/HeaderSearch";
+import ProfileMenu from "@/components/site/ProfileMenu";
+import SignInDialog from "@/components/site/SignInDialog";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import { classicTabs } from "@/lib/nav-tabs";
+import { classicTabs, tabAccent } from "@/lib/nav-tabs";
 
 /**
- * The title bar: identity, search, account. Navigation proper lives in the
- * strip below (ClassicCategoryTabs), so nothing is listed twice.
+ * The title bar: identity, a way into everything, search, account.
  *
- * Search earns its place here precisely because the site is broad — 21
- * sections and 39 services means typing a name will usually beat hunting for
- * it. It is a single quiet field rather than the split category dropdown it
- * replaces, which was doing an Amazon impression the rest of the site is not.
+ * The mark leads at full size on the far left — emblem, name, tagline — because
+ * the first thing on every page should be whose site this is.
+ *
+ * The hamburger sits next to it at every width rather than only on mobile. With
+ * twenty-one sections and thirty-nine services, a single place that lists
+ * everything is worth having even on a wide screen where the strip below is
+ * fully visible; the strip is for aiming at a section you already know, the
+ * drawer is for finding out what exists.
+ *
+ * Cart and saved services are here because the header is where people look for
+ * them, and being absent is a worse answer than being empty.
  */
 
 type User = {
@@ -24,17 +33,12 @@ type User = {
   user_metadata?: Record<string, string>;
 };
 
-function initialOf(name: string): string {
-  return name.charAt(0).toUpperCase() || "L";
-}
-
 export default function SiteHeader() {
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [drawer, setDrawer] = useState(false);
+  const [signIn, setSignIn] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -51,176 +55,190 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    setSheetOpen(false);
+    setDrawer(false);
+    setSignIn(false);
   }, [pathname]);
 
-  const displayName =
-    user?.user_metadata?.full_name ??
-    user?.user_metadata?.name ??
-    user?.email?.split("@")[0] ??
-    "Account";
-
-  /* Greet by first name only. "Hi, Saksham" is a person talking; "Hi, Saksham
-     Koul" is a database row talking, and a full legal name in the chrome of
-     every page reads like a billing statement. */
-  const firstName = displayName.split(" ")[0];
-
-  const search = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    router.push(q ? `/services?q=${encodeURIComponent(q)}` : "/services");
-  };
+  /* A drawer that leaves the page scrolling behind it feels like a panel that
+     has come loose. */
+  useEffect(() => {
+    if (!drawer) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [drawer]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-5 sm:px-7">
-        <Link href="/" aria-label="LAWFIC home" className="shrink-0">
-          <Wordmark />
-        </Link>
-
-        <form
-          onSubmit={search}
-          role="search"
-          className="hidden min-w-0 flex-1 items-center md:flex"
-        >
-          <div className="flex w-full max-w-md items-center gap-2.5 rounded-full border border-border bg-surface-2/60 px-4 transition-colors focus-within:border-primary/50 focus-within:bg-surface">
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 20 20"
-              fill="none"
-              className="shrink-0 text-subtle"
-              aria-hidden
-            >
-              <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" strokeWidth="1.7" />
-              <path d="M13 13l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-5 sm:px-7">
+          <button
+            type="button"
+            onClick={() => setDrawer(true)}
+            aria-label="Open menu"
+            aria-expanded={drawer}
+            className="grid size-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+              <path
+                d="M2 4.5h14M2 9h14M2 13.5h14"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search services and documents"
-              aria-label="Search services and documents"
-              className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-foreground outline-none placeholder:text-subtle"
-            />
-          </div>
-        </form>
+          </button>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
-          {/* The wallet is the one signed-in destination worth a permanent
-              shortcut: it holds money, and hunting for it through a 21-tab
-              strip is not a reasonable way to check a balance. Shown only when
-              signed in, since it means nothing to a visitor. */}
-          {mounted && user && (
-            <Link
-              href="/wallet"
-              aria-label="Your wallet"
-              title="Wallet"
-              aria-current={isActive("/wallet") ? "page" : undefined}
-              className={`grid size-9 place-items-center rounded-full border transition-colors ${
-                isActive("/wallet")
-                  ? "border-primary/50 bg-primary-light text-primary"
-                  : "border-border text-muted hover:border-border-3 hover:text-foreground"
-              }`}
+          <Link href="/" aria-label="LAWFIC home" className="shrink-0">
+            <Wordmark />
+          </Link>
+
+          <HeaderSearch className="hidden min-w-0 flex-1 md:block" />
+
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
+            <IconLink
+              href="/wishlist"
+              label="Saved services"
+              active={isActive("/wishlist")}
             >
-              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <path
+                d="M10 16s-6-3.8-6-8a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 16 8c0 4.2-6 8-6 8Z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </IconLink>
+
+            <IconLink href="/cart" label="Your cart" active={isActive("/cart")}>
+              <path
+                d="M3 4h2l1.7 8.2a1.4 1.4 0 0 0 1.4 1.1h6.1a1.4 1.4 0 0 0 1.4-1.1L17 7H6"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="8.5" cy="16" r="1.1" fill="currentColor" />
+              <circle cx="14.5" cy="16" r="1.1" fill="currentColor" />
+            </IconLink>
+
+            {mounted && user && (
+              <IconLink href="/wallet" label="Your wallet" active={isActive("/wallet")}>
                 <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="currentColor" strokeWidth="1.4" />
                 <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.4" />
                 <circle cx="14" cy="12.5" r="1.15" fill="currentColor" />
-              </svg>
-            </Link>
-          )}
+              </IconLink>
+            )}
 
-          <ThemeToggle />
+            <ThemeToggle />
 
-          {mounted && user ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 rounded-full border border-border py-1 pl-1 pr-3 transition-colors hover:border-border-3"
-              aria-label="Your account"
-            >
-              <span className="grid size-7 place-items-center rounded-full bg-primary text-[11px] font-semibold text-background">
-                {initialOf(displayName)}
-              </span>
-              <span className="hidden max-w-[14ch] truncate text-[13px] text-foreground sm:block">
-                Hi, <span className="font-medium">{firstName}</span>
-              </span>
-            </Link>
-          ) : mounted ? (
-            <Link
-              href="/login"
-              className="whitespace-nowrap rounded-full bg-primary px-3.5 py-2 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover sm:px-4"
-            >
-              Sign in
-            </Link>
-          ) : (
-            <span className="h-9 w-20" aria-hidden />
-          )}
+            {mounted ? (
+              <ProfileMenu user={user} onSignInClick={() => setSignIn(true)} />
+            ) : (
+              <span className="h-9 w-20" aria-hidden />
+            )}
+          </div>
+        </div>
 
+        {/* On a narrow screen the search moves under the row rather than off it */}
+        <div className="border-t border-border/60 px-4 py-2 md:hidden">
+          <HeaderSearch />
+        </div>
+      </header>
+
+      {/* Everything, in one place. Opened from the hamburger at any width. */}
+      {drawer && (
+        <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="All sections">
           <button
             type="button"
-            onClick={() => setSheetOpen((v) => !v)}
-            aria-expanded={sheetOpen}
-            aria-controls="mobile-nav"
-            aria-label={sheetOpen ? "Close menu" : "Open menu"}
-            className="grid size-9 place-items-center rounded-full border border-border text-muted transition-colors hover:text-foreground md:hidden"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              {sheetOpen ? (
-                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              ) : (
-                <path d="M2 4.5h12M2 11.5h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile sheet — the full section list, since the strip is hard to
-          scan by thumb on a narrow screen. */}
-      {sheetOpen && (
-        <nav
-          id="mobile-nav"
-          aria-label="Sections"
-          className="max-h-[70vh] overflow-y-auto border-t border-border bg-background md:hidden"
-        >
-          <form onSubmit={search} role="search" className="px-4 pb-1 pt-3">
-            <div className="flex items-center gap-2.5 rounded-full border border-border bg-surface-2/60 px-4">
-              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" className="shrink-0 text-subtle" aria-hidden>
-                <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" strokeWidth="1.7" />
-                <path d="M13 13l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-              </svg>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search services and documents"
-                aria-label="Search services and documents"
-                className="min-w-0 flex-1 bg-transparent py-2.5 text-[14px] text-foreground outline-none placeholder:text-subtle"
-              />
+            aria-label="Close menu"
+            onClick={() => setDrawer(false)}
+            className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+          />
+          <nav className="absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col overflow-y-auto border-r border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <span className="text-[13px] font-semibold tracking-tight text-foreground">
+                All sections
+              </span>
+              <button
+                type="button"
+                onClick={() => setDrawer(false)}
+                aria-label="Close menu"
+                className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-foreground"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                  <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
             </div>
-          </form>
 
-          <ul className="grid grid-cols-2 gap-x-3 px-4 py-2">
-            {classicTabs.map((tab) => (
-              <li key={tab.id}>
-                <Link
-                  href={tab.href}
-                  aria-current={isActive(tab.href) ? "page" : undefined}
-                  className={`block border-b border-border py-3 text-[14px] ${
-                    isActive(tab.href) ? "font-medium text-primary" : "text-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+            <ul className="px-2 py-2">
+              {classicTabs.map((tab) => {
+                const active = isActive(tab.href);
+                return (
+                  <li key={tab.id}>
+                    <Link
+                      href={tab.href}
+                      aria-current={active ? "page" : undefined}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-foreground transition-colors hover:bg-surface-2"
+                    >
+                      {/* The section's colour, so the drawer and the strip
+                          teach the same thing. */}
+                      <span
+                        aria-hidden
+                        className="h-5 w-[3px] shrink-0 rounded-full"
+                        style={{ background: tabAccent(tab.id), opacity: active ? 1 : 0.55 }}
+                      />
+                      <span className={active ? "font-medium" : undefined}>{tab.label}</span>
+                      {!tab.live && (
+                        <span className="ml-auto text-[10px] uppercase tracking-[0.12em] text-subtle">
+                          Soon
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
       )}
-    </header>
+
+      <SignInDialog open={signIn} onClose={() => setSignIn(false)} />
+    </>
+  );
+}
+
+function IconLink({
+  href,
+  label,
+  active,
+  children,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      title={label}
+      aria-current={active ? "page" : undefined}
+      className={`grid size-9 place-items-center rounded-full border transition-colors ${
+        active
+          ? "border-primary/50 bg-primary-light text-primary"
+          : "border-border text-muted hover:border-border-3 hover:text-foreground"
+      }`}
+    >
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+        {children}
+      </svg>
+    </Link>
   );
 }

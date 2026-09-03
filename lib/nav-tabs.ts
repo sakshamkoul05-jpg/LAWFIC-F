@@ -327,3 +327,57 @@ export function getTabByHref(pathname: string): NavTab | undefined {
 export const liveTabHrefs = classicTabs
   .filter((t) => t.live)
   .map((t) => t.href);
+
+/**
+ * A colour per section, for the border each tab carries in the strip.
+ *
+ * Twenty-one tabs on two rows is a lot of identical text, and the eye has
+ * nothing to navigate by — the previous strip was deliberately quiet, which
+ * works for eleven items in one line and stops working when there are two rows
+ * of them. A colour gives every section a fixed identity you can learn and then
+ * aim at, which is the only thing that makes a bar this dense usable.
+ *
+ * Chosen as muted jewel tones rather than saturated ones: they sit at roughly
+ * the same lightness as each other and as the gold the brand already uses, so
+ * the row reads as one considered set instead of twenty-one competing signals.
+ * Anything brighter turns navigation into a toy shelf.
+ */
+export const TAB_ACCENT: Record<string, string> = {
+  home: "#D0AE55",
+  about: "#8FB0C9",
+  document: "#C58F6B",
+  admission: "#9BAF7E",
+  education: "#B08FC9",
+  startup: "#E0A05C",
+  business: "#7FA8A0",
+  jobs: "#C98F8F",
+  branding: "#D6A55C",
+  partner: "#8FA3C9",
+  investment: "#A8C98F",
+  lawfic: "#D0AE55",
+  "new-idea": "#C9A88F",
+  blogs: "#9FC9C4",
+  professionalism: "#B9927E",
+  career: "#8FC9A8",
+  entertainment: "#C98FB0",
+  gift: "#D69A7E",
+  "our-store": "#A9C97E",
+  "instant-help": "#C97E7E",
+  contact: "#9E9EC9",
+};
+
+export function tabAccent(id: string): string {
+  return TAB_ACCENT[id] ?? "#D0AE55";
+}
+
+/**
+ * The strip runs on two rows: eleven sections above, ten below.
+ *
+ * Twenty-one tabs on one line only fit by scrolling, and a scroller hides
+ * roughly half its contents at any width — someone landing on /professionalism
+ * saw a bar that appeared not to contain their page. Two rows show every
+ * section at once on a desktop, which for a site whose whole proposition is
+ * breadth is worth the extra strip of height.
+ */
+export const TABS_ROW_ONE = classicTabs.slice(0, 11);
+export const TABS_ROW_TWO = classicTabs.slice(11);
