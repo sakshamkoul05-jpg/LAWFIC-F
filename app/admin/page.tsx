@@ -5,6 +5,7 @@ import { orderTotalPaise, type OrderStatus, type ServiceOrder } from "@/lib/orde
 import { getService } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import OrderRow from "./OrderRow";
+import { AdminGate } from "./AdminGate";
 
 export const metadata: Metadata = { title: "Back office", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -21,21 +22,16 @@ const GROUPS: { status: OrderStatus; heading: string; note: string }[] = [
 
 export default async function AdminPage() {
   const supabase = await createClient();
-  if (!supabase) return <Locked title="Not connected" body="This build has no database configured." />;
+  if (!supabase) return <AdminGate reason="not-connected" />;
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) {
-    return <Locked title="Sign in" body="The back office needs a staff account." signIn />;
+    return <AdminGate reason="signed-out" />;
   }
 
   const { data: staff } = await supabase.rpc("is_staff");
   if (!staff) {
-    return (
-      <Locked
-        title="Not a staff account"
-        body="This area is for LAWFIC staff. If that should be you, ask an owner to add your user id to the staff table."
-      />
-    );
+    return <AdminGate reason="not-staff" />;
   }
 
   // RLS lets staff see every order; a customer sees only their own.
@@ -94,10 +90,18 @@ export default async function AdminPage() {
               </h1>
             </div>
 
-            <dl className="flex gap-8">
-              <Stat label="Orders" value={String(rows.length)} />
-              <Stat label="Collected" value={formatPaise(takenPaise)} />
-            </dl>
+            <div className="flex items-end gap-8">
+              <dl className="flex gap-8">
+                <Stat label="Orders" value={String(rows.length)} />
+                <Stat label="Collected" value={formatPaise(takenPaise)} />
+              </dl>
+              <Link
+                href="/admin/customers"
+                className="rounded-full border border-border px-4 py-2 text-[13px] text-foreground transition-colors hover:border-border-3"
+              >
+                Customers
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -143,24 +147,3 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Locked({ title, body, signIn }: { title: string; body: string; signIn?: boolean }) {
-  return (
-    <section className="grain relative min-h-[70vh] overflow-hidden">
-      <div className="relative z-2 mx-auto max-w-6xl px-5 py-24 sm:px-8">
-        <p className="label text-primary">Back office</p>
-        <h1 className="mt-6 font-display text-[clamp(28px,4vw,40px)] leading-[1.1] text-foreground">
-          {title}
-        </h1>
-        <p className="mt-6 max-w-lg text-[16px] leading-relaxed text-muted-foreground">{body}</p>
-        {signIn && (
-          <Link
-            href="/login?next=/admin"
-            className="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
-          >
-            Sign in
-          </Link>
-        )}
-      </div>
-    </section>
-  );
-}

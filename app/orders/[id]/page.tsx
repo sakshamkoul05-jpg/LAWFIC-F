@@ -7,6 +7,9 @@ import { getService } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import { FeeBreakdown, StatusPill, Timeline } from "@/components/orders/OrderBits";
 import PayButton from "./PayButton";
+import MessageThread from "@/components/orders/MessageThread";
+import type { OrderMessage } from "@/lib/messages";
+import { markRead } from "../message-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +33,19 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   if (!data) notFound();
 
   const order = data as ServiceOrder;
+
+  /* The thread, and a read receipt for anything LAWFIC has said. Marking read
+     on render rather than on scroll is the honest reading of "seen": the
+     customer has opened the filing the message is about. */
+  const { data: messageData } = await supabase
+    .from("order_messages")
+    .select("*")
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+  const messages = (messageData ?? []) as OrderMessage[];
+  if (messages.some((m) => m.from_staff && m.read_at === null)) {
+    await markRead(order.id);
+  }
   const service = getService(order.service_slug);
   const total = orderTotalPaise(order);
   const meta = STATUS_META[order.status];
@@ -173,6 +189,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 </ul>
               </div>
             )}
+
+            {/* Whatever LAWFIC has said about this filing, and a way to ask.
+                Under the progress column on purpose: the question someone has
+                is almost always about the step the timeline just showed them. */}
+            <MessageThread
+              orderId={order.id}
+              messages={messages}
+              viewerIsStaff={false}
+              className="mt-10"
+            />
           </div>
         </div>
       </section>
