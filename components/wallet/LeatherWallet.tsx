@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatPaise } from "@/lib/money";
 import { getHide, getPlate, threadColour } from "@/lib/wallet-leather";
 import type { HideId, PlateId, ThreadId } from "@/lib/wallet-leather";
-import { animationPlan, breakdown, describeBreakdown } from "@/lib/denominations";
+import { animationPlan, breakdown, describeBreakdown, widthPct } from "@/lib/denominations";
 import { useObserverBroken } from "@/lib/use-in-view-safe";
 import Banknote from "./Banknote";
 import WalletAvatar from "./WalletAvatar";
@@ -13,13 +13,25 @@ import WalletAvatar from "./WalletAvatar";
 /**
  * The wallet, as an object rather than a card.
  *
- * Grained leather, a stitched edge, a bill compartment the notes sit in, and a
- * metal plate stamped with the holder's name. It replaces a credit-card face
- * that was never true: LAWFIC issues no card, and nothing here can be tapped.
+ * A bifold in full-grain leather: pebbled surface, burnished edge, saddle
+ * stitch, a bill compartment the notes sit in, and a metal plate stamped with
+ * the holder's name. It replaces a credit-card face that was never true —
+ * LAWFIC issues no card, and nothing here can be tapped.
  *
  * Adding money puts the actual denominations in. ₹2,700 becomes five ₹500
- * notes and one ₹200, and they land in a stack — counting them is the
- * confirmation.
+ * notes and one ₹200, drawn at the sizes the RBI really mills them, and they
+ * land in a stack — counting them is the confirmation.
+ *
+ * HOW THE LEATHER IS MADE, AND WHY IT IS NOT NOISE
+ *
+ * The first version textured the hide with high-frequency `feTurbulence` laid
+ * over the fill at low opacity. That is film grain: flat, directionless, and
+ * it reads as paper or concrete, never as leather. Full-grain leather is a
+ * *lit* surface — pebbles raised by tumbling, each catching light on one side
+ * and shading on the other — so the grain here is low-frequency turbulence run
+ * through `feDiffuseLighting` with a single distant light, then multiplied
+ * back over the hide colour. That is what makes it read as something with a
+ * surface rather than a coloured rectangle.
  *
  * Three rules the motion keeps, all of them pre-existing:
  *   - nothing animates while money is being committed. Notes fly only after a
@@ -135,6 +147,7 @@ export default function LeatherWallet({
   const gradMetal = `w-${hide.id}-${plate.id}-metal`;
   const grainId = `w-${hide.id}-grain`;
   const backGrainId = `w-${hide.id}-grain-back`;
+  const vignetteId = `w-${hide.id}-vignette`;
 
   return (
     <div className={`relative w-full max-w-[400px] select-none ${className}`}>
@@ -145,7 +158,7 @@ export default function LeatherWallet({
           /* A midnight hide sits within a few points of lightness of the
              warm-ink ground. Without a shadow it reads as a hole cut in the
              page rather than an object resting on it. */
-          filter: "drop-shadow(0 20px 38px rgba(0,0,0,0.5))",
+          filter: "drop-shadow(0 18px 34px rgba(0,0,0,0.55))",
         }}
         initial={still ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -158,52 +171,90 @@ export default function LeatherWallet({
             exactly the card this redesign exists to stop being. */}
         <svg viewBox="0 0 420 300" className="block w-full" aria-hidden>
           {/* Its own grain, with its own id. The fold's defs cannot be reached
-              from here — that is the same cross-SVG paint-server problem noted
+              from here — that is the cross-SVG paint-server problem noted
               below — and without any texture the interior of a midnight wallet
               is flat black, which reads as a hole the notes are falling into
               rather than the back of the object holding them. */}
           <defs>
-            <filter id={backGrainId} x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="4" />
-              <feColorMatrix type="saturate" values="0" />
-              <feComponentTransfer>
-                <feFuncA type="linear" slope={0.16 * hide.grain} intercept="0" />
-              </feComponentTransfer>
+            <filter
+              id={backGrainId}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.13"
+                numOctaves="4"
+                seed="4"
+                result="n"
+              />
+              <feDiffuseLighting
+                in="n"
+                lightingColor="#FFFFFF"
+                surfaceScale={1.1 * hide.grain}
+                diffuseConstant="1"
+                result="lit"
+              >
+                <feDistantLight azimuth="228" elevation="60" />
+              </feDiffuseLighting>
+              <feComposite
+                in="lit"
+                in2="SourceGraphic"
+                operator="arithmetic"
+                k1="0.85"
+                k2="0"
+                k3="0"
+                k4="0"
+              />
             </filter>
           </defs>
-          <rect x="4" y="6" width="412" height="288" rx="16" fill={hide.outer[2]} />
-          <rect x="10" y="12" width="400" height="276" rx="13" fill={hide.lining} />
-          <rect x="10" y="12" width="400" height="276" rx="13" fill="#000" opacity="0.26" />
-          <rect x="10" y="12" width="400" height="276" rx="13" filter={`url(#${backGrainId})`} />
+          <rect x="4" y="6" width="412" height="288" rx="18" fill={hide.outer[2]} />
+          <rect x="10" y="12" width="400" height="276" rx="15" fill={hide.lining} />
+          <rect
+            x="10"
+            y="12"
+            width="400"
+            height="276"
+            rx="15"
+            fill={hide.lining}
+            filter={`url(#${backGrainId})`}
+          />
+          <rect x="10" y="12" width="400" height="276" rx="15" fill="#000" opacity="0.34" />
         </svg>
 
         {/* Notes in the bill compartment.
 
-            Tuned so about the top 40% of a note clears the fold: enough to read
-            the denomination and count the slips, little enough that the wallet
-            is holding the money rather than wearing it. The numeral sits high
-            on the note for the same reason — see Banknote. */}
-        <div className="absolute inset-x-[22%] top-[10%] z-10 h-[40%]">
+            The container is sized to a ₹500 and every other denomination draws
+            itself shorter by the millimetres it really is, so a mixed stack has
+            the ragged right edge real cash has. Tuned so about the top 40% of a
+            note clears the fold: enough to read the denomination panel in the
+            corner, little enough that the wallet is holding the money rather
+            than wearing it. */}
+        <div className="absolute inset-x-[16%] top-[10%] z-10 h-[43%]">
           {/* z-index runs backwards down the stack, so the LOWEST note is in
               front. In plain DOM order each note paints over the one behind it,
               and since every note but the topmost sits lower — and everything
               lower is already behind the fold — five notes render as a single
-              cream slab. Ordering front-to-back is the difference between a
-              stack you can count and a rectangle. It is set here rather than by
-              reversing the array because the notes that fly in have to stay in
-              landing order for their animation. */}
+              slab. Ordering front-to-back is the difference between a stack you
+              can count and a rectangle. It is set here rather than by reversing
+              the array because the notes that fly in have to stay in landing
+              order for their animation. */}
           {Array.from({ length: resting }).map((_, i) => (
             <div
               key={`rest-${i}`}
-              className="absolute bottom-0 left-1/2 w-full"
+              className="absolute bottom-0 left-1/2"
               style={{
+                width: `${widthPct(500)}%`,
                 zIndex: stackSize - i,
                 transform: `translateX(calc(-50% + ${drift(i)}px)) translateY(${
                   -i * step
                 }px) rotate(${fan(i)}deg)`,
               }}
             >
-              <Banknote value={500} width={224} className="w-full" />
+              <Banknote value={500} className="block h-auto w-full" />
             </div>
           ))}
 
@@ -212,8 +263,8 @@ export default function LeatherWallet({
               plan.flying.slice(0, landed).map((value, i) => (
                 <motion.div
                   key={`fly-${i}-${value}`}
-                  className="absolute bottom-0 left-1/2 w-full"
-                  style={{ zIndex: stackSize - (resting + i) }}
+                  className="absolute bottom-0 left-1/2"
+                  style={{ width: `${widthPct(value)}%`, zIndex: stackSize - (resting + i) }}
                   initial={
                     still
                       ? false
@@ -228,7 +279,7 @@ export default function LeatherWallet({
                   }}
                   transition={{ type: "spring", stiffness: 190, damping: 17, mass: 0.7 }}
                 >
-                  <Banknote value={value} width={224} className="w-full" />
+                  <Banknote value={value} className="block h-auto w-full" />
                 </motion.div>
               ))}
           </AnimatePresence>
@@ -259,7 +310,7 @@ export default function LeatherWallet({
                 <stop offset="100%" stopColor={hide.outer[2]} />
               </linearGradient>
               <linearGradient id={gradSheen} x1="0" y1="0" x2="0.65" y2="1">
-                <stop offset="0%" stopColor="#FFFFFF" stopOpacity={hide.sheen * 0.2} />
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity={hide.sheen * 0.22} />
                 <stop offset="52%" stopColor="#FFFFFF" stopOpacity="0" />
               </linearGradient>
               <linearGradient id={gradMetal} x1="0" y1="0" x2="1" y2="1">
@@ -267,27 +318,110 @@ export default function LeatherWallet({
                 <stop offset="48%" stopColor={plate.face[1]} />
                 <stop offset="100%" stopColor={plate.face[2]} />
               </linearGradient>
-              <filter id={grainId} x="0" y="0" width="100%" height="100%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="9" />
-                <feColorMatrix type="saturate" values="0" />
-                <feComponentTransfer>
-                  <feFuncA type="linear" slope={0.2 * hide.grain} intercept="0" />
-                </feComponentTransfer>
+
+              {/* Corners of a used wallet are darker than its middle. */}
+              <radialGradient id={vignetteId} cx="0.5" cy="0.42" r="0.75">
+                <stop offset="55%" stopColor="#000000" stopOpacity="0" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
+              </radialGradient>
+
+              {/* Pebble grain. Low-frequency turbulence lit by one distant
+                  light, multiplied back over the hide — a raised surface, not
+                  a dusting of noise. surfaceScale is what makes a suede hide
+                  softer than a hard-grain black one. */}
+              {/* colorInterpolationFilters is sRGB, not the linearRGB an SVG
+                  filter defaults to. In linear space the multiply below runs on
+                  gamma-decoded values and is converted back, and near black
+                  that curve is steep enough to pull a three-point channel
+                  difference into a visible cast — the midnight hide (#2A2827:
+                  R42 G40 B39) came out with a brown cloud across the lower half
+                  of the wallet. */}
+              <filter
+                id={grainId}
+                x="0"
+                y="0"
+                width="100%"
+                height="100%"
+                colorInterpolationFilters="sRGB"
+              >
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.12"
+                  numOctaves="4"
+                  seed="9"
+                  result="n"
+                />
+                <feDiffuseLighting
+                  in="n"
+                  lightingColor="#FFFFFF"
+                  surfaceScale={1.9 * hide.grain}
+                  diffuseConstant="1"
+                  result="lit"
+                >
+                  <feDistantLight azimuth="228" elevation="58" />
+                </feDiffuseLighting>
+                <feComposite
+                  in="lit"
+                  in2="SourceGraphic"
+                  operator="arithmetic"
+                  k1="1"
+                  k2="0"
+                  k3="0"
+                  k4="0"
+                />
               </filter>
             </defs>
 
-            <rect x="4" y="2" width="412" height="214" rx="16" fill={`url(#${gradOuter})`} />
-            <rect x="4" y="2" width="412" height="214" rx="16" filter={`url(#${grainId})`} />
-            <rect x="4" y="2" width="412" height="214" rx="16" fill={`url(#${gradSheen})`} />
+            {/* The hide, then the same shape lit into grain, then the sheen */}
+            <rect x="4" y="2" width="412" height="214" rx="18" fill={`url(#${gradOuter})`} />
             <rect
               x="4"
               y="2"
               width="412"
               height="214"
-              rx="16"
+              rx="18"
+              fill={`url(#${gradOuter})`}
+              filter={`url(#${grainId})`}
+            />
+            <rect x="4" y="2" width="412" height="214" rx="18" fill={`url(#${gradSheen})`} />
+            <rect x="4" y="2" width="412" height="214" rx="18" fill={`url(#${vignetteId})`} />
+
+            {/* Burnished edge. On a real wallet the cut edge is sanded, waxed
+                and rubbed until it is darker and glossier than the face — it is
+                the single detail that separates a finished piece from a cut
+                rectangle, so it gets three strokes: the dark burnish, a waxed
+                highlight just inside it, and the crisp outline. */}
+            <rect
+              x="4"
+              y="2"
+              width="412"
+              height="214"
+              rx="18"
               fill="none"
               stroke={hide.edge}
-              strokeWidth="3"
+              strokeWidth="6"
+            />
+            <rect
+              x="8"
+              y="6"
+              width="404"
+              height="206"
+              rx="15"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeOpacity={0.06 + hide.sheen * 0.08}
+              strokeWidth="1"
+            />
+            <rect
+              x="4"
+              y="2"
+              width="412"
+              height="214"
+              rx="18"
+              fill="none"
+              stroke="#000000"
+              strokeOpacity="0.5"
+              strokeWidth="1.2"
             />
 
             {/* The lit top edge. A folded piece of leather catches light along
@@ -295,33 +429,64 @@ export default function LeatherWallet({
                 rectangle sitting on another rounded rectangle — which is what
                 kept making this read as a card. */}
             <path
-              d="M4 18 A14 14 0 0 1 18 4 H402 A14 14 0 0 1 416 18"
+              d="M4 20 A16 16 0 0 1 20 4 H400 A16 16 0 0 1 416 20"
               fill="none"
               stroke="#FFFFFF"
-              strokeOpacity={0.1 + hide.sheen * 0.16}
+              strokeOpacity={0.12 + hide.sheen * 0.18}
               strokeWidth="2"
               strokeLinecap="round"
             />
 
-            {/* Saddle stitch, inset the way a real one is */}
-            <rect
-              x="16"
-              y="14"
-              width="388"
-              height="190"
-              rx="11"
-              fill="none"
-              stroke={thread}
-              strokeWidth="1.7"
-              strokeDasharray="6 6"
-              strokeLinecap="round"
-              opacity="0.8"
-            />
+            {/* Saddle stitch, inset the way a real one is. Two passes: the dark
+                one is the recessed hole the thread sits in, the light one the
+                waxed thread itself, offset a whisker so the stitches read as
+                slanted rather than as a dashed line. A saddle stitch is sewn
+                with two needles and it shows. */}
+            <g strokeDasharray="5 5.5" strokeLinecap="round">
+              <rect
+                x="18"
+                y="16"
+                width="384"
+                height="186"
+                rx="12"
+                fill="none"
+                stroke="#000000"
+                strokeOpacity="0.45"
+                strokeWidth="3.4"
+              />
+              <rect
+                x="18"
+                y="15.2"
+                width="384"
+                height="186"
+                rx="12"
+                fill="none"
+                stroke={thread}
+                strokeWidth="2.1"
+                opacity="0.92"
+              />
+            </g>
 
-            {/* Metal nameplate, lower right */}
+            {/* Metal nameplate, lower right, sunk into the leather */}
             <g transform="translate(244 150)">
+              <rect
+                x="-1.5"
+                y="-1.5"
+                width="155"
+                height="43"
+                rx="6"
+                fill="#000000"
+                opacity="0.4"
+              />
               <rect width="152" height="40" rx="5" fill={`url(#${gradMetal})`} />
-              <rect width="152" height="40" rx="5" fill="none" stroke={plate.rim} strokeWidth="1" />
+              <rect
+                width="152"
+                height="40"
+                rx="5"
+                fill="none"
+                stroke={plate.rim}
+                strokeWidth="1.2"
+              />
               <text
                 x="76"
                 y="25.5"
@@ -335,17 +500,17 @@ export default function LeatherWallet({
               </text>
             </g>
 
-            {/* Blind-embossed mark, lower left */}
-            <text
-              x="32"
-              y="182"
-              fontFamily="ui-monospace, monospace"
-              fontSize="11"
-              letterSpacing="2.6"
-              fill={hide.inkSoft}
-            >
-              LAWFIC
-            </text>
+            {/* Blind-embossed mark, lower left. Blind means no ink: the mark is
+                pressed into the hide, so it is drawn as a shadow with a
+                highlight a hair below rather than as coloured text. */}
+            <g fontFamily="ui-monospace, monospace" fontSize="11" letterSpacing="2.6">
+              <text x="32" y="182" fill="#000000" opacity="0.45">
+                LAWFIC
+              </text>
+              <text x="32" y="183" fill="#FFFFFF" opacity={0.07 + hide.sheen * 0.08}>
+                LAWFIC
+              </text>
+            </g>
           </svg>
         </motion.div>
 

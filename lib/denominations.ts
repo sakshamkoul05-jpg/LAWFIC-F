@@ -1,48 +1,101 @@
 /**
  * Indian denominations, and how an amount breaks into notes.
  *
- * WHAT MAY BE DRAWN, AND WHAT MAY NOT
+ * WHAT IS COPIED FROM THE REAL NOTE, AND WHAT IS NOT
  *
- * These are stylised slips: a colour and a numeral. They are deliberately not
- * facsimiles, and that line is drawn well back from where the law sits.
+ * Everything here is drawn to the Mahatma Gandhi New Series: the official
+ * colour of each denomination and its real milled size, down to the millimetre.
+ * Those sizes are not decoration. Indian notes step in length by denomination —
+ * a ₹500 is 150mm, a ₹10 is 123mm — and they step in height too, 66mm above
+ * ₹50 and 63mm below it. A stack drawn at one ratio for everything is the
+ * single most obvious tell that the money is fake, so the sizes are modelled
+ * and `Banknote` derives its geometry from them.
  *
- * Every Indian banknote carries the Ashoka Lion Capital, which is protected by
- * the Emblems and Names (Prevention of Improper Use) Act 1950 — the same Act
- * already governing the document specimens on this site. Separately, IPC
- * sections 489A–489E criminalise counterfeiting and the making of materials
- * for it. There is no RBI rule expressly permitting decorative reproduction,
- * which is exactly why this errs well inside the safe margin.
+ * What is NOT drawn, and must never be:
  *
- * So a note here carries a denomination colour and its numeral. Never the
- * emblem, a portrait, a serial number, a security thread, microtext, the
- * Devanagari denomination panel, the RBI seal, or the Swachh Bharat logo.
- * `denominations.test.ts` holds the colour-and-numeral rule; the rest is a
- * matter of not drawing them, and the note component draws nothing else.
+ *   - the Ashoka Lion Capital. Protected by the Emblems and Names (Prevention
+ *     of Improper Use) Act 1950 — the same Act already governing the document
+ *     specimens on this site — and protected regardless of context or intent;
+ *   - the portrait of Mahatma Gandhi;
+ *   - the Reserve Bank of India's name, seal, legend, guarantee clause or the
+ *     Governor's signature;
+ *   - a serial number in the real format, microtext, or the security-thread
+ *     lettering.
  *
- * The colours approximate the Mahatma Gandhi New Series closely enough that a
- * ₹500 slip reads as ₹500 at a glance, which is the entire point of the
- * animation.
+ * IPC 489A–489E criminalise counterfeiting and the making of materials for it,
+ * and there is no RBI rule expressly permitting decorative reproduction. The
+ * line drawn is therefore: everything that makes a note *recognisable* — its
+ * colour, its size, its denomination panels in both scripts, the guilloché,
+ * the bleed lines — and nothing that makes it *authentic*. The result reads as
+ * a ₹500 at a glance in a wallet, which is the entire point, and cannot be
+ * mistaken for one in the hand.
+ *
+ * `denominations.test.ts` holds that line as an allowlist of fields.
  */
 
 export type Denomination = {
   value: number;
-  /** Face colour of the slip. */
+  /** Real note length in mm, per RBI. Drives the drawn aspect ratio. */
+  widthMm: number;
+  /** Real note height in mm. 66 down to ₹50, 63 below it. */
+  heightMm: number;
+  /** Face colour, from the official description for the series. */
   paper: string;
-  /** A second tone, so a slip is not a flat rectangle. */
+  /** A second tone for the guilloché and the border. */
   paperEdge: string;
-  /** The numeral, dark enough to read on the paper. */
+  /** The numerals, dark enough to read on the paper. */
   ink: string;
+  /**
+   * Raised angular bars on the right edge, by which someone who cannot see the
+   * note tells one denomination from another. ₹500 carries five, ₹200 four,
+   * ₹100 four; ₹50 and below carry none. A real functional feature, and the
+   * kind of correct detail that sells the rest.
+   */
+  bleedLines: number;
 };
 
 /** Highest first — `breakdown` depends on this ordering. */
 export const DENOMINATIONS: Denomination[] = [
-  { value: 500, paper: "#D5CDB6", paperEdge: "#A2966F", ink: "#33301E" },
-  { value: 200, paper: "#EEBC50", paperEdge: "#D69F2F", ink: "#4A3608" },
-  { value: 100, paper: "#BCA7CE", paperEdge: "#A08BB4", ink: "#3B2B47" },
-  { value: 50, paper: "#84BBDA", paperEdge: "#659CBC", ink: "#1E3B4D" },
-  { value: 20, paper: "#C9C660", paperEdge: "#ADA943", ink: "#3D3B0E" },
-  { value: 10, paper: "#BE9470", paperEdge: "#A17953", ink: "#402A16" },
+  // Stone grey
+  { value: 500, widthMm: 150, heightMm: 66, paper: "#C9C3B0", paperEdge: "#8B8676", ink: "#33301E", bleedLines: 5 },
+  // Bright yellow
+  { value: 200, widthMm: 146, heightMm: 66, paper: "#F0C04B", paperEdge: "#C2932A", ink: "#4A3608", bleedLines: 4 },
+  // Lavender
+  { value: 100, widthMm: 142, heightMm: 66, paper: "#C4B0D4", paperEdge: "#9880AE", ink: "#3B2B47", bleedLines: 4 },
+  // Fluorescent blue
+  { value: 50, widthMm: 135, heightMm: 66, paper: "#8FC3DD", paperEdge: "#5E97B8", ink: "#1B3A4B", bleedLines: 0 },
+  // Greenish yellow
+  { value: 20, widthMm: 129, heightMm: 63, paper: "#CFD05F", paperEdge: "#A3A53C", ink: "#3A3B0E", bleedLines: 0 },
+  // Chocolate brown
+  { value: 10, widthMm: 123, heightMm: 63, paper: "#C1926A", paperEdge: "#96684A", ink: "#3E2A18", bleedLines: 0 },
 ];
+
+/** Devanagari numerals, for the denomination panel a real note carries. */
+const DEVANAGARI = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+
+/** 500 -> "५००". Digits only: a number in another script is still a number. */
+export function devanagari(value: number): string {
+  return String(value)
+    .split("")
+    .map((c) => DEVANAGARI[Number(c)] ?? c)
+    .join("");
+}
+
+/** The largest note in circulation, used to scale the others against it. */
+export const LARGEST_MM = 150;
+
+/**
+ * A note's width as a percentage of a ₹500's, for laying a stack out in CSS.
+ *
+ * A stack is positioned against the biggest note it can hold, and every other
+ * denomination is drawn shorter by exactly the millimetres it really is —
+ * which is what makes a mixed stack look like cash rather than like one note
+ * drawn several times.
+ */
+export function widthPct(value: number): number {
+  const d = getDenomination(value);
+  return d ? (d.widthMm / LARGEST_MM) * 100 : 100;
+}
 
 export type NoteRun = { value: number; count: number };
 

@@ -7,6 +7,7 @@ import {
   animationPlan,
   describeBreakdown,
   MAX_ANIMATED_NOTES,
+  devanagari,
 } from "./denominations.ts";
 
 /**
@@ -77,20 +78,54 @@ test("denominations are the ones actually in circulation, largest first", () => 
   );
 });
 
-test("every denomination carries only a colour and readable ink", () => {
-  /* The no-facsimile rule, held here so a future edit cannot quietly add a
-     portrait or an emblem field to the note model. A note is paper, an edge
-     tone and ink — nothing else. */
+test("a denomination carries nothing that would make it a facsimile", () => {
+  /* The no-facsimile rule, held as an allowlist so a future edit cannot quietly
+     add a portrait, an emblem or a serial to the note model. Colour, real size,
+     ink and the bleed-line count are what a note is allowed to know about
+     itself. See the header of denominations.ts for why the line sits here. */
+  const ALLOWED = ["bleedLines", "heightMm", "ink", "paper", "paperEdge", "value", "widthMm"];
   for (const d of DENOMINATIONS) {
     assert.deepEqual(
       Object.keys(d).sort(),
-      ["ink", "paper", "paperEdge", "value"],
-      `₹${d.value} has fields beyond colour and value`,
+      ALLOWED,
+      `₹${d.value} has fields beyond colour, size and ink`,
     );
     for (const key of ["paper", "paperEdge", "ink"] as const) {
       assert.match(d[key], /^#[0-9A-Fa-f]{6}$/, `₹${d.value}.${key} is not a plain colour`);
     }
   }
+});
+
+test("notes are drawn at the sizes the RBI actually mills them", () => {
+  /* Indian notes step in length by denomination and in height at ₹50. Drawing
+     every note at one ratio was the loudest tell that the money was invented,
+     so these are checked rather than left to drift. */
+  const REAL: Record<number, [number, number]> = {
+    500: [150, 66],
+    200: [146, 66],
+    100: [142, 66],
+    50: [135, 66],
+    20: [129, 63],
+    10: [123, 63],
+  };
+  for (const d of DENOMINATIONS) {
+    assert.deepEqual([d.widthMm, d.heightMm], REAL[d.value], `₹${d.value} is the wrong size`);
+  }
+
+  // Bigger denomination, bigger note — true of the whole series.
+  const byValue = [...DENOMINATIONS].sort((a, b) => a.value - b.value);
+  for (let i = 1; i < byValue.length; i++) {
+    assert.ok(
+      byValue[i].widthMm > byValue[i - 1].widthMm,
+      `₹${byValue[i].value} is not longer than ₹${byValue[i - 1].value}`,
+    );
+  }
+});
+
+test("denominations render their numerals in Devanagari", () => {
+  assert.equal(devanagari(500), "५००");
+  assert.equal(devanagari(200), "२००");
+  assert.equal(devanagari(10), "१०");
 });
 
 test("the summary reads the way a person would say it", () => {
