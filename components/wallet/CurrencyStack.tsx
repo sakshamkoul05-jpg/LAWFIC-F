@@ -91,7 +91,11 @@ export default function CurrencyStack({
                     }
               }
             >
-              <Banknote value={value} className="block h-auto w-full" />
+              <Banknote
+                value={value}
+                className="block h-auto w-full"
+                style={{ filter: "drop-shadow(0 0.25cqw 0.35cqw rgba(0,0,0,0.5))" }}
+              />
             </motion.div>
           );
         })}

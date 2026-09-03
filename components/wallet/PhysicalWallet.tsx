@@ -2,42 +2,61 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import { getHide, getPlate, threadColour } from "@/lib/wallet-leather";
+import { getHide, getPlate } from "@/lib/wallet-leather";
 import type { HideId, PlateId, ThreadId } from "@/lib/wallet-leather";
 import { restingStack } from "@/lib/denominations";
 import { useObserverBroken } from "@/lib/use-in-view-safe";
-import LeatherPanel from "./leather/LeatherPanel";
+import WalletLeaf from "./leather/WalletLeaf";
 import CurrencyStack from "./CurrencyStack";
-import CardSlots from "./leather/CardSlots";
 
 /**
- * A bifold wallet that actually opens.
+ * A bifold wallet, built as an object.
  *
- * HOW IT IS PUT TOGETHER
+ * WHAT THE PREVIOUS VERSION GOT WRONG, SO IT IS NOT REPEATED
  *
- * Two panels sharing a spine down the middle. The left panel is fixed. The
- * right panel hinges on the spine — `transform-origin` at its left edge — and
- * carries two faces: the lining, seen when the wallet is open, and the outside
- * of the wallet on its back, seen when it is shut. Closing is that panel
- * rotating a half turn onto the left one, which is what a bifold physically is.
+ * It was a rectangle of leather seen dead on. It had grain, stitching, a
+ * burnished edge and a contact shadow, and it still read as a card — because a
+ * flat rectangle seen dead on is exactly what a card is. Texture was never the
+ * missing thing. Two things were:
  *
- * Three things about the construction that are easy to undo by accident:
+ *   THICKNESS. A wallet is fifteen millimetres of folded hide and paper. That
+ *   is invisible from straight ahead, so the halves are slabs with real edge
+ *   surfaces (see WalletLeaf) rather than planes.
  *
- *   - DOM order is left panel, then notes, then the hinged panel. Coplanar
- *     elements in a `preserve-3d` context sort by document order, so this is
- *     what puts the closed flap over the money and the open money over the
- *     lining. Reordering these hides the cash or paints it through the leather.
+ *   A CAMERA. Everything here is turned about twenty degrees off axis and
+ *   tipped forward, because you cannot see an edge you are looking straight at.
+ *   The angle is what makes the thickness do any work at all.
  *
- *   - the zoom and the recentring are separate nested elements. Shut, the
- *     wallet occupies the left half of its own box, so it has to shift right by
- *     a quarter of that box to sit in the middle of the frame. Doing both on
- *     one element makes the shift a function of the scale, and the wallet
- *     drifts as it opens.
+ * HOW IT IS ASSEMBLED
  *
- *   - the whole thing is laid out in percentages. The wallet is the hero of the
- *     page at every width, so it is one object that scales rather than a
- *     desktop version and a mobile version.
+ * The right half is fixed and holds the money. The left half hinges on the
+ * spine between them and folds a half turn onto the right one to shut — which
+ * is what a bifold physically is. Shut, you are looking at the OUTSIDE of the
+ * folding half, so that is a real back surface on that slab rather than a
+ * second copy of its front. The rounded spine stands proud on one side and the
+ * parted, layered edge faces the camera on the other, and that layered edge
+ * carries a band of banknote paper through the middle of it. That band is why a
+ * shut wallet looks like it has money in it.
+ *
+ * There are no card slots. This holds a prepaid balance for filings, and
+ * drawing card pockets into it would be furniture for a product that does not
+ * exist.
+ *
+ * UNITS
+ *
+ * Container query units throughout, never percentages. 3D needs real lengths —
+ * `translateZ(50%)` means nothing — and `cqw` is a real length that still
+ * scales with its container, so this is one object that resizes rather than a
+ * desktop build and a mobile build. The scene sets `container-type`.
  */
+
+/* Geometry, in cqw. A closed bifold is about 11.5 x 9.5cm, so a half is roughly
+   1.2:1, and it runs about 7mm thick per half against 115mm of width. */
+const PANEL_W = 40;
+const PANEL_H = 33;
+const DEPTH = 2.4;
+const SPINE_X = 50;
+const PANEL_TOP = 15;
 
 export type PhysicalWalletProps = {
   hide: HideId;
@@ -65,287 +84,267 @@ export default function PhysicalWallet({
   className = "",
 }: PhysicalWalletProps) {
   const reduced = useReducedMotion();
-  /* Uncontrolled by default, so a preview or a customiser can drop the wallet
-     in without wiring state it does not otherwise need. */
-  const [selfOpen, setSelfOpen] = useState(false);
-  const open = openProp ?? selfOpen;
-  const toggle = onToggle ?? (() => setSelfOpen((o) => !o));
   const degraded = useObserverBroken();
   const still = Boolean(reduced) || degraded;
 
+  const [selfOpen, setSelfOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const open = openProp ?? selfOpen;
+  const toggle = onToggle ?? (() => setSelfOpen((o) => !o));
+
   const hide = getHide(hideId) ?? getHide("midnight")!;
   const plate = getPlate(plateId) ?? getPlate("brass")!;
-  const stitch = threadColour(hide, thread);
+  const notes = restingStack(balancePaise, 5);
 
-  const notes = restingStack(balancePaise, 6);
-
-  /* The two faces of the hinged panel cross over halfway through the turn,
-     where the panel is edge-on and neither is really visible. This is done with
-     opacity rather than `backface-visibility` on purpose: backface culling is
-     evaluated against an element's accumulated 3D transform, which is exactly
-     the kind of thing that behaves differently once a parent is also rotating,
-     and when it goes wrong the wallet has no outside at all. Opacity is
-     deterministic everywhere.
-
-     `backface-visibility` is deliberately NOT also set. Belt and braces here
-     turned out to be belt and noose: with it on, the outside of the wallet was
-     culled even though its accumulated transform faces the viewer, and the shut
-     wallet showed its own lining. Opacity alone.
-
-     Both faces are pushed +5px along their own normal, not -5px. The flap is
-     itself turned a half turn when shut, which negates the sign: a face nudged
-     "back" by 5px resolves to 5px in FRONT of the fixed panel in world space,
-     and the shut wallet showed its lining through its own outside. */
-  const faceSwap = still ? { duration: 0 } : { duration: 0.01, delay: 0.22 };
-
-  /* Spring for the leather. Slightly underdamped so the flap arrives with a
-     little weight in it rather than easing to a stop like a slide. */
-  const leatherSpring = still
+  /* Leather is heavy and a hinge is stiff. Underdamped enough to arrive with
+     some weight in it, slow enough to read as a hand opening something. */
+  const leather = still
     ? { duration: 0 }
-    : { type: "spring" as const, stiffness: 90, damping: 16, mass: 1.1 };
+    : { type: "spring" as const, stiffness: 78, damping: 15, mass: 1.15 };
+
+  /* Shut, the pair sits on the right of its own box, so the assembly shifts
+     left to centre. Kept off the camera element: combining the translate with
+     the rotation makes the wallet swing rather than slide. */
+  const shift = open ? 0 : -PANEL_W / 2;
 
   return (
-    <div className={`relative mx-auto w-full max-w-[560px] ${className}`}>
+    <div className={`relative mx-auto w-full max-w-[600px] ${className}`}>
       <button
         type="button"
         onClick={toggle}
+        onPointerEnter={() => setHover(true)}
+        onPointerLeave={() => setHover(false)}
         aria-expanded={open}
         aria-label={open ? "Close your wallet" : "Open your wallet"}
-        className="block w-full cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-        style={{ perspective: 2000 }}
+        className="block w-full cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
       >
-        <div className="relative w-full" style={{ aspectRatio: "630 / 390" }}>
-          {/* Contact shadow. Separate from the wallet so it can spread and
-              soften as the object lifts, which is most of what tells you the
-              wallet came off the surface. */}
+        <div
+          className="relative w-full"
+          style={{
+            containerType: "inline-size",
+            aspectRatio: "100 / 62",
+            perspective: "150cqw",
+            perspectiveOrigin: "50% 42%",
+          }}
+        >
+          {/* Contact shadow. It belongs to the floor, not to the wallet, so it
+              can spread and soften as the object lifts — which is most of what
+              tells you it came off the surface. */}
           <motion.div
-            className="absolute left-1/2 -translate-x-1/2 rounded-[50%]"
-            style={{ bottom: "2%", background: "rgba(0,0,0,0.55)" }}
+            className="absolute left-1/2 rounded-[50%]"
+            style={{ bottom: "6cqw", background: "rgba(0,0,0,0.6)", x: "-50%" }}
             initial={false}
             animate={{
-              width: open ? "78%" : "44%",
-              height: open ? "9%" : "7%",
-              filter: open ? "blur(22px)" : "blur(14px)",
-              opacity: open ? 0.5 : 0.7,
+              width: open ? "76cqw" : "42cqw",
+              height: open ? "7cqw" : "6cqw",
+              filter: hover && !open ? "blur(3.2cqw)" : "blur(2.2cqw)",
+              opacity: open ? 0.5 : hover ? 0.45 : 0.72,
             }}
-            transition={leatherSpring}
+            transition={leather}
           />
 
-          {/* Zoom. Shut, the wallet is half the width of its own box, so it is
-              magnified to stay the hero; opening pulls back to fit both panels. */}
+          {/* THE CAMERA. Off axis and tipped forward — an edge you look
+              straight at is an edge you cannot see, and everything below
+              depends on this one transform. */}
           <motion.div
             className="absolute inset-0"
-            initial={false}
-            animate={{ scale: open ? 1 : 1.24, y: open ? 0 : "-3%" }}
-            transition={leatherSpring}
             style={{ transformStyle: "preserve-3d" }}
+            initial={false}
+            animate={{
+              rotateX: open ? 26 : 17,
+              rotateY: open ? 6 : 21,
+              rotateZ: open ? 0 : -1.5,
+              y: hover && !open ? "-1.6cqw" : "0cqw",
+            }}
+            transition={leather}
           >
-            {/* Recentring, on its own element — see the note at the top. */}
             <motion.div
               className="absolute inset-0"
-              initial={false}
-              animate={{ x: open ? "0%" : "25%" }}
-              transition={leatherSpring}
               style={{ transformStyle: "preserve-3d" }}
+              initial={false}
+              animate={{ x: `${shift}cqw`, scale: open ? 1 : 1.12 }}
+              transition={leather}
             >
-              {/* A little tilt, so it is an object on a surface and not a
-                  diagram of one. */}
-              <motion.div
-                className="absolute inset-0"
-                initial={false}
-                animate={{ rotateX: open ? 8 : 4 }}
-                transition={leatherSpring}
-                style={{ transformStyle: "preserve-3d" }}
+              {/* THE FIXED HALF — the back of the wallet, and the half the
+                  money sits in. */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${SPINE_X}cqw`,
+                  top: `${PANEL_TOP}cqw`,
+                  transformStyle: "preserve-3d",
+                }}
               >
-                {/* Thickness: leather has layers, and a single rectangle has
-                    none. Two offset slabs behind the panels read as the lining
-                    and the outer skin stacked. */}
-                {[5, 2.5].map((off, i) => (
+                <WalletLeaf
+                  hide={hide}
+                  thread={thread}
+                  openEdge="right"
+                  face="lining"
+                  w={PANEL_W}
+                  h={PANEL_H}
+                  depth={DEPTH}
+                  holdsNotes
+                  seed={7}
+                >
+                  {/* The bill compartment: a seam across the panel with the
+                      money behind it. The only pocket in the wallet. */}
                   <div
-                    key={off}
-                    className="absolute bottom-[9%] h-[74%] rounded-[4%]"
+                    className="pointer-events-none absolute inset-x-[6%] bottom-[6%] top-[36%] rounded-[4px]"
                     style={{
-                      left: `${-off * 0.25}%`,
-                      width: open ? `${100 + off * 0.5}%` : `${50 + off * 0.5}%`,
-                      transform: `translateY(${off * 0.55}%)`,
-                      background: i === 0 ? hide.edge : hide.outer[2],
-                      opacity: 0.9,
+                      background: `linear-gradient(180deg, ${hide.liningDeep} 0%, ${hide.lining} 55%)`,
+                      boxShadow: `0 -0.5cqw 1.2cqw rgba(0,0,0,0.55), inset 0 1px 0 ${hide.edgeHi}55`,
                     }}
                   />
-                ))}
+                </WalletLeaf>
+              </div>
 
-                {/* LEFT PANEL — the lining, fixed. */}
-                <div className="absolute bottom-[9%] left-0 h-[74%] w-1/2">
-                  <LeatherPanel
-                    hide={hide}
-                    thread={thread}
-                    w={315}
-                    h={260}
-                    radius={14}
-                    face="lining"
-                    seed={7}
-                    className="absolute inset-0 h-full w-full"
-                  />
-                  {/* THE MONEY, in the bill compartment: after the lining and
-                      BEFORE the card slots, because in a real bifold the notes
-                      sit behind the leaves rather than on top of them. Indian
-                      notes are folded in half to fit — a Rs 500 is 150mm and a
-                      bifold is about 115mm — which is why they occupy one half
-                      of the wallet rather than spanning the spine.
+              {/* THE MONEY. Tucked into the compartment on the FIXED half, so
+                  it stays where it is while the other half swings. Money does
+                  not travel with the flap. */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${SPINE_X}cqw`,
+                  top: `${PANEL_TOP}cqw`,
+                  width: `${PANEL_W}cqw`,
+                  height: `${PANEL_H}cqw`,
+                  transform: `translateZ(${-DEPTH * 0.45}cqw)`,
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                <CurrencyStack
+                  notes={notes}
+                  landing={landing}
+                  open={open}
+                  still={still}
+                  className="bottom-[57%] left-[7%] w-[86%]"
+                />
+              </div>
 
-                      The whole panel is covered by the flap when the wallet is
-                      shut, so what you see then is the inch of note that clears
-                      the top edge. That is the only thing telling you there is
-                      money in it, so do not let it drop below the leather. */}
-                  <CurrencyStack
-                    notes={notes}
-                    landing={landing}
-                    open={open}
-                    still={still}
-                    className="bottom-[72%] left-[8%] w-[76%]"
-                  />
-                  <CardSlots hide={hide} />
-                </div>
-
-                {/* RIGHT PANEL — hinged on the spine. */}
-                <motion.div
-                  className="absolute bottom-[9%] left-1/2 h-[74%] w-1/2"
-                  style={{ transformStyle: "preserve-3d", transformOrigin: "0% 50%" }}
-                  initial={false}
-                  animate={{ rotateY: open ? 0 : -180 }}
-                  transition={leatherSpring}
-                >
-                  {/* Inner face: the lining, seen when open. */}
-                  <motion.div
-                    className="absolute inset-0"
-                    style={{ transform: "translateZ(5px)" }}
-                    initial={false}
-                    animate={{ opacity: open ? 1 : 0 }}
-                    transition={faceSwap}
-                  >
-                    <LeatherPanel
-                      hide={hide}
-                      thread={thread}
-                      w={315}
-                      h={260}
-                      radius={14}
-                      face="lining"
-                      seed={11}
-                      className="absolute inset-0 h-full w-full"
+              {/* THE FOLDING HALF, hinged on the spine at its right border. */}
+              <motion.div
+                style={{
+                  position: "absolute",
+                  left: `${SPINE_X - PANEL_W}cqw`,
+                  top: `${PANEL_TOP}cqw`,
+                  width: `${PANEL_W}cqw`,
+                  height: `${PANEL_H}cqw`,
+                  transformStyle: "preserve-3d",
+                  transformOrigin: "100% 50%",
+                }}
+                initial={false}
+                animate={{ rotateY: open ? 0 : 180 }}
+                transition={leather}
+              >
+                <WalletLeaf
+                  hide={hide}
+                  thread={thread}
+                  openEdge="left"
+                  face="lining"
+                  backFace="outer"
+                  w={PANEL_W}
+                  h={PANEL_H}
+                  depth={DEPTH}
+                  seed={11}
+                  children={
+                    <div
+                      className="pointer-events-none absolute inset-x-[9%] top-[46%] h-px"
+                      style={{
+                        background: `linear-gradient(90deg, transparent, ${hide.edgeHi}55 15%, ${hide.edgeHi}55 85%, transparent)`,
+                        boxShadow: `0 1px 0 rgba(0,0,0,0.5)`,
+                      }}
                     />
-                    <CardSlots hide={hide} />
-                  </motion.div>
-
-                  {/* Outer face: the wallet as you see it shut. */}
-                  <motion.div
-                    className="absolute inset-0"
-                    style={{ transform: "rotateY(180deg) translateZ(5px)" }}
-                    initial={false}
-                    animate={{ opacity: open ? 0 : 1 }}
-                    transition={faceSwap}
-                  >
-                    <LeatherPanel
-                      hide={hide}
-                      thread={thread}
-                      w={315}
-                      h={260}
-                      radius={14}
-                      face="outer"
-                      seed={3}
-                      className="absolute inset-0 h-full w-full"
-                    >
+                  }
+                  backChildren={
+                    <>
                       {/* Metal nameplate, sunk into the hide */}
-                      <g transform="translate(150 176)">
-                        <rect
-                          x="-1.5"
-                          y="-1.5"
-                          width="153"
-                          height="41"
-                          rx="6"
-                          fill="#000"
-                          opacity="0.45"
-                        />
-                        <defs>
-                          <linearGradient id={`np-${hide.id}-${plate.id}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor={plate.face[0]} />
-                            <stop offset="48%" stopColor={plate.face[1]} />
-                            <stop offset="100%" stopColor={plate.face[2]} />
-                          </linearGradient>
-                        </defs>
-                        <rect
-                          width="150"
-                          height="38"
-                          rx="5"
-                          fill={`url(#np-${hide.id}-${plate.id})`}
-                        />
-                        <rect
-                          width="150"
-                          height="38"
-                          rx="5"
-                          fill="none"
-                          stroke={plate.rim}
-                          strokeWidth="1.2"
-                        />
-                        <text
-                          x="75"
-                          y="24.5"
-                          textAnchor="middle"
-                          fontFamily="ui-monospace, monospace"
-                          fontSize={nameplate.length > 14 ? 10 : 12}
-                          letterSpacing="1.6"
-                          fill={plate.letter}
+                      <div
+                        className="absolute rounded-[3px]"
+                        style={{
+                          right: "8%",
+                          bottom: "13%",
+                          width: "44%",
+                          height: "13%",
+                          background: `linear-gradient(135deg, ${plate.face[0]}, ${plate.face[1]} 48%, ${plate.face[2]})`,
+                          border: `1px solid ${plate.rim}`,
+                          boxShadow: "0 0.3cqw 0.7cqw rgba(0,0,0,0.5)",
+                          display: "grid",
+                          placeItems: "center",
+                        }}
+                      >
+                        <span
+                          className="font-mono"
+                          style={{
+                            color: plate.letter,
+                            fontSize: "1.5cqw",
+                            letterSpacing: "0.18em",
+                            whiteSpace: "nowrap",
+                          }}
                         >
                           {nameplate || "LAWFIC"}
-                        </text>
-                      </g>
+                        </span>
+                      </div>
 
                       {/* Blind emboss: no ink, so it is a shadow with a
                           highlight under it rather than coloured text. */}
-                      <g fontFamily="ui-monospace, monospace" fontSize="12" letterSpacing="3">
-                        <text x="30" y="222" fill="#000" opacity="0.5">
-                          LAWFIC
-                        </text>
-                        <text x="30" y="223" fill="#FFF" opacity="0.09">
-                          LAWFIC
-                        </text>
-                      </g>
-                    </LeatherPanel>
-                  </motion.div>
-                </motion.div>
-
-                {/* The spine, drawn last so it sits over the seam. Only when
-                    open — shut, it is the folded edge on the left. */}
-                <motion.div
-                  className="pointer-events-none absolute bottom-[9%] left-1/2 h-[74%] w-[5.5%] -translate-x-1/2"
-                  initial={false}
-                  animate={{ opacity: open ? 1 : 0 }}
-                  transition={{ duration: still ? 0 : 0.35 }}
-                  style={{
-                    /* A fold, not a gap. The crease is darkest at its floor
-                       with a lit lip either side, which is what joins the two
-                       panels into one object instead of two cards side by
-                       side. */
-                    background: `linear-gradient(90deg, ${hide.edgeHi}22 0%, ${hide.liningDeep} 22%, #000 50%, ${hide.liningDeep} 78%, ${hide.edgeHi}22 100%)`,
-                    boxShadow: "0 0 14px 4px rgba(0,0,0,0.55)",
-                  }}
+                      <span
+                        className="absolute font-mono"
+                        style={{
+                          left: "9%",
+                          bottom: "15%",
+                          fontSize: "1.5cqw",
+                          letterSpacing: "0.3em",
+                          color: "transparent",
+                          textShadow:
+                            "0 1px 0 rgba(255,255,255,0.1), 0 -1px 1px rgba(0,0,0,0.65)",
+                        }}
+                      >
+                        LAWFIC
+                      </span>
+                    </>
+                  }
                 />
               </motion.div>
+
+              {/* THE FOLD. Shut, it is the rounded spine standing proud of the
+                  two halves; open, it is the crease they hinge on. One is a
+                  surface and the other is a valley, so they are two elements
+                  rather than one trying to be both. */}
+              <motion.div
+                style={{
+                  position: "absolute",
+                  left: `${SPINE_X}cqw`,
+                  top: `${PANEL_TOP}cqw`,
+                  width: `${DEPTH * 2}cqw`,
+                  height: `${PANEL_H}cqw`,
+                  transformOrigin: "0% 50%",
+                  transform: `rotateY(90deg) translateZ(${DEPTH}cqw)`,
+                  background: `linear-gradient(90deg, ${hide.outer[2]}, ${hide.edgeHi} 42%, ${hide.outer[1]} 62%, ${hide.outer[2]})`,
+                  borderRadius: `${DEPTH}cqw`,
+                }}
+                initial={false}
+                animate={{ opacity: open ? 0 : 1 }}
+                transition={{ duration: still ? 0 : 0.25 }}
+              />
+              <motion.div
+                style={{
+                  position: "absolute",
+                  left: `${SPINE_X}cqw`,
+                  top: `${PANEL_TOP}cqw`,
+                  width: `${DEPTH * 1.6}cqw`,
+                  height: `${PANEL_H}cqw`,
+                  transform: "translateX(-50%) translateZ(0.05cqw)",
+                  background: `linear-gradient(90deg, ${hide.edgeHi}33, ${hide.liningDeep} 30%, #000 50%, ${hide.liningDeep} 70%, ${hide.edgeHi}33)`,
+                  boxShadow: "0 0 1.4cqw 0.4cqw rgba(0,0,0,0.6)",
+                }}
+                initial={false}
+                animate={{ opacity: open ? 1 : 0 }}
+                transition={{ duration: still ? 0 : 0.35 }}
+              />
             </motion.div>
           </motion.div>
         </div>
       </button>
-
-      {/* The affordance. A wallet that opens has to say so once, and then stop
-          saying it. */}
-      <motion.p
-        className="mt-1 text-center font-mono text-[10.5px] uppercase tracking-[0.22em]"
-        style={{ color: "var(--wallet-fg-muted)" }}
-        animate={{ opacity: open ? 0 : 0.55 }}
-        transition={{ duration: still ? 0 : 0.3 }}
-        aria-hidden
-      >
-        Tap to open
-      </motion.p>
     </div>
   );
 }
