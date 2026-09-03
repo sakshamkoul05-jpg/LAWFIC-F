@@ -31,7 +31,7 @@ export default async function AdminPage() {
 
   const { data: staff } = await supabase.rpc("is_staff");
   if (!staff) {
-    return <AdminGate reason="not-staff" />;
+    return <AdminGate reason="not-staff" userId={auth.user.id} email={auth.user.email} />;
   }
 
   // RLS lets staff see every order; a customer sees only their own.

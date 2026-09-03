@@ -63,7 +63,7 @@ export default async function CustomerPage({
   if (!auth.user) return <AdminGate reason="signed-out" />;
 
   const { data: staff } = await supabase.rpc("is_staff");
-  if (!staff) return <AdminGate reason="not-staff" />;
+  if (!staff) return <AdminGate reason="not-staff" userId={auth.user.id} email={auth.user.email} />;
 
   const [{ data: profileData }, { data: orderData }, { data: entryData }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
