@@ -253,7 +253,12 @@ export default function PhysicalWallet({
               tells you it came off the surface. */}
           <motion.div
             className="absolute left-1/2 rounded-[50%]"
-            style={{ bottom: "6cqw", background: "rgba(0,0,0,0.6)", x: "-50%" }}
+            style={{
+              bottom: "6cqw",
+              background: "rgba(0,0,0,0.6)",
+              x: "-50%",
+              pointerEvents: "none",
+            }}
             initial={false}
             animate={{
               width: `${lerp(42, 76)}cqw`,
@@ -266,10 +271,20 @@ export default function PhysicalWallet({
 
           {/* THE CAMERA. Off axis and tipped forward — an edge you look
               straight at is an edge you cannot see, and everything below
-              depends on this one transform. */}
+              depends on this one transform.
+
+              pointer-events: none on this whole subtree, and it is load-bearing.
+              These layers are `absolute inset-0` and then translated and scaled,
+              and a transformed element hit-tests where it is PAINTED, not where
+              it is laid out — with nothing clipping them they answered clicks a
+              couple of hundred pixels outside the button, so pressing "Add
+              balance" in the next column unzipped the wallet. The button itself
+              is untransformed, so it stays the one thing that can be clicked and
+              its hit area is exactly its own box. Nothing in here is
+              interactive, so nothing is lost. */}
           <motion.div
             className="absolute inset-0"
-            style={{ transformStyle: "preserve-3d" }}
+            style={{ transformStyle: "preserve-3d", pointerEvents: "none" }}
             initial={false}
             animate={{
               rotateX: lerp(17, 26),
