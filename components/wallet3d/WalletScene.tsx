@@ -36,6 +36,17 @@ import type { Denomination } from "@/lib/wallet3d/banknote";
  * burning a core.
  */
 
+/**
+ * Which wallet renders.
+ *
+ * The client compared the two and approved the DRAWN card holder over the mesh
+ * they generated: it holds a crisper edge, keeps the saddle stitching, and its
+ * pocket wave stays sharp, where a generated mesh softens all three. Their
+ * .glb, the build pipeline and WalletGLB all stay — the integration works and
+ * is verified — so this is one line to flip if a cleaner export arrives.
+ */
+const USE_CLIENT_MESH = false;
+
 export type WalletSceneProps = {
   config: WalletConfig;
   open: number;
@@ -180,14 +191,19 @@ export default function WalletScene({
           <directionalLight position={[8, 3, -4]} intensity={0.5} color="#cfd6e6" />
 
           <group position={[0, 0.6, 0]}>
-            {/* The client's own model, with the procedural stand-in behind it.
-                The boundary is for a broken or missing asset; the Suspense
-                above is for one that simply has not arrived yet. */}
-            <ModelBoundary
-              fallback={<WalletModel look={config} open={open} notes={notes} pointer={pointer} />}
-            >
-              <WalletGLB look={config} open={open} notes={notes} pointer={pointer} />
-            </ModelBoundary>
+            {USE_CLIENT_MESH ? (
+              /* The boundary is for a broken or missing asset — a 404 after a
+                 bad deploy, a truncated response, a re-export that will not
+                 parse. The Suspense above only covers a model that has not
+                 arrived yet. */
+              <ModelBoundary
+                fallback={<WalletModel look={config} open={open} notes={notes} pointer={pointer} />}
+              >
+                <WalletGLB look={config} open={open} notes={notes} pointer={pointer} />
+              </ModelBoundary>
+            ) : (
+              <WalletModel look={config} open={open} notes={notes} pointer={pointer} />
+            )}
           </group>
 
           <ContactShadows

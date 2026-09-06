@@ -6,7 +6,13 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { getColor, getFinish, getHardware, type WalletConfig } from "@/lib/wallet3d/finishes";
-import { getDenomination, noteTexture, DENOMINATIONS, type Denomination } from "@/lib/wallet3d/banknote";
+import {
+  getDenomination,
+  noteTexture,
+  DENOMINATIONS,
+  NOTE_ASPECT,
+  type Denomination,
+} from "@/lib/wallet3d/banknote";
 
 /**
  * The client's own wallet, rendered.
@@ -279,7 +285,9 @@ function Notes({
   size: THREE.Vector3;
 }) {
   const noteW = size.x * 0.85;
-  const noteH = noteW * 0.5;
+  /* From the artwork's proportion, not a typed constant — the approved note is
+     a 3.5:1 panorama. */
+  const noteH = noteW / NOTE_ASPECT;
 
   const geo = useMemo(() => {
     const g = new THREE.PlaneGeometry(noteW, noteH, 26, 2);
@@ -294,7 +302,7 @@ function Notes({
   }, [noteW, noteH]);
 
   return (
-    <group position={[size.x * 0.01, size.y * 0.34, -size.z * 0.1]}>
+    <group position={[size.x * 0.01, size.y * 0.46, -size.z * 0.1]}>
       {notes.slice(0, 5).map((value, i) => {
         const d = getDenomination(value) ?? DENOMINATIONS[0];
         return (

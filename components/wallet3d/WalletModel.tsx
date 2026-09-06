@@ -5,18 +5,24 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { getColor, getFinish, getHardware, THREADS, type WalletConfig } from "@/lib/wallet3d/finishes";
-import { getDenomination, noteTexture, DENOMINATIONS, type Denomination } from "@/lib/wallet3d/banknote";
+import {
+  getDenomination,
+  noteTexture,
+  DENOMINATIONS,
+  NOTE_ASPECT,
+  type Denomination,
+} from "@/lib/wallet3d/banknote";
 
 /**
- * The drawn stand-in for the LAWFIC card holder.
+ * The LAWFIC card holder. This is the approved object and what renders.
  *
- * THIS IS NO LONGER WHAT RENDERS. The client's own model is in place at
- * public/wallet/lawfic-wallet.glb and WalletGLB draws it; this is what
- * ModelBoundary falls back to when that asset is missing or broken. It is kept
- * because a hero element on a signed-in money screen should degrade to
- * something rather than to a blank rectangle.
+ * It was drawn from the client's renders before their .glb arrived, and when
+ * the two were compared side by side this one was kept: a generated mesh
+ * softens every edge, loses the stitching and rounds the pocket wave, and those
+ * three things are the design. Their model, its build pipeline and WalletGLB
+ * all remain in the tree behind `USE_CLIENT_MESH` in WalletScene.
  *
- * It was built from their renders before the file arrived, and follows them:
+ * It follows their renders:
  *
  *   - one back panel, one front pocket, both rounded, both stitched;
  *   - the pocket's top edge WAVES: high at the left, dipping through a low
@@ -359,22 +365,31 @@ function Branding({
 
 /** Notes fanned out of the top, behind the pocket. */
 function Notes({ notes, open }: { notes: Denomination[]; open: number }) {
+  /* Narrower than the card by a clear margin. At 9.4 against a 10.2 body the
+     fanned stack poked past the right edge and read as a rendering fault
+     rather than as banknotes. */
+  const NOTE_W = 8.7;
+  /* Height follows the artwork's proportion rather than a number typed here.
+     The approved note is a panorama at 3.5:1, so it is SHORT — which is why
+     the stack sits higher up than it did: at this ratio a note centred where a
+     2:1 note sat would barely clear the pocket, and the part that clears is
+     the only part anyone sees. */
+  const NOTE_H = NOTE_W / NOTE_ASPECT;
+
   const geo = useMemo(() => {
-    /* Narrower than the card by a clear margin. At 9.4 against a 10.2 body the
-       fanned stack poked past the right edge and read as a rendering fault
-       rather than as banknotes. */
-    const g = new THREE.PlaneGeometry(8.7, 4.4, 26, 2);
+    const g = new THREE.PlaneGeometry(NOTE_W, NOTE_H, 26, 2);
     const pos = g.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
-      pos.setZ(i, Math.cos((x / 4.7) * 1.25) * 0.1);
+      /* A sheet held in a pocket bows; a flat quad reads as a printed card. */
+      pos.setZ(i, Math.cos((x / (NOTE_W / 2)) * 1.25) * 0.1);
     }
     g.computeVertexNormals();
     return g;
-  }, []);
+  }, [NOTE_W, NOTE_H]);
 
   return (
-    <group position={[0.1, H * 0.34, 0.02]}>
+    <group position={[0.1, H * 0.46, 0.02]}>
       {notes.slice(0, 5).map((value, i) => {
         const d = getDenomination(value) ?? DENOMINATIONS[0];
         return (
