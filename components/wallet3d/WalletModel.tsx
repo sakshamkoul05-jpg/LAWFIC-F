@@ -8,12 +8,15 @@ import { getColor, getFinish, getHardware, THREADS, type WalletConfig } from "@/
 import { getDenomination, noteTexture, DENOMINATIONS, type Denomination } from "@/lib/wallet3d/banknote";
 
 /**
- * The LAWFIC card holder, rebuilt to the client's own design.
+ * The drawn stand-in for the LAWFIC card holder.
  *
- * This replaces a bifold I had invented. Theirs is better and is what the
- * product is: a slim single-pocket holder, not a folding wallet. The renders
- * they supplied show it unambiguously, so the geometry here follows them rather
- * than my guess —
+ * THIS IS NO LONGER WHAT RENDERS. The client's own model is in place at
+ * public/wallet/lawfic-wallet.glb and WalletGLB draws it; this is what
+ * ModelBoundary falls back to when that asset is missing or broken. It is kept
+ * because a hero element on a signed-in money screen should degrade to
+ * something rather than to a blank rectangle.
+ *
+ * It was built from their renders before the file arrived, and follows them:
  *
  *   - one back panel, one front pocket, both rounded, both stitched;
  *   - the pocket's top edge WAVES: high at the left, dipping through a low
@@ -24,12 +27,9 @@ import { getDenomination, noteTexture, DENOMINATIONS, type Denomination } from "
  *     of the top rather than sitting inside;
  *   - monogram low left, wordmark low right, both cut into the surface.
  *
- * WHEN THE REAL MODEL ARRIVES
- *
- * `useGLB` in WalletStage swaps this for the client's own .glb the moment the
- * file exists. Everything below is a faithful stand-in built from the renders,
- * not a replacement for their work — the material system, the engraving and
- * the interaction all bind to whichever mesh is present.
+ * The material system, the engraving and the interaction are shared with
+ * WalletGLB, so the fallback is the same product in a simpler shell rather
+ * than a different one.
  */
 
 /* Card-holder proportions, in centimetres at 1 unit = 1cm. */
@@ -175,10 +175,14 @@ export default function WalletModel({
   );
 
   useMemo(() => {
-    /* Tiling scaled to the finish: a weave repeats far more often across 10cm
-       than pebble grain does. */
-    const rep = finish.weave ? 4.5 : finish.brushed ? 1 : 2.4;
-    for (const t of [maps.normal, maps.rough]) t.repeat.set(rep, rep * 0.78);
+    /* ExtrudeGeometry's default UV generator writes the vertex x/y straight
+       into the texture coordinate, so one UV unit here is one CENTIMETRE —
+       unlike the .glb, whose xatlas unwrap packs the whole object into 0–1.
+       The repeat is therefore the reciprocal of the tile size in centimetres,
+       which puts the fallback on the same physical grain as the real model
+       instead of on whatever number looked right at one zoom level. */
+    const rep = finish.weave ? 0.24 : finish.brushed ? 0.36 : 0.36;
+    for (const t of [maps.normal, maps.rough]) t.repeat.set(rep, rep);
   }, [maps, finish]);
 
   const backGeo = useMemo(() => extrude(backShape(W, H, 0.72), BACK_T), []);

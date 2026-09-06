@@ -1,92 +1,45 @@
-# Wallet imagery
+# public/wallet
 
-The wallet renders in one of three ways, each falling back to the next when its
-files are absent. You can ship any tier; the site works on a day when only part
-of the range has been shot, which is most days.
+## lawfic-wallet.glb
 
-| Tier | Needs | Gives you |
-|---|---|---|
-| **1. Frame sequence** | 12 frames per hide | Zip pulls open, wallet unfolds, drag-scrubbable |
-| **2. Two-state photo** | 2 stills per hide | Crossfade between closed and open |
-| **3. Drawn wallet** | nothing | The CSS/SVG wallet already in the tree |
+The client's own wallet model, and what actually renders on the wallet page.
 
----
-
-## Tier 1 — the frame sequence (preferred)
-
-`public/wallet/<hide>/01.jpg` … `12.jpg`
-
-One folder per hide, twelve frames, numbered with a leading zero. The sequence
-is **one continuous timeline** from shut to open-with-money:
-
-| # | Frame |
-|---|---|
-| 01 | Closed, zipped |
-| 02 | Zip pull engaged |
-| 03 | Zipper moving |
-| 04 | Zipper almost open |
-| 05 | Zip fully open |
-| 06 | Hold and lift |
-| 07 | Pull apart slightly |
-| 08 | Left side opens |
-| 09 | Right side opens |
-| 10 | Mostly open |
-| 11 | Fully open |
-| 12 | Open, notes visible in the compartment |
-
-Folder names, one per hide:
+It is a **derived** file. Do not hand-edit it — rebuild it:
 
 ```
-midnight  slate  olive  tan  oxblood
-navy      cognac forest concrete chocolate
+assets-src/build-wallet-glb.sh
 ```
 
-So Midnight Black is `public/wallet/midnight/01.jpg` through `12.jpg`.
-That is **120 files** for the full range.
+The source is `assets-src/wallet-raw.glb`, exactly as the client exported it:
+a trimesh file, one mesh, 445k triangles, 6.9MB, **POSITION only**. No normals,
+no texture coordinates, no material. Two of those absences are blocking rather
+than cosmetic:
 
-### Requirements
+- with no normals the mesh cannot be lit. Every face returns the same value and
+  it renders as a flat silhouette;
+- with no texture coordinates nothing can be mapped onto it, and the entire
+  finish system — leather grain, nylon weave, brushed metal — is UV-sampled.
+  Without an unwrap the wallet can only ever be one flat colour.
 
-- **3:2 landscape**, `object-cover`. Anything else crops from the middle.
-- **~1400px wide.** These are served as-is, not resized by Next — see below.
-- **Pre-compressed.** Export as JPEG at quality ~80, or WebP. Aim for under
-  120KB a frame: one hide is twelve frames, and that is what a visitor
-  downloads when they pick it.
-- **Identical crop across all twelve, and across all ten hides.** This is the
-  one requirement that cannot be fixed in code. The frames are stacked and
-  cross-faded in place, so if the wallet moves between frames the sequence
-  judders instead of animating, and if it moves between hides the swatch
-  switch jumps.
+The build script decimates to 27k triangles, unwraps with xatlas, centres the
+result and quantizes it to 374KB. Normals are computed at load time rather than
+baked, so the component chooses the smoothing.
 
-### Why these are not run through `next/image`
+`components/wallet3d/WalletGLB.tsx` measures the bounding box rather than
+assuming a pose or a unit, so a re-export at a different scale or handedness
+still frames correctly.
 
-On-demand optimisation means 120 optimiser round trips the first time each
-frame is seen, and on Vercel, 120 billable transformations. The frames are
-known ahead of time and identical for every visitor, so they are pre-compressed
-and served straight from `/public`. The tier-2 stills below *do* use
-`next/image`, where on-demand sizing earns its keep.
+### Tiling
 
-### Loading behaviour
+The unwrap packs the whole object into one 0–1 atlas: ~191cm² of surface into
+unit UV space, which works out at roughly 16.7cm across one full tile. The
+repeat values in `WalletGLB` are derived from that number so pebble grain lands
+at about 1.6mm and a woven thread at about 0.7mm. If the model is re-exported
+or the simplification ratio changes, re-measure rather than adjusting by eye —
+the browser's zoom level is not a unit of measurement.
 
-Only the selected hide's twelve frames are ever fetched — eagerly loading all
-ten sequences would be most of a phone's data allowance. The wallet stays a
-still image until all twelve have decoded; a tap before then jumps straight to
-open. Slower to become interactive, never a half-loaded stutter.
+## What is NOT here, and is not needed
 
----
-
-## Tier 2 — two-state stills
-
-`public/wallet/<hide>-closed.jpg` and `public/wallet/<hide>-open.jpg`
-
-Twenty files, same hide names. Used automatically when a hide has no frame
-folder. Same 3:2 crop; ~2100px wide is right here, since these *are* resized by
-Next.
-
----
-
-## What no imagery can give back
-
-The wallets are embossed LAWFIC in the leather, so a customer's own name cannot
-appear on one — you cannot stamp a photograph. `nameplate` is still stored and
-still editable; it is simply not shown on the photographic tiers. Only the drawn
-wallet renders it.
+Earlier versions of this page expected a rendered frame sequence and a set of
+two-state product photographs. Both are gone: the wallet is real 3D now, and
+those tiers were removed along with the components that consumed them.

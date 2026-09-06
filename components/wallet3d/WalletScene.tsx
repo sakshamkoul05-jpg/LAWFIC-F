@@ -4,6 +4,8 @@ import { Canvas } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useEffect, useRef, useState } from "react";
 import WalletModel from "./WalletModel";
+import WalletGLB from "./WalletGLB";
+import ModelBoundary from "./ModelBoundary";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import type { Denomination } from "@/lib/wallet3d/banknote";
 
@@ -178,7 +180,14 @@ export default function WalletScene({
           <directionalLight position={[8, 3, -4]} intensity={0.5} color="#cfd6e6" />
 
           <group position={[0, 0.6, 0]}>
-            <WalletModel look={config} open={open} notes={notes} pointer={pointer} />
+            {/* The client's own model, with the procedural stand-in behind it.
+                The boundary is for a broken or missing asset; the Suspense
+                above is for one that simply has not arrived yet. */}
+            <ModelBoundary
+              fallback={<WalletModel look={config} open={open} notes={notes} pointer={pointer} />}
+            >
+              <WalletGLB look={config} open={open} notes={notes} pointer={pointer} />
+            </ModelBoundary>
           </group>
 
           <ContactShadows
