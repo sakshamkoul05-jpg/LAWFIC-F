@@ -43,7 +43,7 @@ const ROWS: Array<{ label: string; href: string; icon: React.ReactNode }> = [
 
 export default function WalletMenu() {
   return (
-    <nav aria-label="Wallet settings" className="wallet-glass mt-6 overflow-hidden rounded-2xl">
+    <nav aria-label="Wallet settings" className="cred-slab overflow-hidden">
       <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
         {ROWS.map((r) => (
           <li key={r.href}>

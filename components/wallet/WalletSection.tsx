@@ -1,47 +1,50 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import { useCallback, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
 import { formatPaise } from "@/lib/money";
-import type { HideId } from "@/lib/wallet-leather";
 import type { WalletPrefs } from "@/lib/wallet-custom";
-import PhysicalWallet from "./PhysicalWallet";
-import WalletPhoto from "./WalletPhoto";
-import WalletSequence from "./WalletSequence";
-import WalletStage from "@/components/wallet3d/WalletStage";
-import { getLook } from "@/lib/wallet3d/looks";
+import {
+  DEFAULT_CONFIG,
+  FINISHES,
+  HARDWARE,
+  THREADS,
+  getColor,
+  getFinish,
+  type WalletConfig,
+} from "@/lib/wallet3d/finishes";
 import { breakIntoNotes } from "@/lib/wallet3d/banknote";
-import { getHide } from "@/lib/wallet-leather";
-import WalletSkinSelector from "./WalletSkinSelector";
+import WalletStage from "@/components/wallet3d/WalletStage";
+import PhysicalWallet from "./PhysicalWallet";
 
 /**
- * The wallet section, composed as a product shot rather than a dashboard.
+ * The wallet page: one object, quietly presented.
  *
- * WHAT WAS WRONG WITH THE OLD ARRANGEMENT
+ * Everything that was a dashboard is gone. No panels, no bordered cards, no
+ * balance label the size of a headline. There is the wallet, the figure under
+ * it, two actions, and a configurator that stays out of the way until asked
+ * for. The object is the page.
  *
- * It was `max-w-lg` — 512 pixels — with the wallet inside it, so however the
- * wallet was built it could never be more than a few hundred pixels across, and
- * it read as an icon floating in a field of black. Everything under it was a
- * separate centred block with generous margins, which is the layout of a
- * settings page. The object was the smallest thing on screen and the furthest
- * from the eye's first landing point.
+ * WHERE THE CONFIG LIVES, AND WHY IT IS NOT IN THE DATABASE YET
  *
- * Now the wallet is the widest element on the page and everything else is
- * arranged around it: the name and the figure sit beside it on a wide screen
- * and above it on a narrow one, close enough to read as captions to the object
- * rather than as their own panels. The leather runs underneath as a single
- * strip. Nothing is centred in its own column of empty space.
+ * `wallet_prefs` stores hide, plate, thread and nameplate, which described the
+ * bifold. The product is now a card holder configured by FINISH plus a colour
+ * within that finish, and those columns do not fit. Rather than write a
+ * migration in the same change that redesigns the object — and be stuck with
+ * whichever schema this week's design implies — the configuration is held
+ * locally and the engraving continues to come from the stored nameplate, which
+ * is the one field that still means what it always did.
  *
- * The balance is deliberately not printed on the leather. A wallet does not
- * display its own contents, and the moment this one did, every other cue was
- * arguing against the loudest element on the object.
+ * That is a deliberate staging, not an oversight: the shape settles first, the
+ * schema follows. `wallet_config` is a migration to write once the finishes
+ * stop moving.
  */
+
+const STORE_KEY = "lawfic.wallet.config";
 
 export default function WalletSection({
   prefs,
   balancePaise,
-  landing = [],
-  persist = false,
   actions,
   eyebrow,
   className = "",
@@ -49,138 +52,255 @@ export default function WalletSection({
   prefs: WalletPrefs;
   balancePaise: number;
   landing?: number[];
-  /** Save the chosen leather against the signed-in customer. */
   persist?: boolean;
   actions?: React.ReactNode;
   eyebrow?: React.ReactNode;
   className?: string;
 }) {
   const reduced = useReducedMotion();
-  const [look, setLook] = useState<WalletPrefs>(prefs);
+  const [config, setConfig] = useState<WalletConfig>({
+    ...DEFAULT_CONFIG,
+    engraving: prefs.nameplate,
+  });
   const [open, setOpen] = useState(false);
-  const hide = getHide(look.hide) ?? getHide("midnight")!;
+  const [studio, setStudio] = useState(false);
 
-  const pickHide = useCallback(
-    (hide: HideId) => {
-      setLook((l) => ({ ...l, hide }));
-      if (!persist) return;
-      void fetch("/api/wallet/prefs", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...look, hide }),
-      }).catch(() => {
-        /* A cosmetic preference is not worth interrupting anyone over. The
-           wallet has already changed on screen; the next load will show the old
-           leather if this never landed. */
-      });
-    },
-    [look, persist],
-  );
+  /* Read after mount, never during render — the server cannot know what was
+     chosen, so rendering it on the first pass is a hydration mismatch. */
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) setConfig((c) => ({ ...c, ...JSON.parse(raw) }));
+    } catch {
+      /* Private windows and blocked storage both land here. A wallet finish is
+         not worth breaking the page over. */
+    }
+  }, []);
+
+  const update = useCallback((patch: Partial<WalletConfig>) => {
+    setConfig((c) => {
+      const next = { ...c, ...patch };
+      /* Changing finish can orphan the colour, since each finish carries its
+         own short list. Fall to that finish's first rather than rendering a
+         swatch it does not have. */
+      if (patch.finish) {
+        const f = getFinish(patch.finish);
+        if (!f.colors.some((x) => x.id === next.color)) next.color = f.colors[0].id;
+      }
+      try {
+        window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
+      } catch {
+        /* As above. */
+      }
+      return next;
+    });
+  }, []);
+
+  const finish = getFinish(config.finish);
+  const color = getColor(finish, config.color);
 
   return (
-    <section className={`mx-auto w-full max-w-[1320px] ${className}`}>
-      {/* Beside the wallet on a wide screen, above it on a narrow one. The
-          figure is a caption to the object, so it stays near it either way. */}
-      <div className="grid items-center gap-x-10 gap-y-4 lg:grid-cols-[minmax(210px,265px)_1fr]">
-        <div className="order-1 text-center lg:text-left">
-          {eyebrow}
+    <section className={`mx-auto w-full max-w-[1180px] px-4 sm:px-6 ${className}`}>
+      {eyebrow}
 
-          <motion.div
-            className="mt-5"
-            animate={{ opacity: open ? 1 : 0.82 }}
-            transition={{ duration: reduced ? 0 : 0.4 }}
-          >
-            <p
-              className="font-mono text-[10px] uppercase tracking-[0.28em]"
-              style={{ color: "var(--wallet-fg-muted)" }}
-            >
-              Wallet balance
-            </p>
-            <p
-              className="mt-2 font-mono text-[clamp(34px,5.4vw,52px)] font-semibold leading-none tabular-nums"
-              style={{ color: "var(--wallet-fg)" }}
-            >
-              {formatPaise(balancePaise)}
-            </p>
-            <p className="mx-auto mt-3 max-w-[22rem] text-[12px] leading-relaxed opacity-45 lg:mx-0">
-              Available for LAWFIC filings and government fees.
-            </p>
-          </motion.div>
-
-          {actions}
-        </div>
-
-        {/* The object. Widest thing on the page, and first in the eye's path on
-            a wide screen despite coming second in the source — reading order
-            keeps the heading first for anyone who is not looking. */}
-        <div className="order-2 min-w-0">
-          {/* FOUR tiers, each falling to the next when it cannot run: the
-              3D wallet, the zip-and-fold frame sequence, the two-state
-              photograph, and the drawn CSS wallet. That is not
-              over-engineering — WebGL is genuinely absent on some machines,
-              contexts genuinely get lost, and the photography genuinely is not
-              in the repo yet. Each tier knows only whether IT can run, and
-              hands over if not. */}
-          <WalletStage
-            look={{ ...getLook(look.hide).look, engraving: look.nameplate }}
-            open={open ? 1 : 0}
-            notes={breakIntoNotes(balancePaise)}
-            fallback={
-              <WalletSequence
-                hide={hide}
-                open={open}
-                onOpenChange={setOpen}
-                fallback={
-                  <WalletPhoto
-                    hide={hide}
-                    open={open}
-                    onToggle={() => setOpen((o) => !o)}
-                    fallback={
-                      <PhysicalWallet
-                        hide={look.hide}
-                        plate={look.plate}
-                        thread={look.thread}
-                        nameplate={look.nameplate}
-                        balancePaise={balancePaise}
-                        landing={landing}
-                        open={open}
-                        onToggle={() => setOpen((o) => !o)}
-                      />
-                    }
-                  />
-                }
-              />
-            }
-          />
-
-          {/* The 3D wallet is turned by dragging and opened from here, because
-              a canvas cannot be tabbed to and a wallet that only opens by
-              gesture is a wallet some people cannot open. */}
-          <div className="mt-3 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setOpen((o) => !o)}
-              aria-expanded={open}
-              className="rounded-full border border-border px-5 py-2 text-[12.5px] text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
-            >
-              {open ? "Close wallet" : "Open wallet"}
-            </button>
-          </div>
-        </div>
+      {/* THE OBJECT */}
+      <div className="relative mx-auto w-full max-w-[720px]">
+        <WalletStage
+          config={config}
+          open={open ? 1 : 0}
+          notes={breakIntoNotes(balancePaise)}
+          fallback={
+            <PhysicalWallet
+              hide={prefs.hide}
+              plate={prefs.plate}
+              thread={prefs.thread}
+              nameplate={prefs.nameplate}
+              balancePaise={balancePaise}
+              open={open}
+              onToggle={() => setOpen((o) => !o)}
+            />
+          }
+        />
       </div>
 
-      <p className="mt-4 text-center text-[12.5px] text-muted-foreground">
-        <span className="font-medium text-foreground">{hide.name}</span>
-        <span className="mx-2 opacity-30">·</span>
-        {hide.desc}
-      </p>
+      {/* THE FIGURE. Small label, large number, in that order of loudness —
+          the opposite of a dashboard, where the label shouts and the number
+          sits in a box. */}
+      <div className="mt-2 text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[color:var(--wallet-fg-muted)]">
+          Available balance
+        </p>
+        <p className="mt-2 font-mono text-[clamp(38px,7vw,60px)] font-semibold leading-none tabular-nums text-[color:var(--wallet-fg)]">
+          {formatPaise(balancePaise)}
+        </p>
+        <p className="mt-3 text-[12px] text-[color:var(--wallet-fg-muted)]">
+          {finish.name} · {color.name}
+          {config.engraving ? ` · ${config.engraving.toUpperCase()}` : ""}
+        </p>
+      </div>
 
-      <WalletSkinSelector
-        value={look.hide}
-        thread={look.thread}
-        onChange={pickHide}
-        className="mt-8"
-      />
+      {/* ACTIONS. Two, and a third that only changes how it looks. */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+        {actions}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="rounded-full border border-border px-5 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
+        >
+          {open ? "Close wallet" : "Open wallet"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setStudio((s) => !s)}
+          aria-expanded={studio}
+          className="rounded-full border border-border px-5 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
+        >
+          {studio ? "Done" : "Customise"}
+        </button>
+      </div>
+
+      {/* THE STUDIO. Slides in under the object, which stays where it is —
+          a configurator that moves the thing being configured is a configurator
+          you cannot judge. */}
+      <AnimatePresence initial={false}>
+        {studio && (
+          <motion.div
+            initial={reduced ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={reduced ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 28 }}
+            className="overflow-hidden"
+          >
+            <div className="mx-auto mt-10 max-w-[640px] space-y-8 pb-4">
+              <Row label="Material">
+                {FINISHES.map((f) => (
+                  <Chip
+                    key={f.id}
+                    on={config.finish === f.id}
+                    onClick={() => update({ finish: f.id })}
+                    title={f.blurb}
+                  >
+                    {f.name}
+                  </Chip>
+                ))}
+              </Row>
+
+              <Row label="Colour">
+                {finish.colors.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => update({ color: c.id })}
+                    aria-label={c.name}
+                    aria-pressed={config.color === c.id}
+                    title={c.name}
+                    className="size-9 rounded-full transition-transform hover:scale-105"
+                    style={{
+                      background: c.hex,
+                      boxShadow:
+                        config.color === c.id
+                          ? "0 0 0 2px var(--wallet-icon-fg), inset 0 0 0 1px rgba(255,255,255,0.14)"
+                          : "inset 0 0 0 1px rgba(255,255,255,0.14)",
+                    }}
+                  />
+                ))}
+              </Row>
+
+              <Row label="Hardware">
+                {HARDWARE.map((h) => (
+                  <Chip
+                    key={h.id}
+                    on={config.hardware === h.id}
+                    onClick={() => update({ hardware: h.id })}
+                  >
+                    <span
+                      className="inline-block size-3 rounded-full align-middle"
+                      style={{ background: h.hex }}
+                    />
+                    <span className="ml-2 align-middle">{h.name}</span>
+                  </Chip>
+                ))}
+              </Row>
+
+              <Row label="Stitching">
+                {THREADS.map((t) => (
+                  <Chip
+                    key={t.id}
+                    on={config.thread === t.id}
+                    onClick={() => update({ thread: t.id })}
+                  >
+                    {t.name}
+                  </Chip>
+                ))}
+              </Row>
+
+              <div>
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--wallet-fg-muted)]">
+                  Engraving
+                </p>
+                <input
+                  value={config.engraving}
+                  onChange={(e) =>
+                    /* Cut into metal at a couple of millimetres a letter, so
+                       anything longer than this stops being legible on the
+                       object it is cut into. */
+                    update({ engraving: e.target.value.replace(/[^\p{L}\p{N} .&'-]/gu, "").slice(0, 16) })
+                  }
+                  placeholder="Your name"
+                  aria-label="Engraving"
+                  className="w-full rounded-xl border border-border bg-surface-2/60 px-4 py-3 text-[14px] uppercase tracking-[0.14em] text-foreground outline-none focus:border-primary/50"
+                />
+                <p className="mt-2 text-[11.5px] text-[color:var(--wallet-fg-muted)]">
+                  Cut into the face, low right. Leave it empty for the LAWFIC mark.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[color:var(--wallet-fg-muted)]">
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function Chip({
+  on,
+  onClick,
+  title,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      title={title}
+      className="rounded-full px-4 py-2 text-[12.5px] transition-colors"
+      style={{
+        background: on ? "var(--wallet-btn-bg)" : "transparent",
+        boxShadow: on
+          ? "inset 0 0 0 1px var(--wallet-icon-fg)"
+          : "inset 0 0 0 1px var(--wallet-input-border)",
+        color: on ? "var(--wallet-fg)" : "var(--wallet-fg-muted)",
+        fontWeight: on ? 500 : 400,
+      }}
+    >
+      {children}
+    </button>
   );
 }

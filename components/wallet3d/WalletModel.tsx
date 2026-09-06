@@ -3,98 +3,143 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { leatherMaps, type LeatherSpec } from "@/lib/wallet3d/materials";
-import { DENOMINATIONS, NOTE_ASPECT, getDenomination, noteTexture, type Denomination } from "@/lib/wallet3d/banknote";
+import { leatherMaps } from "@/lib/wallet3d/materials";
+import { getColor, getFinish, getHardware, THREADS, type WalletConfig } from "@/lib/wallet3d/finishes";
+import { getDenomination, noteTexture, DENOMINATIONS, type Denomination } from "@/lib/wallet3d/banknote";
 
 /**
- * The LAWFIC wallet, as geometry.
+ * The LAWFIC card holder, rebuilt to the client's own design.
  *
- * Every panel is an extruded rounded shape with a bevel, not a box and not a
- * plane. That matters more than it sounds: the bevel is what catches the key
- * light along every edge, and edge highlights are most of what tells you an
- * object is solid. A wallet built from boxes reads as cardboard however good
- * the material on it is.
+ * This replaces a bifold I had invented. Theirs is better and is what the
+ * product is: a slim single-pocket holder, not a folding wallet. The renders
+ * they supplied show it unambiguously, so the geometry here follows them rather
+ * than my guess —
  *
- * THE SHAPE
+ *   - one back panel, one front pocket, both rounded, both stitched;
+ *   - the pocket's top edge WAVES: high at the left, dipping through a low
+ *     point around three fifths across, rising again to the right. That curve
+ *     is the whole signature of the object. A straight-topped pocket is a
+ *     generic card sleeve and this is not one;
+ *   - genuinely slim. About 9mm at the spine, which is why the notes fan out
+ *     of the top rather than sitting inside;
+ *   - monogram low left, wordmark low right, both cut into the surface.
  *
- * Not a symmetric bifold. The front shell is cut shorter than the back and its
- * top edge sweeps down to the right, so the interior is visible along a curve
- * when shut and the silhouette is recognisable without a logo on it. The metal
- * spine runs the full height on the hinge side and carries the engraving plate.
+ * WHEN THE REAL MODEL ARRIVES
  *
- * Dimensions are in centimetres at 1 unit = 1cm, so 11.5 x 9 x 1.4 is a real
- * compact wallet. Working in real units means the notes — 14.2 x 6.6cm — have
- * to be folded to fit, which is true of real wallets and is why the fold in
- * the note geometry exists rather than being decoration.
+ * `useGLB` in WalletStage swaps this for the client's own .glb the moment the
+ * file exists. Everything below is a faithful stand-in built from the renders,
+ * not a replacement for their work — the material system, the engraving and
+ * the interaction all bind to whichever mesh is present.
  */
 
-const W = 11.5;
-const H = 9;
-const SHELL = 0.22;
+/* Card-holder proportions, in centimetres at 1 unit = 1cm. */
+const W = 10.2;
+const H = 7.6;
+const BACK_T = 0.16;
+/* The pocket is deliberately thicker than the back panel. On the real object
+   the front is a folded-and-glued edge that stands proud of the body, and that
+   raised lip is the only thing that separates two panels of identical leather
+   under identical light. Modelled flush, the wallet reads as one printed card
+   with a curve drawn on it. */
+const POCKET_T = 0.24;
 
-export type WalletLook = {
-  leather: LeatherSpec;
-  /** Metal for spine, plate and clasp. */
-  metal: { color: string; roughness: number; metalness: number };
-  stitch: { color: string; width: number };
-  lining: string;
-  engraving: string;
-};
+export type WalletLook = WalletConfig;
 
-/** A rounded rectangle as an extruded solid, with a bevel on both faces. */
-function panelGeometry(w: number, h: number, depth: number, radius: number, sweep = 0) {
+/** The back panel: a plain rounded rectangle with a bevel on both faces. */
+function backShape(w: number, h: number, r: number) {
   const s = new THREE.Shape();
-  const r = radius;
   s.moveTo(-w / 2 + r, -h / 2);
   s.lineTo(w / 2 - r, -h / 2);
   s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
-  /* The right edge sweeps down when `sweep` is set — the asymmetry. */
-  s.lineTo(w / 2, h / 2 - r - sweep);
-  s.quadraticCurveTo(w / 2, h / 2 - sweep, w / 2 - r, h / 2 - sweep);
+  s.lineTo(w / 2, h / 2 - r);
+  s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
   s.lineTo(-w / 2 + r, h / 2);
   s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
   s.lineTo(-w / 2, -h / 2 + r);
   s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+  return s;
+}
 
-  const g = new THREE.ExtrudeGeometry(s, {
+/**
+ * The front pocket, with the wave.
+ *
+ * Two cubics rather than one: the edge falls from the left shoulder to a low
+ * point at about 58% across, then rises to the right shoulder. A single curve
+ * gives a symmetric smile, which is not what the renders show and reads as
+ * decoration rather than as a thumb cutaway.
+ */
+function pocketShape(w: number, h: number, r: number) {
+  const s = new THREE.Shape();
+  const left = -w / 2;
+  const right = w / 2;
+  const top = h / 2;
+  const low = top - h * 0.3;
+
+  s.moveTo(left + r, -h / 2);
+  s.lineTo(right - r, -h / 2);
+  s.quadraticCurveTo(right, -h / 2, right, -h / 2 + r);
+  s.lineTo(right, top - h * 0.06);
+
+  /* Right shoulder down into the dip. */
+  s.bezierCurveTo(
+    right - w * 0.1, top - h * 0.04,
+    right - w * 0.2, low,
+    left + w * 0.58, low,
+  );
+  /* Dip back up to the left shoulder, shallower — the asymmetry. */
+  s.bezierCurveTo(
+    left + w * 0.3, low,
+    left + w * 0.16, top - h * 0.02,
+    left + r, top,
+  );
+
+  s.quadraticCurveTo(left, top, left, top - r);
+  s.lineTo(left, -h / 2 + r);
+  s.quadraticCurveTo(left, -h / 2, left + r, -h / 2);
+  return s;
+}
+
+/** Bevel adds to BOTH faces, so an extrusion is thicker than its `depth`. */
+const BEVEL_RATIO = 0.42;
+export const extrudedHalfDepth = (depth: number) => (depth * (1 + 2 * BEVEL_RATIO)) / 2;
+
+function extrude(shape: THREE.Shape, depth: number) {
+  const g = new THREE.ExtrudeGeometry(shape, {
     depth,
     bevelEnabled: true,
-    bevelThickness: depth * 0.34,
-    bevelSize: depth * 0.3,
+    bevelThickness: depth * BEVEL_RATIO,
+    bevelSize: depth * 0.36,
     bevelSegments: 4,
-    curveSegments: 18,
+    curveSegments: 28,
   });
   g.center();
   g.computeVertexNormals();
   return g;
 }
 
-/** Saddle stitch as real tube geometry running inside the panel edge. */
-function stitchGeometry(w: number, h: number, inset: number, sweep: number, radius: number) {
-  const pts: THREE.Vector3[] = [];
-  const steps = 190;
-  const ww = w - inset * 2;
-  const hh = h - inset * 2;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    /* Walk the rounded rect perimeter as a parametric path. */
-    const a = t * Math.PI * 2 - Math.PI / 2;
-    const cx = (Math.cos(a) * ww) / 2;
-    const cy = (Math.sin(a) * hh) / 2;
-    /* Square it off with a superellipse, so it hugs the edge rather than
-       describing an oval inside a rectangle. */
-    const k = 4.5;
-    const nx = Math.sign(Math.cos(a)) * Math.pow(Math.abs(Math.cos(a)), 2 / k);
-    const ny = Math.sign(Math.sin(a)) * Math.pow(Math.abs(Math.sin(a)), 2 / k);
-    const x = (nx * ww) / 2;
-    const y = (ny * hh) / 2 - (ny > 0 ? sweep * ((x / ww) * 0.5 + 0.5) : 0);
-    pts.push(new THREE.Vector3(x, y, 0));
-    void cx;
-    void cy;
-    void radius;
+/** Stitching that follows a shape's own outline, as real tube geometry. */
+function stitchAlong(shape: THREE.Shape, inset: number, samples = 260) {
+  const pts2 = shape.getPoints(samples);
+  /* Shrink toward the centroid, so the run sits inside the edge the way a
+     saddle stitch does rather than tracing the cut line itself. */
+  let cx = 0;
+  let cy = 0;
+  for (const p of pts2) {
+    cx += p.x;
+    cy += p.y;
   }
+  cx /= pts2.length;
+  cy /= pts2.length;
+
+  const pts = pts2.map((p) => {
+    const dx = p.x - cx;
+    const dy = p.y - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    return new THREE.Vector3(p.x - (dx / len) * inset, p.y - (dy / len) * inset, 0);
+  });
+
   const curve = new THREE.CatmullRomCurve3(pts, true);
-  return new THREE.TubeGeometry(curve, 320, 0.035, 6, true);
+  return new THREE.TubeGeometry(curve, 460, 0.028, 5, true);
 }
 
 export default function WalletModel({
@@ -104,221 +149,241 @@ export default function WalletModel({
   pointer,
 }: {
   look: WalletLook;
-  /** 0 shut, 1 fully open. */
   open: number;
   notes: Denomination[];
-  /** Normalised cursor, for the tilt. */
   pointer: { x: number; y: number };
 }) {
   const root = useRef<THREE.Group>(null);
-  const flap = useRef<THREE.Group>(null);
+
+  const finish = getFinish(look.finish);
+  const color = getColor(finish, look.color);
+  const hardware = getHardware(look.hardware);
+  const threadDef = THREADS.find((t) => t.id === look.thread) ?? THREADS[0];
+  const threadColor = threadDef.hex || color.hex;
 
   const maps = useMemo(
-    () => leatherMaps(`${look.leather.color}-${look.leather.grain}-${look.leather.tooth}`, look.leather),
-    [look.leather],
+    () =>
+      leatherMaps(`${finish.id}-${color.id}`, {
+        color: color.hex,
+        grain: finish.grain,
+        roughness: finish.roughness,
+        tooth: finish.tooth,
+        weave: finish.weave,
+        brushed: finish.brushed,
+      }),
+    [finish, color],
   );
 
-  const backGeo = useMemo(() => panelGeometry(W, H, SHELL, 0.85), []);
-  const frontGeo = useMemo(() => panelGeometry(W, H * 0.82, SHELL, 0.85, 1.1), []);
-  const stitchBack = useMemo(() => stitchGeometry(W, H, 0.55, 0, 0.85), []);
-  const stitchFront = useMemo(() => stitchGeometry(W, H * 0.82, 0.55, 1.1, 0.85), []);
-
-  /* The maps tile across the panel. One repeat over 11cm of leather would put
-     the cells at centimetre scale, which is luggage, not a wallet. */
   useMemo(() => {
-    for (const t of [maps.normal, maps.rough]) t.repeat.set(2.2, 1.8);
-  }, [maps]);
+    /* Tiling scaled to the finish: a weave repeats far more often across 10cm
+       than pebble grain does. */
+    const rep = finish.weave ? 4.5 : finish.brushed ? 1 : 2.4;
+    for (const t of [maps.normal, maps.rough]) t.repeat.set(rep, rep * 0.78);
+  }, [maps, finish]);
 
-  const leatherProps = {
-    color: look.leather.color,
+  const backGeo = useMemo(() => extrude(backShape(W, H, 0.72), BACK_T), []);
+  const pocketShapeMemo = useMemo(() => pocketShape(W - 0.5, H - 0.7, 0.62), []);
+  const pocketGeo = useMemo(() => extrude(pocketShapeMemo, POCKET_T), [pocketShapeMemo]);
+  const backStitch = useMemo(() => stitchAlong(backShape(W, H, 0.72), 0.42), []);
+  const pocketStitch = useMemo(() => stitchAlong(pocketShapeMemo, 0.34), [pocketShapeMemo]);
+
+  const surface = {
+    color: color.hex,
+    /* Two different problems, so two different values.
+       A dielectric hide reflecting the full softbox rig comes back as a flat
+       saturated poster colour, so the environment is dialled back and the
+       bright pixels stay where they belong: on the raised grain.
+       A metal has no diffuse term at all — everything you see on it IS the
+       environment — so the same reduction turns brushed titanium into a black
+       slab with a rim light. It gets the environment turned up instead. */
+    envMapIntensity: finish.metalness > 0.5 ? 1.9 : 0.45,
     normalMap: maps.normal,
     roughnessMap: maps.rough,
-    metalness: 0.02,
-    normalScale: new THREE.Vector2(1.6, 1.6),
+    roughness: finish.roughness,
+    metalness: finish.metalness,
+    clearcoat: finish.clearcoat,
+    clearcoatRoughness: finish.clearcoatRoughness,
+    normalScale: new THREE.Vector2(finish.normalScale, finish.normalScale),
   };
 
-  /* Idle: a slow breath plus the cursor. Never a spin — the brief is right that
-     a continuously rotating product reads as a trinket. */
   useFrame((state) => {
     if (!root.current) return;
     const t = state.clock.elapsedTime;
-    const targetY = pointer.x * 0.35 + Math.sin(t * 0.32) * 0.045;
-    const targetX = -pointer.y * 0.22 + Math.sin(t * 0.24 + 1) * 0.03;
-    root.current.rotation.y += (targetY - root.current.rotation.y) * 0.06;
-    root.current.rotation.x += (targetX - root.current.rotation.x) * 0.06;
-    root.current.position.y = Math.sin(t * 0.5) * 0.08 + open * 0.15;
-
-    if (flap.current) {
-      /* Hinged on the spine, not spun about its own centre. */
-      const target = -open * Math.PI * 0.88;
-      flap.current.rotation.y += (target - flap.current.rotation.y) * 0.12;
-    }
+    /* A slow breath plus the cursor. Never a spin: a product that rotates by
+       itself reads as a trinket in a display case. */
+    const ty = pointer.x * 0.5 + Math.sin(t * 0.3) * 0.05;
+    const tx = -pointer.y * 0.26 + Math.sin(t * 0.22 + 1) * 0.035;
+    root.current.rotation.y += (ty - root.current.rotation.y) * 0.06;
+    root.current.rotation.x += (tx - root.current.rotation.x) * 0.06;
+    root.current.position.y = Math.sin(t * 0.5) * 0.06;
   });
 
   return (
-    <group ref={root} rotation={[0.12, -0.5, 0]}>
-      {/* BACK SHELL — the fixed half, and the bill compartment behind it. */}
+    <group ref={root} rotation={[0.06, -0.28, 0]}>
+      {/* BACK PANEL */}
       <mesh geometry={backGeo} castShadow receiveShadow>
-        <meshStandardMaterial {...leatherProps} roughness={look.leather.roughness} />
+        <meshPhysicalMaterial {...surface} />
+      </mesh>
+      <mesh geometry={backStitch} position={[0, 0, extrudedHalfDepth(BACK_T) * 0.94]}>
+        <meshStandardMaterial color={threadColor} roughness={0.75} metalness={0.02} />
       </mesh>
 
-      {/* Interior lining, set into the back shell. */}
-      <mesh position={[0, 0, SHELL * 0.52]} receiveShadow>
-        <planeGeometry args={[W - 0.9, H - 0.9]} />
-        <meshStandardMaterial color={look.lining} roughness={0.92} metalness={0} />
-      </mesh>
-
-      {/* Card slots: lapped leaves, each a real solid. */}
-      {[0, 1, 2].map((i) => (
-        <mesh
-          key={i}
-          geometry={panelGeometry(W * 0.42, H * 0.3, 0.06, 0.25)}
-          position={[-W * 0.24, -H * 0.16 + i * 0.85, SHELL * 0.56 + i * 0.035]}
-          castShadow
-        >
-          <meshStandardMaterial {...leatherProps} roughness={Math.min(1, look.leather.roughness + 0.06)} />
-        </mesh>
-      ))}
-
-      <mesh geometry={stitchBack} position={[0, 0, SHELL * 0.5]}>
-        <meshStandardMaterial color={look.stitch.color} roughness={0.72} metalness={0.02} />
-      </mesh>
-
-      {/* MONEY — inside the compartment, folded because a 14cm note does not
-          fit flat in an 11.5cm wallet. */}
+      {/* THE MONEY — behind the pocket, fanning out of the top. */}
       <Notes notes={notes} open={open} />
 
-      {/* THE SPINE — machined metal, full height, carrying the plate. */}
-      <mesh position={[-W / 2 + 0.18, 0, SHELL * 0.1]} castShadow>
-        <boxGeometry args={[0.36, H * 0.98, SHELL * 2.4]} />
-        <meshStandardMaterial
-          color={look.metal.color}
-          roughness={look.metal.roughness}
-          metalness={look.metal.metalness}
+      {/* FRONT POCKET, carrying the wave and the branding. */}
+      <group position={[0, -H * 0.05, extrudedHalfDepth(BACK_T) + extrudedHalfDepth(POCKET_T) * 0.55]}>
+        <mesh geometry={pocketGeo} castShadow receiveShadow>
+          <meshPhysicalMaterial {...surface} />
+        </mesh>
+        <mesh geometry={pocketStitch} position={[0, 0, extrudedHalfDepth(POCKET_T) * 0.94]}>
+          <meshStandardMaterial color={threadColor} roughness={0.75} metalness={0.02} />
+        </mesh>
+
+        <Branding
+          engraving={look.engraving}
+          hardware={hardware}
+          /* Clear of the pocket's front face, BEVEL INCLUDED. This is the
+             detail that hid the engraving entirely: ExtrudeGeometry adds the
+             bevel to both faces, so the pocket's front sits at 0.22 rather
+             than at half of POCKET_T, and a plane placed at 0.19 was buried
+             inside the leather. */
+          z={extrudedHalfDepth(POCKET_T) + 0.015}
         />
-      </mesh>
-
-      {/* THE FLAP — hinged at the spine. */}
-      <group ref={flap} position={[-W / 2 + 0.3, 0, SHELL * 1.15]}>
-        <group position={[W / 2 - 0.3, H * 0.09, 0]}>
-          <mesh geometry={frontGeo} castShadow receiveShadow>
-            <meshStandardMaterial {...leatherProps} roughness={look.leather.roughness} />
-          </mesh>
-          <mesh geometry={stitchFront} position={[0, 0, SHELL * 0.5]}>
-            <meshStandardMaterial color={look.stitch.color} roughness={0.72} metalness={0.02} />
-          </mesh>
-
-          {/* Engraving plate — real metal, with the name cut into it. */}
-          <EngravingPlate look={look} />
-        </group>
       </group>
     </group>
   );
 }
 
 /**
- * The engraving plate.
+ * Monogram low left, wordmark low right — both cut into the face.
  *
- * The name is a texture used as a BUMP and roughness map on a metal material,
- * not text drawn on top. That is what gives it depth: the letters catch the key
- * light on one lip and shadow on the other, and they change as the wallet turns.
- * HTML text over a canvas cannot do that at any budget.
+ * Drawn once into a bump and a roughness map covering the whole pocket, so the
+ * marks are DEPRESSIONS in the surface rather than decals sitting on it. That
+ * is what makes them catch the key light on one lip and shadow on the other,
+ * and it is why they change as the wallet turns. Text laid over a canvas cannot
+ * do it at any budget, and a decal always reads as a sticker.
  */
-function EngravingPlate({ look }: { look: WalletLook }) {
-  const { bump, rough } = useMemo(() => {
-    const w = 512;
-    const h = 160;
-    const c = document.createElement("canvas");
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext("2d")!;
+function Branding({
+  engraving,
+  hardware,
+  z,
+}: {
+  engraving: string;
+  hardware: { hex: string; roughness: number };
+  z: number;
+}) {
+  const { bump, rough, mask } = useMemo(() => {
+    const w = 1024;
+    const h = Math.round((w * (H - 0.7)) / (W - 0.5));
 
-    ctx.fillStyle = "#808080";
-    ctx.fillRect(0, 0, w, h);
+    const draw = (fg: string, bg: string) => {
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext("2d")!;
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = fg;
+      ctx.strokeStyle = fg;
 
-    const text = (look.engraving || "LAWFIC").toUpperCase().slice(0, 18);
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = `600 ${h * 0.42}px ui-sans-serif, system-ui, sans-serif`;
-    ctx.letterSpacing = `${h * 0.06}px`;
-    ctx.fillText(text, w / 2, h / 2);
+      /* Monogram: an angular chevron pair, low left. Original mark. */
+      const mx = w * 0.11;
+      const my = h * 0.8;
+      const s = h * 0.1;
+      ctx.lineWidth = s * 0.34;
+      ctx.lineCap = "square";
+      ctx.lineJoin = "miter";
+      for (const off of [0, s * 0.52]) {
+        ctx.beginPath();
+        ctx.moveTo(mx + off, my - s);
+        ctx.lineTo(mx + off, my + s * 0.55);
+        ctx.lineTo(mx + off + s * 0.78, my + s * 0.55);
+        ctx.stroke();
+      }
 
-    const bumpTex = new THREE.CanvasTexture(c);
+      /* Wordmark, low right. The customer's engraving takes its place when
+         they have set one — their name is the point, not ours. */
+      const text = (engraving || "LAWFIC").toUpperCase().slice(0, 16);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = `600 ${h * 0.115}px ui-sans-serif, system-ui, sans-serif`;
+      ctx.letterSpacing = `${h * 0.022}px`;
+      ctx.fillText(text, w * 0.9, my + s * 0.5);
+      return c;
+    };
+
+    /* Mid grey field, dark marks: cut in, not raised. */
+    const bumpTex = new THREE.CanvasTexture(draw("#101010", "#808080"));
     bumpTex.colorSpace = THREE.NoColorSpace;
-
-    /* Cut letters are rougher than the polished field around them. */
-    const rc = document.createElement("canvas");
-    rc.width = w;
-    rc.height = h;
-    const rctx = rc.getContext("2d")!;
-    rctx.fillStyle = "#3a3a3a";
-    rctx.fillRect(0, 0, w, h);
-    rctx.fillStyle = "#c8c8c8";
-    rctx.textAlign = "center";
-    rctx.textBaseline = "middle";
-    rctx.font = `600 ${h * 0.42}px ui-sans-serif, system-ui, sans-serif`;
-    rctx.letterSpacing = `${h * 0.06}px`;
-    rctx.fillText(text, w / 2, h / 2);
-    const roughTex = new THREE.CanvasTexture(rc);
+    /* Cut edges are rougher than the field they sit in. */
+    const roughTex = new THREE.CanvasTexture(draw("#d0d0d0", "#404040"));
     roughTex.colorSpace = THREE.NoColorSpace;
-
-    return { bump: bumpTex, rough: roughTex };
-  }, [look.engraving]);
+    /* The cut-out, and a separate texture on purpose.
+       Reusing the bump map as the alpha map does not work: its field is mid
+       grey and its marks are near black, so EVERY texel sits below any alpha
+       test high enough to remove the field — the whole plane disappears,
+       marks included, which is exactly what happened. The mask has to be the
+       other way round, white where the marks are. */
+    const maskTex = new THREE.CanvasTexture(draw("#ffffff", "#000000"));
+    maskTex.colorSpace = THREE.NoColorSpace;
+    return { bump: bumpTex, rough: roughTex, mask: maskTex };
+  }, [engraving]);
 
   return (
-    <mesh position={[W * 0.26, -H * 0.24, SHELL * 0.62]} castShadow>
-      <boxGeometry args={[3.4, 1.05, 0.07]} />
-      <meshStandardMaterial
-        color={look.metal.color}
-        metalness={look.metal.metalness}
-        roughness={look.metal.roughness}
+    <mesh position={[0, 0, z]}>
+      <planeGeometry args={[W - 0.5, H - 0.7]} />
+      <meshPhysicalMaterial
+        transparent
+        color={hardware.hex}
+        metalness={0.9}
+        roughness={hardware.roughness}
+        envMapIntensity={1.6}
         bumpMap={bump}
-        bumpScale={-0.9}
+        /* Negative, so the marks read as debossed rather than raised. */
+        bumpScale={-1.2}
         roughnessMap={rough}
+        /* Only the marks survive; the field is alpha-tested away so the
+           leather underneath is what you see everywhere else. */
+        alphaMap={mask}
+        alphaTest={0.5}
+        depthWrite={false}
       />
     </mesh>
   );
 }
 
-/**
- * Notes in the compartment.
- *
- * Each is a lightly curved sheet rather than a flat plane — real paper never
- * lies flat in a wallet, and the curve is what lets the light run across the
- * printing instead of hitting all of it at once. Front and back carry different
- * artwork, so a note that turns shows a different face.
- */
+/** Notes fanned out of the top, behind the pocket. */
 function Notes({ notes, open }: { notes: Denomination[]; open: number }) {
   const geo = useMemo(() => {
-    /* A 14.2 x 6.6cm note folded once is 7.1cm wide, which fits. Segments
-       across so it can be bent. */
-    const g = new THREE.PlaneGeometry(7.1, 6.6, 24, 2);
+    /* Narrower than the card by a clear margin. At 9.4 against a 10.2 body the
+       fanned stack poked past the right edge and read as a rendering fault
+       rather than as banknotes. */
+    const g = new THREE.PlaneGeometry(8.7, 4.4, 26, 2);
     const pos = g.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
-      /* A shallow cylindrical bow, deepest in the middle. */
-      pos.setZ(i, Math.cos((x / 3.55) * 1.2) * 0.14);
+      pos.setZ(i, Math.cos((x / 4.7) * 1.25) * 0.1);
     }
     g.computeVertexNormals();
     return g;
   }, []);
 
   return (
-    <group position={[W * 0.14, H * 0.06, SHELL * 0.3]}>
-      {notes.map((value, i) => {
+    <group position={[0.1, H * 0.34, 0.02]}>
+      {notes.slice(0, 5).map((value, i) => {
         const d = getDenomination(value) ?? DENOMINATIONS[0];
         return (
           <mesh
             key={`${value}-${i}`}
             geometry={geo}
-            position={[i * 0.055, i * 0.09 + open * 0.25, i * 0.035]}
-            rotation={[0, 0, (i % 2 ? 1 : -1) * 0.012 * (i + 1)]}
+            position={[i * 0.16 - 0.3, i * 0.19 + open * 0.5, -i * 0.03]}
+            rotation={[0, 0, (i - 2) * 0.028]}
             castShadow
           >
             <meshStandardMaterial
               map={noteTexture(d, "front")}
-              roughness={0.86}
+              roughness={0.88}
               metalness={0}
               side={THREE.DoubleSide}
             />
@@ -328,5 +393,3 @@ function Notes({ notes, open }: { notes: Denomination[]; open: number }) {
     </group>
   );
 }
-
-export { NOTE_ASPECT };

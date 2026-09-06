@@ -39,6 +39,17 @@ export type LeatherSpec = {
   roughness: number;
   /** Fine-grain frequency multiplier. High for suede. */
   tooth: number;
+  /**
+   * A regular woven grid instead of cellular pebbling.
+   *
+   * This is the flag that stops nylon reading as leather in another colour.
+   * Fabric has a repeating over-under structure and a hide does not, and no
+   * amount of roughness tuning substitutes for that difference — the eye reads
+   * regularity versus randomness long before it reads sheen.
+   */
+  weave?: boolean;
+  /** Directional streaks, for brushed metal. */
+  brushed?: boolean;
 };
 
 type Maps = { normal: THREE.Texture; rough: THREE.Texture };
@@ -143,22 +154,41 @@ export function leatherMaps(key: string, spec: LeatherSpec, size = 512): Maps {
 
   /* Cell size for the pebbling. Coarse for cowhide, fine for nubuck. */
   const cells = 9 + spec.grain * 7;
-  const toothFreq = 60 * spec.tooth;
+  const toothFreq = 60 * Math.min(spec.tooth, 3);
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const u = x / size;
       const v = y / size;
 
-      /* Raised cells with valleys between them: the pebble grain itself. */
-      const cell = 1 - worley(u * cells, v * cells, seed);
-      /* Broad drift, so one region of the hide differs from another. */
+      let structure: number;
+      if (spec.weave) {
+        /* Over-under: two out-of-phase sawtooths, one per thread direction,
+           with the warp raised where the weft is not. */
+        const f = 120 * spec.tooth;
+        const warp = Math.abs(Math.sin(u * f * Math.PI));
+        const weft = Math.abs(Math.sin(v * f * Math.PI));
+        const over = Math.sin(u * f * Math.PI) * Math.sin(v * f * Math.PI) > 0 ? 1 : 0.55;
+        structure = (warp * 0.5 + weft * 0.5) * over;
+      } else if (spec.brushed) {
+        /* Brushing is scratches along ONE axis, so the noise is stretched
+           hard across it rather than being isotropic. Horizontally, because
+           that is the direction a flat panel is drawn under the abrasive —
+           and because vertical streaks on a landscape card read as a curtain
+           rather than as a finish. */
+        structure = fbm(u * 3, v * 900 * spec.tooth, seed, 2) * 0.8 + 0.1;
+      } else {
+        /* Raised cells with valleys between them: pebble grain. */
+        structure = 1 - worley(u * cells, v * cells, seed);
+      }
+
+      /* Broad drift, so one region differs from another. */
       const broad = fbm(u * 3.2, v * 3.2, seed + 5, 3);
-      /* Tooth: the fine finish sitting on top of the cells. */
+      /* Tooth: the fine finish sitting on top. */
       const tooth = fbm(u * toothFreq, v * toothFreq, seed + 9, 2);
 
       height[y * size + x] =
-        cell * (0.42 + spec.grain * 0.3) + broad * 0.28 + tooth * 0.18 * spec.tooth;
+        structure * (0.42 + spec.grain * 0.3) + broad * 0.28 + tooth * 0.14;
     }
   }
 

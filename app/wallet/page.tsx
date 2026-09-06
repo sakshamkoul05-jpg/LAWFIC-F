@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatEntry } from "@/lib/money";
+import { formatPaise } from "@/lib/money";
 import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
@@ -8,8 +8,29 @@ import WalletSection from "@/components/wallet/WalletSection";
 import WalletDemo from "@/components/wallet/WalletDemo";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
-import WalletActions from "@/components/wallet/WalletActions";
+import WalletQuickActions from "@/components/wallet/WalletQuickActions";
+import WalletActivity, { type ActivityRow } from "@/components/wallet/WalletActivity";
 import WalletMenu from "@/components/wallet/WalletMenu";
+
+/**
+ * The wallet home, rebuilt in CRED's visual language.
+ *
+ * What that actually means, since "make it look like CRED" is otherwise a mood:
+ *
+ *   - ONE loud element. The balance. Everything else — labels, dates, hints —
+ *     is quiet, small and letterspaced. The old page had a heading, a panel
+ *     title, a section label and the number all competing at similar weight;
+ *   - the object gets a stage. It sits on a soft pool of light with nothing
+ *     beside it, at full column width, because the wallet is the product;
+ *   - slabs at a large radius with a hairline and a lit top edge, never boxes
+ *     with visible borders;
+ *   - money in tabular monospace, so a column of amounts aligns;
+ *   - generous vertical rhythm. The sections are far apart on purpose.
+ *
+ * Borrowed language, not borrowed artwork: none of CRED's marks, colours,
+ * illustrations or copy appear here, and the whole thing runs on our own
+ * tokens so it still follows the site's theme.
+ */
 
 export const metadata: Metadata = {
   title: "Wallet",
@@ -19,14 +40,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-type Entry = {
-  id: string;
-  direction: "credit" | "debit";
-  amount_paise: number;
-  reason: string;
-  created_at: string;
-};
-
 export default async function WalletPage() {
   const supabase = await createClient();
   if (!supabase) return <WalletDemo />;
@@ -34,19 +47,39 @@ export default async function WalletPage() {
   const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   if (!auth.user) return <WalletDemo />;
 
-  const [{ data: balanceData }, { data: entries }, { data: prefsRow }] =
+  /* Month-to-date, for the strip under the actions. Bounded by a limit as well
+     as a date so a busy account cannot turn the home page into a full table
+     scan. */
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const [{ data: balanceData }, { data: entries }, { data: monthRows }, { data: prefsRow }] =
     await Promise.all([
       supabase.rpc("my_wallet_balance"),
       supabase
         .from("wallet_entries")
-        .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+        .select("id, direction, amount_paise, reason, created_at")
         .order("seq", { ascending: false })
         .limit(6),
+      supabase
+        .from("wallet_entries")
+        .select("direction, amount_paise")
+        .gte("created_at", monthStart.toISOString())
+        .limit(500),
       supabase.from("wallet_prefs").select("*").eq("user_id", auth.user.id).maybeSingle(),
     ]);
 
   const balancePaise = Number(balanceData ?? 0);
-  const rows = (entries ?? []) as Entry[];
+  const rows = (entries ?? []) as ActivityRow[];
+
+  let inPaise = 0;
+  let outPaise = 0;
+  for (const r of (monthRows ?? []) as { direction: string; amount_paise: number }[]) {
+    if (r.direction === "credit") inPaise += r.amount_paise;
+    else outPaise += r.amount_paise;
+  }
+
   const prefsInput = prefsRow as Record<string, unknown> | null;
   const prefs =
     normalizePrefs(
@@ -58,126 +91,80 @@ export default async function WalletPage() {
         avatarSeed: prefsInput.avatar_seed,
       },
     ) ?? DEFAULT_PREFS;
-  const displayName = auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
+
+  const displayName =
+    auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
+  const month = monthStart.toLocaleDateString("en-IN", { month: "long" });
 
   return (
-    <div className="mx-auto w-full max-w-[1320px]" style={{ color: "var(--wallet-fg)" }}>
+    <div className="mx-auto w-full max-w-[860px]" style={{ color: "var(--wallet-fg)" }}>
       <WalletOnboarding />
 
+      {/* GREETING. Deliberately the smallest thing on the page. */}
+      <header className="mb-10 flex items-center justify-between px-1">
+        <div>
+          <p className="cred-label">Welcome back</p>
+          <p className="mt-2 text-[17px] font-medium tracking-tight">{displayName}</p>
+        </div>
+        <WalletAvatar seed={prefs.avatarSeed} size={44} />
+      </header>
+
       {isRazorpayTestMode && (
-        <p className="mb-6 text-center text-[12px] opacity-40">
+        <p className="mb-6 text-center text-[11.5px]" style={{ color: "var(--wallet-fg-muted)" }}>
           Test mode — no real money moves
         </p>
       )}
 
-      <WalletSection
-        prefs={prefs}
-        balancePaise={balancePaise}
-        persist
-        eyebrow={
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <p className="text-[13px]" style={{ color: "var(--wallet-fg-muted)" }}>
-                Hi, {displayName}
-              </p>
-              <h1 className="text-[20px] font-semibold tracking-tight">My Wallet</h1>
-            </div>
-            <WalletAvatar seed={prefs.avatarSeed} size={40} />
-          </div>
-        }
-        actions={
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+      {/* THE OBJECT AND THE NUMBER. */}
+      <div className="cred-stage">
+        <WalletSection
+          prefs={prefs}
+          balancePaise={balancePaise}
+          persist
+          actions={
             <Link
               href="/wallet/topup"
-              className="rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
+              className="cred-cta rounded-full bg-primary px-8 py-3 text-[13.5px] font-medium text-background transition-colors hover:bg-primary-hover"
             >
               Add money
             </Link>
-            <Link
-              href="/wallet/customize"
-              className="rounded-full border border-border-2 px-6 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
-            >
-              Customise
-            </Link>
-          </div>
-        }
-      />
+          }
+        />
+      </div>
 
-      <div className="mx-auto mt-10 max-w-lg">
-      <WalletActions />
-
-      {/* Recent transactions */}
-      <div className="wallet-glass mt-8 overflow-hidden rounded-2xl">
-        <div className="flex items-center justify-between px-5 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-50">
-            Recent
-          </p>
-          <Link
-            href="/wallet/transactions"
-            className="text-[12px] font-medium opacity-40 hover:opacity-70 transition-opacity"
-          >
-            See all
-          </Link>
+      {/* MONTH TO DATE. Two figures, a hairline between them, no chrome. */}
+      <section className="cred-slab mt-16 grid grid-cols-2" aria-label={`${month} so far`}>
+        <div className="p-6">
+          <p className="cred-label">Added in {month}</p>
+          <p className="mt-3 font-mono text-[22px] tabular-nums">{formatPaise(inPaise)}</p>
         </div>
+        <div className="border-l p-6" style={{ borderColor: "var(--wallet-divider)" }}>
+          <p className="cred-label">Spent in {month}</p>
+          <p className="mt-3 font-mono text-[22px] tabular-nums">{formatPaise(outPaise)}</p>
+        </div>
+      </section>
 
-        {rows.length === 0 ? (
-          <div className="px-5 py-12 text-center">
-            <p className="text-[14px] opacity-50">Nothing here yet.</p>
-            <p className="mx-auto mt-2 max-w-xs text-[12px] leading-relaxed opacity-35">
-              Add money and every credit and debit will appear here.
-            </p>
-            <Link
-              href="/wallet/topup"
-              className="mt-5 inline-block rounded-full bg-primary px-5 py-2.5 text-[13px] font-medium text-background"
-            >
-              Add money
-            </Link>
-          </div>
-        ) : (
-          <ul style={{ borderColor: "var(--wallet-divider)" }} className="divide-y">
-            {rows.map((r) => (
-              <li key={r.id}>
-                <Link
-                  href={`/wallet/transactions/${r.id}`}
-                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150"
-                  style={{ color: "var(--wallet-fg)" }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium">{r.reason}</p>
-                    <p className="mt-0.5 font-mono text-[11px] opacity-35">
-                      {new Date(r.created_at).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                  <p
-                    className={`shrink-0 font-mono text-[13px] tabular-nums ${
-                      r.direction === "credit" ? "text-success" : "opacity-50"
-                    }`}
-                  >
-                    {formatEntry(r.direction, r.amount_paise)}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="border-t px-5 py-3 text-[11px] leading-relaxed opacity-25" style={{ borderColor: "var(--wallet-divider)" }}>
-          Balance is usable only for LAWFIC services.
-        </p>
+      <div className="mt-6">
+        <WalletQuickActions />
       </div>
 
-      <WalletMenu />
-
-      {!isRazorpayConfigured && (
-        <p className="mt-4 text-center text-[12px] opacity-30">
-          Payments are not switched on yet.
-        </p>
-      )}
+      <div className="mt-16">
+        <WalletActivity rows={rows} />
       </div>
+
+      <div className="mt-16">
+        <p className="cred-label mb-4 px-1">Wallet</p>
+        <WalletMenu />
+      </div>
+
+      <p
+        className="mt-10 px-1 text-[11.5px] leading-relaxed"
+        style={{ color: "var(--wallet-fg-muted)" }}
+      >
+        Balance is usable only for LAWFIC services. It is not transferable, not
+        refundable to a third party, and cannot be withdrawn as cash.
+        {!isRazorpayConfigured && " Payments are not switched on yet."}
+      </p>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import type { WalletLook } from "./WalletModel";
+import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import type { Denomination } from "@/lib/wallet3d/banknote";
 
 /**
@@ -42,13 +42,13 @@ function webglAvailable(): boolean {
 }
 
 export default function WalletStage({
-  look,
+  config,
   open,
   notes,
   fallback,
   className = "",
 }: {
-  look: WalletLook;
+  config: WalletConfig;
   open: number;
   notes: Denomination[];
   fallback: React.ReactNode;
@@ -69,7 +69,7 @@ export default function WalletStage({
 
   return (
     <WalletScene
-      look={look}
+      config={config}
       open={open}
       notes={notes}
       className={className}

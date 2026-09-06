@@ -3,7 +3,8 @@
 import { Canvas } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useEffect, useRef, useState } from "react";
-import WalletModel, { type WalletLook } from "./WalletModel";
+import WalletModel from "./WalletModel";
+import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import type { Denomination } from "@/lib/wallet3d/banknote";
 
 /**
@@ -34,7 +35,7 @@ import type { Denomination } from "@/lib/wallet3d/banknote";
  */
 
 export type WalletSceneProps = {
-  look: WalletLook;
+  config: WalletConfig;
   open: number;
   notes: Denomination[];
   className?: string;
@@ -50,7 +51,7 @@ export type WalletSceneProps = {
 };
 
 export default function WalletScene({
-  look,
+  config,
   open,
   notes,
   className = "",
@@ -111,6 +112,14 @@ export default function WalletScene({
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         shadows={false}
         onCreated={({ gl }) => {
+          /* Exposure, and the reason it is here rather than left alone.
+             The default of 1.0 with a full softbox rig plus two directionals
+             blows a mid-dark hide out to a flat saturated poster colour —
+             violet leather rendered as grape plastic. Pulling exposure down
+             and letting the key do the work restores the depth: the base
+             colour stays dark, and the only bright pixels are actual
+             specular hits on the grain. */
+          gl.toneMappingExposure = 0.62;
           /* Tell the caller so it can put the drawn wallet back. Also prevent
              the default, which is what allows a restore to be attempted at
              all rather than the canvas being dead for good. */
@@ -124,7 +133,7 @@ export default function WalletScene({
           );
         }}
       >
-        <PerspectiveCamera makeDefault position={[0, 0.5, 34]} fov={26} />
+        <PerspectiveCamera makeDefault position={[0, 0.4, 30]} fov={24} />
 
         <Suspense fallback={null}>
           {/* The softbox rig. Resolution is low on purpose: a blurred
@@ -133,37 +142,49 @@ export default function WalletScene({
           <Environment resolution={256}>
             <Lightformer
               form="rect"
-              intensity={7}
+              intensity={4.2}
               position={[-6, 6, 8]}
               scale={[14, 10, 1]}
               target={[0, 0, 0]}
             />
             <Lightformer
               form="rect"
-              intensity={2.2}
+              intensity={1.6}
               position={[8, 2, -6]}
               scale={[10, 3, 1]}
               target={[0, 0, 0]}
             />
-            <Lightformer form="circle" intensity={1.1} position={[0, -6, 4]} scale={9} />
+            <Lightformer form="circle" intensity={0.7} position={[0, -6, 4]} scale={9} />
+            {/* A large, dim panel on the camera side. Dielectrics barely
+                notice it; a METAL is nothing but its reflections, so without
+                something to reflect back at the viewer a brushed titanium
+                finish renders as a black slab with a rim light. This is the
+                fill card a photographer would put behind the lens. */}
+            <Lightformer
+              form="rect"
+              intensity={1.15}
+              position={[0, 1, 14]}
+              scale={[20, 14, 1]}
+              target={[0, 0, 0]}
+            />
             <mesh scale={40}>
               <sphereGeometry args={[1, 32, 16]} />
-              <meshBasicMaterial color="#0b0b0c" side={1} />
+              <meshBasicMaterial color="#1c1d21" side={1} />
             </mesh>
           </Environment>
 
-          <ambientLight intensity={0.55} />
-          <directionalLight position={[-7, 8, 9]} intensity={2.4} />
-          <directionalLight position={[8, 3, -4]} intensity={0.9} color="#cfd6e6" />
+          <ambientLight intensity={0.16} />
+          <directionalLight position={[-7, 8, 9]} intensity={1.5} />
+          <directionalLight position={[8, 3, -4]} intensity={0.5} color="#cfd6e6" />
 
-          <group position={[0, 0.9, 0]}>
-            <WalletModel look={look} open={open} notes={notes} pointer={pointer} />
+          <group position={[0, 0.6, 0]}>
+            <WalletModel look={config} open={open} notes={notes} pointer={pointer} />
           </group>
 
           <ContactShadows
-            position={[0, -5.6, 0]}
+            position={[0, -4.4, 0]}
             opacity={0.55}
-            scale={30}
+            scale={22}
             blur={2.6}
             far={9}
             resolution={512}

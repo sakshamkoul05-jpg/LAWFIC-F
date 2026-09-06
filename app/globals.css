@@ -681,3 +681,121 @@
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
+
+/* ============================================================
+   CRED-style wallet surface
+   ------------------------------------------------------------
+   The client asked for CRED's wallet look and behaviour. What is
+   borrowed is the LANGUAGE, not the artwork: a dark stage, enormous
+   negative space, one number allowed to be loud, hairline-bordered
+   slabs at a large radius, 10px letterspaced caps for every label, and
+   monospaced tabular figures so money columns line up. None of CRED's
+   own marks, illustrations, colours or copy appear anywhere — that
+   would be someone else's trademark on our product.
+
+   All of it runs on the site tokens, so it still switches with the
+   theme instead of pinning a second palette on top.
+   ============================================================ */
+
+.cred-label {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--wallet-fg-muted);
+}
+
+/* The slab. One radius, one hairline, a top highlight that reads as a
+   lit edge rather than a border. */
+.cred-slab {
+  position: relative;
+  border-radius: 22px;
+  background: var(--wallet-glass-bg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px var(--wallet-glass-border),
+    0 22px 50px -34px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .cred-slab {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 0 1px var(--wallet-glass-border),
+    0 14px 34px -26px rgba(28, 24, 16, 0.35);
+}
+
+/* Tiles lift on hover. 2px, once — CRED's motion is short and settles;
+   it never bounces. */
+.cred-tile {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+}
+
+.cred-tile:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cred-tile:hover {
+    transform: none;
+  }
+}
+
+/* The stage glow behind the object. A single soft pool, warm, well under
+   the wallet, so the thing appears to be lit rather than pasted on. */
+.cred-stage {
+  position: relative;
+}
+
+.cred-stage::before {
+  content: "";
+  position: absolute;
+  inset: 8% 4% 14%;
+  border-radius: 50%;
+  background: radial-gradient(
+    60% 55% at 50% 45%,
+    color-mix(in oklab, var(--brand) 24%, transparent),
+    transparent 72%
+  );
+  filter: blur(46px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cred-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The primary action. Full width, tall, and a sheen that crosses once on
+   hover — the one flourish on the page. */
+.cred-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cred-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 70%
+  );
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.cred-cta:hover::after {
+  transform: translateX(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cred-cta::after {
+    display: none;
+  }
+}
