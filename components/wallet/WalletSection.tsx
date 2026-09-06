@@ -8,6 +8,9 @@ import type { WalletPrefs } from "@/lib/wallet-custom";
 import PhysicalWallet from "./PhysicalWallet";
 import WalletPhoto from "./WalletPhoto";
 import WalletSequence from "./WalletSequence";
+import WalletStage from "@/components/wallet3d/WalletStage";
+import { getLook } from "@/lib/wallet3d/looks";
+import { breakIntoNotes } from "@/lib/wallet3d/banknote";
 import { getHide } from "@/lib/wallet-leather";
 import WalletSkinSelector from "./WalletSkinSelector";
 
@@ -111,34 +114,58 @@ export default function WalletSection({
             a wide screen despite coming second in the source — reading order
             keeps the heading first for anyone who is not looking. */}
         <div className="order-2 min-w-0">
-          {/* Three tiers, each falling to the next when its assets are not
-              there: the zip-and-fold frame sequence, then the two-state
-              photograph, then the drawn wallet. The site works on the day only
-              some of the range has been shot, which is most days. */}
-          <WalletSequence
-            hide={hide}
-            open={open}
-            onOpenChange={setOpen}
+          {/* FOUR tiers, each falling to the next when it cannot run: the
+              3D wallet, the zip-and-fold frame sequence, the two-state
+              photograph, and the drawn CSS wallet. That is not
+              over-engineering — WebGL is genuinely absent on some machines,
+              contexts genuinely get lost, and the photography genuinely is not
+              in the repo yet. Each tier knows only whether IT can run, and
+              hands over if not. */}
+          <WalletStage
+            look={{ ...getLook(look.hide).look, engraving: look.nameplate }}
+            open={open ? 1 : 0}
+            notes={breakIntoNotes(balancePaise)}
             fallback={
-              <WalletPhoto
+              <WalletSequence
                 hide={hide}
                 open={open}
-                onToggle={() => setOpen((o) => !o)}
+                onOpenChange={setOpen}
                 fallback={
-                  <PhysicalWallet
-                    hide={look.hide}
-                    plate={look.plate}
-                    thread={look.thread}
-                    nameplate={look.nameplate}
-                    balancePaise={balancePaise}
-                    landing={landing}
+                  <WalletPhoto
+                    hide={hide}
                     open={open}
                     onToggle={() => setOpen((o) => !o)}
+                    fallback={
+                      <PhysicalWallet
+                        hide={look.hide}
+                        plate={look.plate}
+                        thread={look.thread}
+                        nameplate={look.nameplate}
+                        balancePaise={balancePaise}
+                        landing={landing}
+                        open={open}
+                        onToggle={() => setOpen((o) => !o)}
+                      />
+                    }
                   />
                 }
               />
             }
           />
+
+          {/* The 3D wallet is turned by dragging and opened from here, because
+              a canvas cannot be tabbed to and a wallet that only opens by
+              gesture is a wallet some people cannot open. */}
+          <div className="mt-3 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              className="rounded-full border border-border px-5 py-2 text-[12.5px] text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
+            >
+              {open ? "Close wallet" : "Open wallet"}
+            </button>
+          </div>
         </div>
       </div>
 
