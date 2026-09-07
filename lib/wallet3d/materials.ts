@@ -52,7 +52,7 @@ export type LeatherSpec = {
   brushed?: boolean;
 };
 
-type Maps = { normal: THREE.Texture; rough: THREE.Texture };
+type Maps = { normal: THREE.Texture; rough: THREE.Texture; tint: THREE.Texture };
 
 /** Stable per-hide seed, so a colourway looks the same on every load. */
 function hashString(s: string): number {
@@ -266,6 +266,25 @@ export function leatherMaps(key: string, spec: LeatherSpec, size = 512): Maps {
     }
   }
 
+  /* THE ALBEDO, AND WHY A NORMAL MAP WAS NOT ENOUGH.
+     The approved wallet is a distressed pull-up hide: its character is TONAL,
+     not structural. Real pull-up leather is dyed through and waxed, so the
+     colour lifts wherever the surface has been stretched or handled — that
+     mottling is most of what the eye reads in the client's photographs, and no
+     amount of normal-map pebbling produces it, because pebbling is geometry
+     and this is pigment. Modulating the base colour by the same height field
+     gives it for free and keeps the two agreeing: the places that catch the
+     light are the places that have worn lighter. */
+  const tintCanvas = document.createElement("canvas");
+  tintCanvas.width = tintCanvas.height = size;
+  const tctx = tintCanvas.getContext("2d")!;
+  const timg = tctx.createImageData(size, size);
+
+  const base = new THREE.Color(spec.color);
+  let mean = 0;
+  for (let i = 0; i < height.length; i++) mean += height[i];
+  mean /= height.length;
+
   const normalCanvas = document.createElement("canvas");
   normalCanvas.width = normalCanvas.height = size;
   const nctx = normalCanvas.getContext("2d")!;
@@ -308,24 +327,40 @@ export function leatherMaps(key: string, spec: LeatherSpec, size = 512): Maps {
       );
       rimg.data[p] = rimg.data[p + 1] = rimg.data[p + 2] = rough * 255;
       rimg.data[p + 3] = 255;
+
+      /* Pull-up: raised and worn reads lighter, valleys keep the deep dye.
+         Clamped low so the hide never posterises into blotches. */
+      const lift = THREE.MathUtils.clamp(
+        1 + (height[i] - mean) * (1.7 + spec.grain * 0.6) + drift * 2.4,
+        0.55,
+        1.75,
+      );
+      timg.data[p] = Math.min(255, base.r * 255 * lift);
+      timg.data[p + 1] = Math.min(255, base.g * 255 * lift);
+      timg.data[p + 2] = Math.min(255, base.b * 255 * lift);
+      timg.data[p + 3] = 255;
     }
   }
 
   nctx.putImageData(nimg, 0, 0);
   rctx.putImageData(rimg, 0, 0);
+  tctx.putImageData(timg, 0, 0);
 
   const normal = new THREE.CanvasTexture(normalCanvas);
   const rough = new THREE.CanvasTexture(roughCanvas);
-  for (const t of [normal, rough]) {
+  const tint = new THREE.CanvasTexture(tintCanvas);
+  for (const t of [normal, rough, tint]) {
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.anisotropy = 4;
   }
-  /* Colour data must not be treated as sRGB, or the lighting is wrong in a way
-     that is hard to see and impossible to unsee. */
+  /* Data maps must NOT be treated as sRGB, or the lighting is wrong in a way
+     that is hard to see and impossible to unsee. The albedo is the one map
+     here that genuinely is colour, so it is the one that gets sRGB. */
   normal.colorSpace = THREE.NoColorSpace;
   rough.colorSpace = THREE.NoColorSpace;
+  tint.colorSpace = THREE.SRGBColorSpace;
 
-  const maps = { normal, rough };
+  const maps = { normal, rough, tint };
   cache.set(key, maps);
   return maps;
 }
@@ -335,6 +370,7 @@ export function disposeMaterialCache() {
   for (const m of cache.values()) {
     m.normal.dispose();
     m.rough.dispose();
+    m.tint.dispose();
   }
   cache.clear();
 }

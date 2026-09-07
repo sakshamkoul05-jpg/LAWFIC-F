@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { formatPaise } from "@/lib/money";
 import type { WalletPrefs } from "@/lib/wallet-custom";
-import { FINISHES, HARDWARE, THREADS, getColor, getFinish } from "@/lib/wallet3d/finishes";
+import { EMBOSS, FINISHES, THREADS, getColor, getFinish } from "@/lib/wallet3d/finishes";
 import { breakIntoNotes, getNoteStyle, NOTE_STYLES } from "@/lib/wallet3d/banknote";
 import { useWalletConfig } from "./useWalletConfig";
 import WalletStage from "@/components/wallet3d/WalletStage";
@@ -167,18 +167,24 @@ export default function WalletSection({
                 ))}
               </Row>
 
-              <Row label="Hardware">
-                {HARDWARE.map((h) => (
+              {/* A leather bifold has no hardware on its face. It has a
+                  stamp, and the real choice a maker offers is whether that
+                  stamp is blind or foiled. */}
+              <Row label="Embossing">
+                {EMBOSS.map((e) => (
                   <Chip
-                    key={h.id}
-                    on={config.hardware === h.id}
-                    onClick={() => update({ hardware: h.id })}
+                    key={e.id}
+                    on={config.emboss === e.id}
+                    onClick={() => update({ emboss: e.id })}
                   >
                     <span
                       className="inline-block size-3 rounded-full align-middle"
-                      style={{ background: h.hex }}
+                      style={{
+                        background: e.hex ?? "transparent",
+                        boxShadow: e.hex ? "none" : "inset 0 0 0 1px currentColor",
+                      }}
                     />
-                    <span className="ml-2 align-middle">{h.name}</span>
+                    <span className="ml-2 align-middle">{e.name}</span>
                   </Chip>
                 ))}
               </Row>

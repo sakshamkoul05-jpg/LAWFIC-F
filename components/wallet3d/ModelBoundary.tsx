@@ -15,7 +15,7 @@ import { Component, type ReactNode } from "react";
  * It has to be a class. Error boundaries have no hook equivalent.
  */
 export default class ModelBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
+  { fallback: ReactNode; children: ReactNode; onFail?: () => void },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -25,6 +25,9 @@ export default class ModelBoundary extends Component<
   }
 
   componentDidCatch(error: unknown) {
+    /* Let the caller degrade the whole canvas rather than leaving a lit empty
+       studio: a 3D scene with no object in it is worse than no 3D at all. */
+    this.props.onFail?.();
     /* Worth a console line: the fallback looks deliberate, so a broken asset
        would otherwise ship silently and never be noticed. */
     console.error("[wallet] 3D model failed to load, using the drawn wallet", error);

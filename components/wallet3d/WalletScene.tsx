@@ -3,8 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import { Suspense, useEffect, useRef, useState } from "react";
-import WalletModel from "./WalletModel";
-import WalletGLB from "./WalletGLB";
+import WalletBifold from "./WalletBifold";
 import ModelBoundary from "./ModelBoundary";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import type { Denomination } from "@/lib/wallet3d/banknote";
@@ -35,17 +34,6 @@ import type { Denomination } from "@/lib/wallet3d/banknote";
  * drops to demand when the user is not interacting, so an idle tab is not
  * burning a core.
  */
-
-/**
- * Which wallet renders.
- *
- * The client compared the two and approved the DRAWN card holder over the mesh
- * they generated: it holds a crisper edge, keeps the saddle stitching, and its
- * pocket wave stays sharp, where a generated mesh softens all three. Their
- * .glb, the build pipeline and WalletGLB all stay — the integration works and
- * is verified — so this is one line to flip if a cleaner export arrives.
- */
-const USE_CLIENT_MESH = false;
 
 export type WalletSceneProps = {
   config: WalletConfig;
@@ -194,39 +182,20 @@ export default function WalletScene({
           <directionalLight position={[8, 3, -4]} intensity={0.5} color="#cfd6e6" />
 
           <group position={[0, 0.6, 0]}>
-            {USE_CLIENT_MESH ? (
-              /* The boundary is for a broken or missing asset — a 404 after a
-                 bad deploy, a truncated response, a re-export that will not
-                 parse. The Suspense above only covers a model that has not
-                 arrived yet. */
-              <ModelBoundary
-                fallback={
-                  <WalletModel
-                    look={config}
-                    open={open}
-                    notes={notes}
-                    arriving={arriving}
-                    pointer={pointer}
-                  />
-                }
-              >
-                <WalletGLB
-                  look={config}
-                  open={open}
-                  notes={notes}
-                  arriving={arriving}
-                  pointer={pointer}
-                />
-              </ModelBoundary>
-            ) : (
-              <WalletModel
+            {/* The boundary is for a broken or missing asset — a 404 after a
+                bad deploy, a truncated response, a re-export that will not
+                parse. Suspense above only covers a model still loading.
+                On failure the scene tells the caller, which puts the drawn
+                wallet back rather than leaving a blank canvas. */}
+            <ModelBoundary fallback={null} onFail={onLost}>
+              <WalletBifold
                 look={config}
                 open={open}
                 notes={notes}
                 arriving={arriving}
                 pointer={pointer}
               />
-            )}
+            </ModelBoundary>
           </group>
 
           <ContactShadows

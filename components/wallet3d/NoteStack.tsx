@@ -90,6 +90,15 @@ export default function NoteStack({
   const refs = useRef<(THREE.Group | null)[]>([]);
   const startedAt = useRef<number | null>(null);
   const lastToken = useRef(arriving);
+  /* Mirrored, and read from the ref inside the frame loop rather than from the
+     closure. A render-loop subscription cannot be relied on to hold this
+     render's function, and if it holds an older one the token comparison sits
+     against the value captured on mount — the intro flight still plays,
+     because that runs off a ref, but a credit would never fly in at all. */
+  const arrivingRef = useRef(arriving);
+  arrivingRef.current = arriving;
+  const openRef = useRef(open);
+  openRef.current = open;
   /* The wallet plays the flight once when it first appears, so the money is
      counted into it rather than already sitting there. It is the same motion a
      credit uses, which means a customer has seen it before the first time it
@@ -115,8 +124,8 @@ export default function NoteStack({
       intro.current = false;
       startedAt.current = now;
     }
-    if (arriving !== lastToken.current) {
-      lastToken.current = arriving;
+    if (arrivingRef.current !== lastToken.current) {
+      lastToken.current = arrivingRef.current;
       startedAt.current = now;
     }
     const t0 = startedAt.current;
@@ -125,7 +134,7 @@ export default function NoteStack({
       const g = refs.current[i];
       if (!g) continue;
 
-      const restY = i * STEP_Y + open * 0.5;
+      const restY = i * STEP_Y + openRef.current * 0.5;
       const restZ = i * STEP_Z;
 
       /* No flight in progress: sit in the stack and do nothing per frame. */
