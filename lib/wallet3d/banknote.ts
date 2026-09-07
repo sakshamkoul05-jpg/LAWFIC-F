@@ -6,8 +6,8 @@ import * as THREE from "three";
  * WHAT THIS IS AND IS NOT
  *
  * These are not money. They are a branded voucher for a closed-loop prepaid
- * balance, and the design says so on its face: the unit is a LAWFIC CREDIT, the
- * issuer is LAWFIC, and the back reads "MORE THAN A WALLET". Nothing here
+ * balance, and the design says so on its face: the unit is a CREDIT, the issuer
+ * is the LAWFIC monogram, and the back reads "MORE THAN A WALLET". Nothing here
  * imitates any real note — no emblem, no portrait, no issuer of legal tender,
  * no real serial format — which is what allows the design to be FINISHED rather
  * than curtailed. Earlier versions drew stylised rupees and had to stop short
@@ -18,16 +18,16 @@ import * as THREE from "three";
  *
  * Reproduced from the client's artwork, element for element and in place:
  *
- *   front  value and LAWFIC CREDITS top left; "A BETTER TOMORROW IN YOUR
+ *   front  value and CREDITS top left; "A BETTER TOMORROW IN YOUR
  *          HANDS."; a signature over CHIEF VISION OFFICER; a windowed security
- *          thread carrying the monogram; the LAWFIC wordmark over PEOPLE
+ *          thread carrying the monogram; the monogram over PEOPLE
  *          PROGRESS POSSIBILITIES; an engraved mountain, lake and viaduct with
  *          a pine on a rock to the right; BUILT ON TRUST / BACKED BY PEOPLE; a
  *          guilloché medallion; a red serial; 未来へ共に set vertically; and the
  *          value repeated bottom right.
  *
  *   back   value both top corners; a faint world map; DISCIPLINE CREATES
- *          FREEDOM; the LAWFIC wordmark; MORE THAN A WALLET.; a large
+ *          FREEDOM; the monogram; MORE THAN A WALLET.; a large
  *          medallion; an engraved city with a flyover and a tree; A BRIGHTER
  *          YOU.; PEOPLE PROGRESS POSSIBILITIES stacked; and A MORE INCLUSIVE
  *          TOMORROW.
@@ -1010,7 +1010,7 @@ export function noteTexture(
     const gutter = W * 0.227 - W * 0.045 - W * 0.012;
     ctx.fillStyle = ink;
     fitText(ctx, v, W * 0.045, H * 0.3, gutter, H * 0.28, 0, 700, FIGURE);
-    fitText(ctx, "LAWFIC CREDITS", W * 0.048, H * 0.395, gutter, H * 0.068, H * 0.01, 700, SANS);
+    fitText(ctx, "CREDITS", W * 0.048, H * 0.395, gutter, H * 0.068, H * 0.014, 700, SANS);
 
     ctx.globalAlpha = 0.9;
     const promise = ["A", "BETTER", "TOMORROW", "IN YOUR HANDS."];
@@ -1037,19 +1037,14 @@ export function noteTexture(
     securityThread(ctx, W * 0.227, 0, W * 0.029, H, ink);
 
     /* ── CENTRE ───────────────────────────────────────────── */
+    /* The name is deliberately absent. The client asked for the wordmark off
+       the currency, so the mark carries the identity on its own — and the
+       composition needs SOMETHING at its centre, because a note with a hole
+       where its issuer sits reads as unfinished rather than as unbranded. The
+       ™ went with the name: a trademark symbol belongs to a name. */
     ctx.textAlign = "center";
     ctx.fillStyle = ink;
-    ctx.font = `400 ${H * 0.2}px ${SERIF}`;
-    ctx.letterSpacing = `${H * 0.03}px`;
-    ctx.fillText("LAWFIC", W * 0.545, H * 0.26);
-    /* Measured, because the wordmark's width depends on which serif the
-       viewer actually has. A hard-coded offset put the ™ through the C. */
-    const wmW = ctx.measureText("LAWFIC").width;
-    ctx.letterSpacing = "0px";
-    ctx.textAlign = "left";
-    ctx.font = `400 ${H * 0.055}px ${SANS}`;
-    ctx.fillText("™", W * 0.545 + wmW / 2 + H * 0.012, H * 0.175);
-    ctx.textAlign = "center";
+    mark(ctx, W * 0.545, H * 0.2, H * 0.19, ink);
 
     ctx.globalAlpha = 0.9;
     caps(ctx, "PEOPLE  PROGRESS  POSSIBILITIES", W * 0.545, H * 0.335, H * 0.046, H * 0.015, 400);
@@ -1098,7 +1093,7 @@ export function noteTexture(
     ctx.fillStyle = ink;
     ctx.font = `700 ${H * 0.2}px ${FIGURE}`;
     ctx.fillText(v, W * 0.958, H * 0.86);
-    caps(ctx, "LAWFIC CREDITS", W * 0.958, H * 0.935, H * 0.058, H * 0.01, 700);
+    caps(ctx, "CREDITS", W * 0.958, H * 0.935, H * 0.058, H * 0.014, 700);
     ctx.textAlign = "left";
   } else {
     /* ── BACK ─────────────────────────────────────────────── */
@@ -1107,7 +1102,7 @@ export function noteTexture(
     ctx.fillStyle = ink;
     ctx.font = `700 ${H * 0.2}px ${FIGURE}`;
     ctx.fillText(v, W * 0.045, H * 0.22);
-    caps(ctx, "LAWFIC CREDITS", W * 0.048, H * 0.29, H * 0.058, H * 0.01, 700);
+    caps(ctx, "CREDITS", W * 0.048, H * 0.29, H * 0.058, H * 0.014, 700);
 
     ctx.globalAlpha = 0.9;
     ["DISCIPLINE", "CREATES", "FREEDOM"].forEach((line, i) => {
@@ -1122,13 +1117,7 @@ export function noteTexture(
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    ctx.font = `400 ${H * 0.16}px ${SERIF}`;
-    ctx.letterSpacing = `${H * 0.02}px`;
-    ctx.fillText("LAWFIC", W * 0.048, H * 0.95);
-    const backWm = ctx.measureText("LAWFIC").width;
-    ctx.letterSpacing = "0px";
-    ctx.font = `400 ${H * 0.045}px ${SANS}`;
-    ctx.fillText("™", W * 0.048 + backWm + H * 0.008, H * 0.885);
+    mark(ctx, W * 0.085, H * 0.87, H * 0.155, ink);
 
     ctx.textAlign = "center";
     ctx.globalAlpha = 0.92;

@@ -46,6 +46,7 @@ export default function WalletStage({
   open,
   notes,
   arriving,
+  onTap,
   fallback,
   className = "",
 }: {
@@ -54,6 +55,8 @@ export default function WalletStage({
   notes: Denomination[];
   /** Change this to replay the notes' fly-in. */
   arriving?: number;
+  /** Tap the wallet itself to open or shut it. */
+  onTap?: () => void;
   fallback: React.ReactNode;
   className?: string;
 }) {
@@ -76,6 +79,7 @@ export default function WalletStage({
       open={open}
       notes={notes}
       arriving={arriving}
+      onTap={onTap}
       className={className}
       onLost={() => setState("no")}
     />

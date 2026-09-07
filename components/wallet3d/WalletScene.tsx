@@ -44,6 +44,8 @@ export type WalletSceneProps = {
   className?: string;
   /** Let the user turn it. */
   interactive?: boolean;
+  /** Tap the wallet itself to open or shut it. */
+  onTap?: () => void;
   /**
    * The GPU took the context away. Not hypothetical: a browser caps how many
    * live WebGL contexts a page may hold, drops them under memory pressure, and
@@ -60,11 +62,13 @@ export default function WalletScene({
   notes,
   className = "",
   interactive = true,
+  onTap,
   onLost,
 }: WalletSceneProps) {
   const host = useRef<HTMLDivElement>(null);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; from: number } | null>(null);
+  const press = useRef<{ x: number; y: number; t: number } | null>(null);
 
   /* Cursor drives a tilt, not a rotation — the wallet leans toward you rather
      than turning to face you, which is the difference between a product and a
@@ -98,17 +102,32 @@ export default function WalletScene({
     <div
       ref={host}
       className={`relative w-full touch-pan-y ${interactive ? "cursor-grab active:cursor-grabbing" : ""} ${className}`}
+      /* Presentational only: the real control is the labelled button beside
+         the wallet. Making the canvas itself a button would put an unlabelled,
+         focusable, drag-handling control in the tab order for no gain. */
+      aria-hidden
       style={{ aspectRatio: "16 / 11" }}
       onPointerDown={(e) => {
         if (!interactive) return;
         drag.current = { x: e.clientX, from: pointer.x };
+        press.current = { x: e.clientX, y: e.clientY, t: performance.now() };
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       }}
-      onPointerUp={() => {
+      onPointerUp={(e) => {
         drag.current = null;
+        /* A tap, not the end of a turn. The wallet is draggable, so releasing
+           after swinging it round must not also open it — the gesture only
+           counts if the pointer barely moved and did not linger. Both bounds
+           matter: distance alone would let a slow, tiny drag through. */
+        const p = press.current;
+        press.current = null;
+        if (!p || !onTap) return;
+        const moved = Math.hypot(e.clientX - p.x, e.clientY - p.y);
+        if (moved < 6 && performance.now() - p.t < 500) onTap();
       }}
       onPointerCancel={() => {
         drag.current = null;
+        press.current = null;
       }}
     >
       <Canvas

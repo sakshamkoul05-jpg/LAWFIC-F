@@ -247,6 +247,20 @@ export default function WalletBifold({
 
         <Stitching size={fitted.size} thread={threadColor} open={shown} />
 
+        {/* The opening, shut. A separate dark strip rather than a line in the
+            stitch decal, because that decal has ONE material and a gap between
+            two leaves is not the colour of thread. Only when shut: open, the
+            gap is real geometry. */}
+        {!shown && (
+          <mesh
+            position={[0, fitted.size.y * 0.42, fitted.size.z / 2 + 0.01]}
+            renderOrder={2}
+          >
+            <planeGeometry args={[fitted.size.x * 0.9, fitted.size.y * 0.012]} />
+            <meshBasicMaterial color="#120c07" transparent opacity={0.72} depthWrite={false} />
+          </mesh>
+        )}
+
         <Emboss
           engraving={look.engraving}
           emboss={emboss}
@@ -263,12 +277,15 @@ export default function WalletBifold({
             open={1}
             arriving={arriving}
             style={look.notes}
-            width={fitted.size.x * 0.5}
+            /* A banknote spans nearly the whole length of an open bifold —
+               that is what the compartment is for, and half-width notes read
+               as vouchers rattling around inside it. */
+            width={fitted.size.x * 0.86}
             /* Behind the panels and clearing the top edge: the bill slot runs
                along the spine at the back, which is where the client's own
                photograph shows the notes standing up out of. Placed at the
                front the stack sits inside solid geometry. */
-            position={[fitted.size.x * 0.01, fitted.size.y * 0.4, -fitted.size.z * 0.22]}
+            position={[0, fitted.size.y * 0.38, -fitted.size.z * 0.42]}
           />
         )}
       </group>
@@ -334,13 +351,21 @@ function Emboss({
       };
 
       if (open) {
-        /* Left panel, under the card slots. */
-        lockup(w * 0.22, h * 0.76, h * 0.1, "LAWFIC");
-        /* Right, beside the coin pocket. */
+        /* Pulled well inside the box. The marks were running off the leather
+           and across the coin pocket, because the decal is sized from the
+           BOUNDING BOX and an open wallet's box is bigger than its face — the
+           panels tilt toward the camera, so the box gains height and width
+           that no leather occupies. Insetting is the fix that does not require
+           knowing the tilt. */
+        lockup(w * 0.26, h * 0.7, h * 0.088, "LAWFIC");
         ctx.textAlign = "right";
-        ctx.font = `500 ${h * 0.045}px ${serif}`;
-        ctx.letterSpacing = `${h * 0.02}px`;
-        ctx.fillText("IDEAS · PEOPLE · PROGRESS", w * 0.95, h * 0.9);
+        /* Small enough that twenty-five letterspaced characters still start
+           right of the spine. At the previous size the line was half the
+           plane wide and ran across the fold onto the card slots — the
+           client's renders keep it entirely on the right leaf. */
+        ctx.font = `500 ${h * 0.032}px ${serif}`;
+        ctx.letterSpacing = `${h * 0.012}px`;
+        ctx.fillText("IDEAS · PEOPLE · PROGRESS", w * 0.95, h * 0.8);
         ctx.letterSpacing = "0px";
       } else {
         lockup(w * 0.78, h * 0.76, h * 0.115, "LAWFIC");
@@ -362,8 +387,15 @@ function Emboss({
   /* Blind embossing has no foil: it is the hide's own colour, pressed. */
   const blind = emboss.hex === null;
 
+  /* Shut, the face is flat and the front of the box IS the leather, so the
+     decal sits just proud of it. Open, the front of the box is the nearest
+     corner of a tilted panel and a plane out there hovers in mid-air well
+     clear of the hide — so it is brought back to roughly where the panels
+     actually are. */
+  const z = open ? size.z * 0.12 : size.z / 2 + 0.02;
+
   return (
-    <mesh position={[0, 0, size.z / 2 + 0.02]}>
+    <mesh position={[0, 0, z]}>
       <planeGeometry args={[planeW, planeH]} />
       <meshPhysicalMaterial
         transparent
@@ -434,24 +466,32 @@ function Stitching({
       ctx.strokeStyle = fg;
       ctx.lineCap = "round";
 
+      /**
+       * The run: down both sides and along the fold, and NOT across the top.
+       *
+       * This is what stops the shut wallet reading as a sealed box. A bifold is
+       * stitched down its sides and around the fold; the top is where the two
+       * leaves separate, and closing that line with thread turns the object
+       * into a block with a lid drawn on it. Leaving the top open is both what
+       * the real construction does and the strongest single cue that the thing
+       * in front of you has flaps.
+       */
       const run = (inset: number, dash: number, width: number) => {
-        const r = Math.min(px, py) * 0.09;
+        const r = Math.min(px, py) * 0.07;
         const x0 = px * inset;
         const y0 = py * inset * (px / py);
         const x1 = px - x0;
         const y1 = py - y0;
+        const stop = y0 + (y1 - y0) * 0.1;
         ctx.lineWidth = width;
         ctx.setLineDash([dash, dash * 0.85]);
         ctx.beginPath();
-        ctx.moveTo(x0 + r, y0);
-        ctx.lineTo(x1 - r, y0);
-        ctx.quadraticCurveTo(x1, y0, x1, y0 + r);
-        ctx.lineTo(x1, y1 - r);
-        ctx.quadraticCurveTo(x1, y1, x1 - r, y1);
-        ctx.lineTo(x0 + r, y1);
-        ctx.quadraticCurveTo(x0, y1, x0, y1 - r);
-        ctx.lineTo(x0, y0 + r);
-        ctx.quadraticCurveTo(x0, y0, x0 + r, y0);
+        ctx.moveTo(x0, stop);
+        ctx.lineTo(x0, y1 - r);
+        ctx.quadraticCurveTo(x0, y1, x0 + r, y1);
+        ctx.lineTo(x1 - r, y1);
+        ctx.quadraticCurveTo(x1, y1, x1, y1 - r);
+        ctx.lineTo(x1, stop);
         ctx.stroke();
         ctx.setLineDash([]);
       };

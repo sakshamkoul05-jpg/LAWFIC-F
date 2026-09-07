@@ -69,6 +69,7 @@ export default function WalletSection({
           config={config}
           open={open ? 1 : 0}
           arriving={arriving}
+          onTap={() => setOpen((o) => !o)}
           notes={breakIntoNotes(balancePaise)}
           fallback={
             <PhysicalWallet
