@@ -50,6 +50,8 @@ const USE_CLIENT_MESH = false;
 export type WalletSceneProps = {
   config: WalletConfig;
   open: number;
+  /** Change this to replay the notes' fly-in. */
+  arriving?: number;
   notes: Denomination[];
   className?: string;
   /** Let the user turn it. */
@@ -66,6 +68,7 @@ export type WalletSceneProps = {
 export default function WalletScene({
   config,
   open,
+  arriving,
   notes,
   className = "",
   interactive = true,
@@ -197,12 +200,32 @@ export default function WalletScene({
                  parse. The Suspense above only covers a model that has not
                  arrived yet. */
               <ModelBoundary
-                fallback={<WalletModel look={config} open={open} notes={notes} pointer={pointer} />}
+                fallback={
+                  <WalletModel
+                    look={config}
+                    open={open}
+                    notes={notes}
+                    arriving={arriving}
+                    pointer={pointer}
+                  />
+                }
               >
-                <WalletGLB look={config} open={open} notes={notes} pointer={pointer} />
+                <WalletGLB
+                  look={config}
+                  open={open}
+                  notes={notes}
+                  arriving={arriving}
+                  pointer={pointer}
+                />
               </ModelBoundary>
             ) : (
-              <WalletModel look={config} open={open} notes={notes} pointer={pointer} />
+              <WalletModel
+                look={config}
+                open={open}
+                notes={notes}
+                arriving={arriving}
+                pointer={pointer}
+              />
             )}
           </group>
 

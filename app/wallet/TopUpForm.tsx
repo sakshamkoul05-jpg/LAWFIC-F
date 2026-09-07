@@ -1,11 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { formatPaise, MIN_TOPUP_PAISE } from "@/lib/money";
 import PhysicalWallet from "@/components/wallet/PhysicalWallet";
-import { animationPlan, breakdown } from "@/lib/denominations";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
+import { useWalletConfig } from "@/components/wallet/useWalletConfig";
+import AddedCelebration from "@/components/wallet/AddedCelebration";
+import WalletStage from "@/components/wallet3d/WalletStage";
+import { breakIntoNotes } from "@/lib/wallet3d/banknote";
 
 export default function TopUpForm({
   initialBalancePaise,
@@ -31,6 +35,23 @@ export default function TopUpForm({
     clearMessage,
   } = useTopUp(initialBalancePaise, paymentsReady);
 
+  const { config } = useWalletConfig(look.nameplate);
+
+  /* The flight and the tick are driven by `credited`, which is the amount the
+     SERVER confirmed, never the amount that was typed. A payment can fail
+     after the checkout window closes, and a green tick over money that never
+     reached the ledger is the worst thing this screen could do. */
+  const [arriving, setArriving] = useState(0);
+  const [celebrate, setCelebrate] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (phase !== "landed" || credited <= 0) return;
+    /* A token, not a flag: two top-ups in a row would both set a boolean true
+       and the second would land in silence. */
+    setArriving((n) => n + 1);
+    setCelebrate(credited);
+  }, [phase, credited]);
+
   const chosen = custom === "" ? amount : Number(custom);
 
   const select = (p: number) => {
@@ -52,21 +73,33 @@ export default function TopUpForm({
 
   return (
     <div className="glass-panel relative overflow-hidden rounded-2xl p-6 sm:p-8" style={{ color: "var(--wallet-fg)" }}>
-      {/* The wallet, above the form.
-          It is perfectly still while an amount is being entered and paid —
-          the standing rule that nothing animates on a screen where money is
-          being committed. Notes fly only once `landed` says the credit is in
-          the ledger, so what you watch is a fact rather than a hope. */}
-      <div className="relative z-10 mb-8 flex justify-center">
-        <PhysicalWallet
-          hide={look.hide}
-          plate={look.plate}
-          thread={look.thread}
-          nameplate={look.nameplate}
-          balancePaise={balance}
-          landing={phase === "landed" ? animationPlan(breakdown(credited)).flying : []}
+      {/* The wallet, above the form, and the SAME object as the wallet page —
+          same stored configuration, same model. A wallet that changed material
+          when you went to add money would be two wallets.
+
+          It is perfectly still while an amount is being entered and paid: the
+          standing rule that nothing animates on a screen where money is being
+          committed. Notes fly only once `landed` says the credit is in the
+          ledger, so what you watch is a fact rather than a hope. */}
+      <div className="relative z-10 mb-8">
+        <WalletStage
+          config={config}
+          open={0}
+          arriving={arriving}
+          notes={breakIntoNotes(balance)}
+          fallback={
+            <PhysicalWallet
+              hide={look.hide}
+              plate={look.plate}
+              thread={look.thread}
+              nameplate={look.nameplate}
+              balancePaise={balance}
+            />
+          }
         />
       </div>
+
+      <AddedCelebration paise={celebrate} onDone={() => setCelebrate(null)} />
 
       <AnimatePresence>
         {phase === "landed" && (

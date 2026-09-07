@@ -1,3 +1,5 @@
+import type { NoteStyleId } from "./banknote";
+
 /**
  * What the wallet is made of, and what that does to light.
  *
@@ -195,6 +197,8 @@ export type WalletConfig = {
   hardware: string;
   thread: string;
   engraving: string;
+  /** How the LAWFIC Credits inside are printed. See NOTE_STYLES. */
+  notes: NoteStyleId;
 };
 
 export const DEFAULT_CONFIG: WalletConfig = {
@@ -203,4 +207,5 @@ export const DEFAULT_CONFIG: WalletConfig = {
   hardware: "champagne",
   thread: "tonal",
   engraving: "",
+  notes: "classic",
 };

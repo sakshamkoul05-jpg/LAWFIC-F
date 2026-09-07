@@ -45,12 +45,15 @@ export default function WalletStage({
   config,
   open,
   notes,
+  arriving,
   fallback,
   className = "",
 }: {
   config: WalletConfig;
   open: number;
   notes: Denomination[];
+  /** Change this to replay the notes' fly-in. */
+  arriving?: number;
   fallback: React.ReactNode;
   className?: string;
 }) {
@@ -72,6 +75,7 @@ export default function WalletStage({
       config={config}
       open={open}
       notes={notes}
+      arriving={arriving}
       className={className}
       onLost={() => setState("no")}
     />

@@ -5,13 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { getColor, getFinish, getHardware, THREADS, type WalletConfig } from "@/lib/wallet3d/finishes";
-import {
-  getDenomination,
-  noteTexture,
-  DENOMINATIONS,
-  NOTE_ASPECT,
-  type Denomination,
-} from "@/lib/wallet3d/banknote";
+import type { Denomination } from "@/lib/wallet3d/banknote";
+import NoteStack from "./NoteStack";
 
 /**
  * The LAWFIC card holder. This is the approved object and what renders.
@@ -152,11 +147,13 @@ export default function WalletModel({
   look,
   open,
   notes,
+  arriving,
   pointer,
 }: {
   look: WalletLook;
   open: number;
   notes: Denomination[];
+  arriving?: number;
   pointer: { x: number; y: number };
 }) {
   const root = useRef<THREE.Group>(null);
@@ -239,7 +236,14 @@ export default function WalletModel({
       </mesh>
 
       {/* THE MONEY — behind the pocket, fanning out of the top. */}
-      <Notes notes={notes} open={open} />
+      <NoteStack
+        notes={notes}
+        open={open}
+        arriving={arriving}
+        style={look.notes}
+        width={8.7}
+        position={[0.1, H * 0.46, 0.18]}
+      />
 
       {/* FRONT POCKET, carrying the wave and the branding. */}
       <group position={[0, -H * 0.05, extrudedHalfDepth(BACK_T) + extrudedHalfDepth(POCKET_T) * 0.55]}>
@@ -360,55 +364,5 @@ function Branding({
         depthWrite={false}
       />
     </mesh>
-  );
-}
-
-/** Notes fanned out of the top, behind the pocket. */
-function Notes({ notes, open }: { notes: Denomination[]; open: number }) {
-  /* Narrower than the card by a clear margin. At 9.4 against a 10.2 body the
-     fanned stack poked past the right edge and read as a rendering fault
-     rather than as banknotes. */
-  const NOTE_W = 8.7;
-  /* Height follows the artwork's proportion rather than a number typed here.
-     The approved note is a panorama at 3.5:1, so it is SHORT — which is why
-     the stack sits higher up than it did: at this ratio a note centred where a
-     2:1 note sat would barely clear the pocket, and the part that clears is
-     the only part anyone sees. */
-  const NOTE_H = NOTE_W / NOTE_ASPECT;
-
-  const geo = useMemo(() => {
-    const g = new THREE.PlaneGeometry(NOTE_W, NOTE_H, 26, 2);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      /* A sheet held in a pocket bows; a flat quad reads as a printed card. */
-      pos.setZ(i, Math.cos((x / (NOTE_W / 2)) * 1.25) * 0.1);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, [NOTE_W, NOTE_H]);
-
-  return (
-    <group position={[0.1, H * 0.46, 0.02]}>
-      {notes.slice(0, 5).map((value, i) => {
-        const d = getDenomination(value) ?? DENOMINATIONS[0];
-        return (
-          <mesh
-            key={`${value}-${i}`}
-            geometry={geo}
-            position={[i * 0.16 - 0.3, i * 0.19 + open * 0.5, -i * 0.03]}
-            rotation={[0, 0, (i - 2) * 0.028]}
-            castShadow
-          >
-            <meshStandardMaterial
-              map={noteTexture(d, "front")}
-              roughness={0.88}
-              metalness={0}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        );
-      })}
-    </group>
   );
 }

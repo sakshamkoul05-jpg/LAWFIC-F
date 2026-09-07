@@ -6,13 +6,8 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { getColor, getFinish, getHardware, type WalletConfig } from "@/lib/wallet3d/finishes";
-import {
-  getDenomination,
-  noteTexture,
-  DENOMINATIONS,
-  NOTE_ASPECT,
-  type Denomination,
-} from "@/lib/wallet3d/banknote";
+import type { Denomination } from "@/lib/wallet3d/banknote";
+import NoteStack from "./NoteStack";
 
 /**
  * The client's own wallet, rendered.
@@ -106,11 +101,13 @@ export default function WalletGLB({
   look,
   open,
   notes,
+  arriving,
   pointer,
 }: {
   look: WalletConfig;
   open: number;
   notes: Denomination[];
+  arriving?: number;
   pointer: { x: number; y: number };
 }) {
   const root = useRef<THREE.Group>(null);
@@ -158,7 +155,14 @@ export default function WalletGLB({
 
   return (
     <group ref={root} rotation={[0.06, -0.28, 0]}>
-      <Notes notes={notes} open={open} size={size} />
+      <NoteStack
+        notes={notes}
+        open={open}
+        arriving={arriving}
+        style={look.notes}
+        width={size.x * 0.85}
+        position={[size.x * 0.01, size.y * 0.46, size.z * 0.1]}
+      />
 
       <mesh geometry={geometry} scale={scale} castShadow receiveShadow>
         <meshPhysicalMaterial
@@ -273,57 +277,3 @@ function Branding({
     </mesh>
   );
 }
-
-/** Notes fanned out of the top, behind the body. */
-function Notes({
-  notes,
-  open,
-  size,
-}: {
-  notes: Denomination[];
-  open: number;
-  size: THREE.Vector3;
-}) {
-  const noteW = size.x * 0.85;
-  /* From the artwork's proportion, not a typed constant — the approved note is
-     a 3.5:1 panorama. */
-  const noteH = noteW / NOTE_ASPECT;
-
-  const geo = useMemo(() => {
-    const g = new THREE.PlaneGeometry(noteW, noteH, 26, 2);
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      /* A sheet held in a pocket bows; a flat quad reads as a printed card. */
-      pos.setZ(i, Math.cos((x / (noteW / 2)) * 1.25) * 0.1);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, [noteW, noteH]);
-
-  return (
-    <group position={[size.x * 0.01, size.y * 0.46, -size.z * 0.1]}>
-      {notes.slice(0, 5).map((value, i) => {
-        const d = getDenomination(value) ?? DENOMINATIONS[0];
-        return (
-          <mesh
-            key={`${value}-${i}`}
-            geometry={geo}
-            position={[i * 0.16 - 0.3, i * 0.19 + open * 0.5, -i * 0.03]}
-            rotation={[0, 0, (i - 2) * 0.028]}
-            castShadow
-          >
-            <meshStandardMaterial
-              map={noteTexture(d, "front")}
-              roughness={0.88}
-              metalness={0}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
-useGLTF.preload(MODEL_URL);

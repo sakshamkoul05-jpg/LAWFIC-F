@@ -104,6 +104,137 @@ export const NOTE_ASPECT = 3.5;
 /** Serials print red across the whole family, as they do in the artwork. */
 const SERIAL_RED = "#A33427";
 
+
+/* ────────────────────────────────────────────────────────────────────────
+   Note styles — the customer's choice of treatment
+   ──────────────────────────────────────────────────────────────────── */
+
+export type NoteStyleId = "classic" | "sepia" | "midnight" | "azure" | "forest" | "rose";
+
+export type NoteStyle = {
+  id: NoteStyleId;
+  name: string;
+  blurb: string;
+  /**
+   * Absolute hue for the whole series, or null to keep each denomination's
+   * own. Denominations still separate: the value's index is added on top, so
+   * a themed series stays a series rather than six identical notes.
+   */
+  hue: number | null;
+  /** Saturation multiplier. */
+  sat: number;
+  /** Lightness shift, -1..1. */
+  light: number;
+  /** Dark paper printed with light ink. */
+  invert?: boolean;
+};
+
+/**
+ * Six treatments of one design.
+ *
+ * A style changes how the series is PRINTED, never what is printed: the
+ * layout, the engraving and the wording are the approved artwork in every one
+ * of them. That is deliberate. Letting a customer move elements around would
+ * make six thousand notes instead of six, and none of them would be the design
+ * the client signed off.
+ */
+export const NOTE_STYLES: NoteStyle[] = [
+  {
+    id: "classic",
+    name: "Classic",
+    blurb: "The approved series. Each value its own colour.",
+    hue: null,
+    sat: 1,
+    light: 0,
+  },
+  { id: "sepia", name: "Sepia", blurb: "Warm monochrome, like aged bank paper.", hue: 32, sat: 0.62, light: 0.01 },
+  { id: "midnight", name: "Midnight", blurb: "Dark paper, light intaglio.", hue: 218, sat: 0.5, light: 0, invert: true },
+  { id: "azure", name: "Azure", blurb: "Cool blue throughout.", hue: 206, sat: 0.85, light: 0 },
+  { id: "forest", name: "Forest", blurb: "Deep green, the engraver's default.", hue: 152, sat: 0.7, light: -0.01 },
+  { id: "rose", name: "Rose", blurb: "Warm red, close to a high-value note.", hue: 348, sat: 0.7, light: 0 },
+];
+
+export function getNoteStyle(id: string): NoteStyle {
+  return NOTE_STYLES.find((s) => s.id === id) ?? NOTE_STYLES[0];
+}
+
+/* Hue rotation has to happen in HSL, not by nudging the RGB channels: the
+   latter shifts lightness as a side effect and quietly wrecks the paper/ink
+   contrast the whole design depends on. */
+function hexToHsl(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d === 0) return [0, 0, l];
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return [h * 360, s, l];
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  h = ((h % 360) + 360) % 360 / 360;
+  s = Math.min(1, Math.max(0, s));
+  l = Math.min(1, Math.max(0, l));
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const ch = (t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  const to = (x: number) =>
+    Math.round(Math.min(255, Math.max(0, x * 255)))
+      .toString(16)
+      .padStart(2, "0");
+  return `#${to(ch(h + 1 / 3))}${to(ch(h))}${to(ch(h - 1 / 3))}`;
+}
+
+/** The four printing colours a style resolves to for one denomination. */
+export function styleColors(design: NoteDesign, style: NoteStyle) {
+  const idx = DENOMINATIONS.findIndex((d) => d.value === design.value);
+
+  const cast = (hex: string, lightOverride?: number) => {
+    const [h, s, l] = hexToHsl(hex);
+    /* The per-denomination step is what keeps a themed series legible as a
+       series. Without it every note in a theme is the same colour and the
+       numeral is the only thing telling them apart. */
+    const hue = style.hue === null ? h : style.hue + idx * 12;
+    return hslToHex(hue, s * style.sat, (lightOverride ?? l) + style.light);
+  };
+
+  if (style.invert) {
+    /* Inverting is not "swap the two hexes": paper and ink are not each
+       other's negative, they are a light ground and a dark line. So the roles
+       are rebuilt at fixed lightnesses and only the hue and saturation carry
+       over. */
+    return {
+      paper: cast(design.paper, 0.11),
+      ink: cast(design.ink, 0.86),
+      lace: cast(design.lace, 0.3),
+      laceAlt: cast(design.laceAlt, 0.26),
+      serial: "#E4685A",
+    };
+  }
+  return {
+    paper: cast(design.paper),
+    ink: cast(design.ink),
+    lace: cast(design.lace),
+    laceAlt: cast(design.laceAlt),
+    serial: SERIAL_RED,
+  };
+}
+
 /* ────────────────────────────────────────────────────────────────────────
    Type
    ──────────────────────────────────────────────────────────────────── */
@@ -831,8 +962,16 @@ const cache = new Map<string, THREE.CanvasTexture>();
  * visible stall. They are built on demand, so a wallet showing three
  * denominations pays for three.
  */
-export function noteTexture(design: NoteDesign, face: "front" | "back"): THREE.CanvasTexture {
-  const key = `${design.value}-${face}`;
+export function noteTexture(
+  design: NoteDesign,
+  face: "front" | "back",
+  styleId: NoteStyleId = "classic",
+): THREE.CanvasTexture {
+  const style = getNoteStyle(styleId);
+  /* The style is part of the identity of the drawing, so it has to be part of
+     the key. Leave it out and the first style drawn is the one every style
+     gets. */
+  const key = `${design.value}-${face}-${style.id}`;
   const hit = cache.get(key);
   if (hit) return hit;
 
@@ -844,7 +983,8 @@ export function noteTexture(design: NoteDesign, face: "front" | "back"): THREE.C
   canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
-  const { paper, ink, lace, laceAlt, serial } = design;
+  const { paper, ink, lace, laceAlt, serial: serialInk } = styleColors(design, style);
+  const serial = design.serial;
   const v = String(design.value);
 
   /* Paper, then the grounds it is printed over. */
@@ -935,7 +1075,7 @@ export function noteTexture(design: NoteDesign, face: "front" | "back"): THREE.C
     mark(ctx, W * 0.797, H * 0.44, H * 0.2, `${ink}D0`);
 
     ctx.textAlign = "left";
-    ctx.fillStyle = SERIAL_RED;
+    ctx.fillStyle = serialInk;
     fitText(ctx, serial, W * 0.75, H * 0.185, W * 0.16, H * 0.095, H * 0.014, 500, SANS);
 
     floret(ctx, W * 0.947, H * 0.16, H * 0.075, ink);

@@ -1,19 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { formatPaise } from "@/lib/money";
 import type { WalletPrefs } from "@/lib/wallet-custom";
-import {
-  DEFAULT_CONFIG,
-  FINISHES,
-  HARDWARE,
-  THREADS,
-  getColor,
-  getFinish,
-  type WalletConfig,
-} from "@/lib/wallet3d/finishes";
-import { breakIntoNotes } from "@/lib/wallet3d/banknote";
+import { FINISHES, HARDWARE, THREADS, getColor, getFinish } from "@/lib/wallet3d/finishes";
+import { breakIntoNotes, getNoteStyle, NOTE_STYLES } from "@/lib/wallet3d/banknote";
+import { useWalletConfig } from "./useWalletConfig";
 import WalletStage from "@/components/wallet3d/WalletStage";
 import PhysicalWallet from "./PhysicalWallet";
 
@@ -40,13 +33,12 @@ import PhysicalWallet from "./PhysicalWallet";
  * stop moving.
  */
 
-const STORE_KEY = "lawfic.wallet.config";
-
 export default function WalletSection({
   prefs,
   balancePaise,
   actions,
   eyebrow,
+  arriving,
   className = "",
 }: {
   prefs: WalletPrefs;
@@ -55,46 +47,14 @@ export default function WalletSection({
   persist?: boolean;
   actions?: React.ReactNode;
   eyebrow?: React.ReactNode;
+  /** Change this to replay the notes' fly-in. */
+  arriving?: number;
   className?: string;
 }) {
   const reduced = useReducedMotion();
-  const [config, setConfig] = useState<WalletConfig>({
-    ...DEFAULT_CONFIG,
-    engraving: prefs.nameplate,
-  });
+  const { config, update } = useWalletConfig(prefs.nameplate);
   const [open, setOpen] = useState(false);
   const [studio, setStudio] = useState(false);
-
-  /* Read after mount, never during render — the server cannot know what was
-     chosen, so rendering it on the first pass is a hydration mismatch. */
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORE_KEY);
-      if (raw) setConfig((c) => ({ ...c, ...JSON.parse(raw) }));
-    } catch {
-      /* Private windows and blocked storage both land here. A wallet finish is
-         not worth breaking the page over. */
-    }
-  }, []);
-
-  const update = useCallback((patch: Partial<WalletConfig>) => {
-    setConfig((c) => {
-      const next = { ...c, ...patch };
-      /* Changing finish can orphan the colour, since each finish carries its
-         own short list. Fall to that finish's first rather than rendering a
-         swatch it does not have. */
-      if (patch.finish) {
-        const f = getFinish(patch.finish);
-        if (!f.colors.some((x) => x.id === next.color)) next.color = f.colors[0].id;
-      }
-      try {
-        window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
-      } catch {
-        /* As above. */
-      }
-      return next;
-    });
-  }, []);
 
   const finish = getFinish(config.finish);
   const color = getColor(finish, config.color);
@@ -108,6 +68,7 @@ export default function WalletSection({
         <WalletStage
           config={config}
           open={open ? 1 : 0}
+          arriving={arriving}
           notes={breakIntoNotes(balancePaise)}
           fallback={
             <PhysicalWallet
@@ -134,7 +95,7 @@ export default function WalletSection({
           {formatPaise(balancePaise)}
         </p>
         <p className="mt-3 text-[12px] text-[color:var(--wallet-fg-muted)]">
-          {finish.name} · {color.name}
+          {finish.name} · {color.name} · {getNoteStyle(config.notes).name} notes
           {config.engraving ? ` · ${config.engraving.toUpperCase()}` : ""}
         </p>
       </div>
@@ -230,6 +191,22 @@ export default function WalletSection({
                     onClick={() => update({ thread: t.id })}
                   >
                     {t.name}
+                  </Chip>
+                ))}
+              </Row>
+
+              {/* THE NOTES. A style changes how the series is PRINTED, never
+                  what is printed — the layout and the engraving stay the
+                  approved artwork in all six. */}
+              <Row label="Notes">
+                {NOTE_STYLES.map((n) => (
+                  <Chip
+                    key={n.id}
+                    on={config.notes === n.id}
+                    onClick={() => update({ notes: n.id })}
+                    title={n.blurb}
+                  >
+                    {n.name}
                   </Chip>
                 ))}
               </Row>
