@@ -3,28 +3,37 @@ import type { NoteStyleId } from "./banknote";
 /**
  * What the wallet is made of, and what that does to light.
  *
- * A finish is not a colour. These six differ in how they scatter, reflect and
- * hold a highlight before they differ in hue, which is why the customiser reads
- * as choosing a MATERIAL rather than choosing a swatch:
+ * A finish is not a colour. These six differ in how they scatter and hold a
+ * highlight before they differ in hue, which is why the customiser reads as
+ * choosing a MATERIAL rather than choosing a swatch:
  *
- *   leather  raised pebble cells, mid roughness, no metal
- *   nubuck   fine dense nap, very rough, kills every highlight
- *   nylon    a woven cross-hatch, tight and regular, slight sheen
- *   gloss    almost flat, low roughness, a clearcoat that returns a hard
- *            reflection of the softbox
- *   matte    flat and dry, high roughness, no clearcoat at all
- *   metal    brushed anisotropic-ish streaks, fully metallic
+ *   leather   pull-up hide: waxed, tonal, the approved wallet
+ *   pebble    heavy raised cells, the classic grained calf
+ *   saffiano  a fine pressed cross-hatch under a hard lacquer
+ *   nubuck    sanded nap, very rough, kills every highlight
+ *   suede     the flesh side: deepest nap, no sheen at all
+ *   canvas    coarse waxed weave, the one non-hide in the range
+ *
+ * WHAT WAS DROPPED AND WHY
+ *
+ * Gloss and metal are gone. They were carried over from a card holder that
+ * could plausibly have been anodised aluminium, and on a stitched leather
+ * bifold they are not options a maker would offer — a mirror-lacquered or
+ * milled-metal bifold is not a thing. Every finish here is something this
+ * object could actually be cut and sewn from, which is the only reason to put
+ * it in front of a customer.
  *
  * `weave` switches the height field from cellular to a woven grid. That single
- * flag is what stops nylon reading as leather in a different colour — a fabric
- * has a regular repeating structure and a hide does not, and no amount of
- * roughness tuning fakes the difference.
+ * flag is what separates saffiano and canvas from the hides: a pressed or woven
+ * surface has a regular repeating structure and a skin does not, and no amount
+ * of roughness tuning fakes the difference.
  *
  * The palette per finish is deliberately SHORT. A configurator with thirty
- * swatches is a paint chart; six considered ones read as a range someone chose.
+ * swatches is a paint chart; a handful of considered ones read as a range
+ * someone chose.
  */
 
-export type FinishId = "leather" | "nubuck" | "nylon" | "gloss" | "matte" | "metal";
+export type FinishId = "leather" | "pebble" | "saffiano" | "nubuck" | "suede" | "canvas";
 
 export type Finish = {
   id: FinishId;
@@ -36,13 +45,11 @@ export type Finish = {
   tooth: number;
   roughness: number;
   metalness: number;
-  /** Clearcoat strength — a lacquer sitting over the base. */
+  /** Clearcoat strength — a finishing lacquer sitting over the base. */
   clearcoat: number;
   clearcoatRoughness: number;
-  /** Regular woven structure instead of cells. */
+  /** Regular woven or pressed structure instead of cells. */
   weave?: boolean;
-  /** Directional brushing, for metal. */
-  brushed?: boolean;
   /** How hard the normal map hits. */
   normalScale: number;
   colors: { id: string; name: string; hex: string }[];
@@ -51,8 +58,8 @@ export type Finish = {
 export const FINISHES: Finish[] = [
   {
     id: "leather",
-    name: "Leather",
-    blurb: "Distressed pull-up. Waxed, tonal, softly grained.",
+    name: "Pull-up",
+    blurb: "Waxed full grain. Colour lifts where it is handled.",
     /* Tuned to the approved wallet, which is a pull-up hide rather than a
        pebbled one: its character is TONAL — colour lifting where the surface
        has been stretched and handled — not structural. Heavy pebbling read as
@@ -71,7 +78,6 @@ export const FINISHES: Finish[] = [
          makes every customer undo a choice they did not make. */
       { id: "walnut", name: "Walnut", hex: "#5C3A21" },
       { id: "midnight", name: "Midnight", hex: "#1B1B1D" },
-      { id: "violet", name: "Violet", hex: "#3B2159" },
       { id: "oxblood", name: "Oxblood", hex: "#4A2429" },
       { id: "cognac", name: "Cognac", hex: "#6B4529" },
       { id: "forest", name: "Forest", hex: "#243026" },
@@ -79,9 +85,46 @@ export const FINISHES: Finish[] = [
     ],
   },
   {
+    id: "pebble",
+    name: "Pebble grain",
+    blurb: "Raised cells with valleys between. Hard-wearing.",
+    grain: 1.35,
+    tooth: 1,
+    roughness: 0.64,
+    metalness: 0,
+    clearcoat: 0.22,
+    clearcoatRoughness: 0.5,
+    normalScale: 1.4,
+    colors: [
+      { id: "chestnut", name: "Chestnut", hex: "#5A3520" },
+      { id: "black", name: "Black", hex: "#191919" },
+      { id: "burgundy", name: "Burgundy", hex: "#45202A" },
+      { id: "olive", name: "Olive", hex: "#3A3B29" },
+    ],
+  },
+  {
+    id: "saffiano",
+    name: "Saffiano",
+    blurb: "Pressed cross-hatch under a hard lacquer. Scratch-proof.",
+    grain: 0.5,
+    tooth: 1.7,
+    roughness: 0.4,
+    metalness: 0,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.22,
+    weave: true,
+    normalScale: 0.75,
+    colors: [
+      { id: "jet", name: "Jet", hex: "#17181A" },
+      { id: "tan", name: "Tan", hex: "#7A5433" },
+      { id: "claret", name: "Claret", hex: "#4E1F2A" },
+      { id: "ink", name: "Ink", hex: "#1E2637" },
+    ],
+  },
+  {
     id: "nubuck",
     name: "Nubuck",
-    blurb: "Brushed nap. Drinks light, returns none.",
+    blurb: "Sanded grain. Drinks light, returns none.",
     grain: 1.5,
     tooth: 3,
     roughness: 0.95,
@@ -90,84 +133,47 @@ export const FINISHES: Finish[] = [
     clearcoatRoughness: 1,
     normalScale: 1.1,
     colors: [
-      { id: "olive", name: "Olive", hex: "#3A3F2C" },
-      { id: "sand", name: "Sand", hex: "#A2917A" },
+      { id: "sand", name: "Sand", hex: "#8E7B62" },
       { id: "slate", name: "Slate", hex: "#43464A" },
+      { id: "moss", name: "Moss", hex: "#3A3F2C" },
       { id: "plum", name: "Plum", hex: "#40304E" },
     ],
   },
   {
-    id: "nylon",
-    name: "Nylon",
-    blurb: "Technical weave. Tight, regular, faintly lustrous.",
-    grain: 0.6,
-    tooth: 1,
-    roughness: 0.5,
-    metalness: 0.05,
-    clearcoat: 0.4,
-    clearcoatRoughness: 0.35,
-    weave: true,
-    normalScale: 1.3,
-    colors: [
-      { id: "black", name: "Black", hex: "#141416" },
-      { id: "graphite", name: "Graphite", hex: "#33363B" },
-      { id: "ink", name: "Ink", hex: "#1D2740" },
-      { id: "moss", name: "Moss", hex: "#2C3527" },
-    ],
-  },
-  {
-    id: "gloss",
-    name: "Gloss",
-    blurb: "Lacquered. A hard, clean reflection.",
-    grain: 0.2,
-    tooth: 0.5,
-    roughness: 0.12,
-    metalness: 0.02,
-    clearcoat: 1,
-    clearcoatRoughness: 0.04,
-    normalScale: 0.35,
-    colors: [
-      { id: "obsidian", name: "Obsidian", hex: "#0E0E11" },
-      { id: "violet", name: "Violet", hex: "#3D1F63" },
-      { id: "claret", name: "Claret", hex: "#5A1626" },
-      { id: "ivory", name: "Ivory", hex: "#DED8CC" },
-    ],
-  },
-  {
-    id: "matte",
-    name: "Matte",
-    blurb: "Dry, flat, no shine at all.",
-    grain: 0.35,
-    tooth: 1.4,
-    roughness: 0.94,
+    id: "suede",
+    name: "Suede",
+    blurb: "The flesh side. Deepest nap, no sheen at all.",
+    grain: 1.9,
+    tooth: 3,
+    roughness: 0.99,
     metalness: 0,
     clearcoat: 0,
     clearcoatRoughness: 1,
-    normalScale: 0.7,
+    normalScale: 1.25,
     colors: [
-      { id: "charcoal", name: "Charcoal", hex: "#2A2B2E" },
-      { id: "stone", name: "Stone", hex: "#8B8880" },
-      { id: "clay", name: "Clay", hex: "#6E4B3E" },
-      { id: "pine", name: "Pine", hex: "#2A3A33" },
+      { id: "tobacco", name: "Tobacco", hex: "#6B4B2E" },
+      { id: "charcoal", name: "Charcoal", hex: "#33343A" },
+      { id: "bottle", name: "Bottle", hex: "#28382F" },
+      { id: "rust", name: "Rust", hex: "#6E3B26" },
     ],
   },
   {
-    id: "metal",
-    name: "Metal",
-    blurb: "Brushed and anodised. Fully reflective.",
-    grain: 0.25,
-    tooth: 6,
-    roughness: 0.3,
-    metalness: 1,
-    clearcoat: 0.2,
-    clearcoatRoughness: 0.2,
-    brushed: true,
-    normalScale: 0.5,
+    id: "canvas",
+    name: "Waxed canvas",
+    blurb: "Coarse weave, waxed. The one non-hide in the range.",
+    grain: 0.6,
+    tooth: 0.6,
+    roughness: 0.72,
+    metalness: 0,
+    clearcoat: 0.18,
+    clearcoatRoughness: 0.55,
+    weave: true,
+    normalScale: 1.25,
     colors: [
-      { id: "titanium", name: "Titanium", hex: "#B4B8BD" },
-      { id: "graphite", name: "Graphite", hex: "#4A4D52" },
-      { id: "champagne", name: "Champagne", hex: "#C0A472" },
-      { id: "midnight", name: "Midnight", hex: "#26272B" },
+      { id: "field", name: "Field tan", hex: "#7A6642" },
+      { id: "olive", name: "Olive drab", hex: "#414630" },
+      { id: "graphite", name: "Graphite", hex: "#33363B" },
+      { id: "navy", name: "Navy", hex: "#26303F" },
     ],
   },
 ];

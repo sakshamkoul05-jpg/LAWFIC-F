@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import { formatPaise } from "@/lib/money";
+import Link from "next/link";
+import { formatEntry, formatPaise } from "@/lib/money";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { EMBOSS, FINISHES, THREADS, getColor, getFinish } from "@/lib/wallet3d/finishes";
 import { breakIntoNotes, getNoteStyle, NOTE_STYLES } from "@/lib/wallet3d/banknote";
@@ -39,6 +40,7 @@ export default function WalletSection({
   actions,
   eyebrow,
   arriving,
+  lastEntry,
   className = "",
 }: {
   prefs: WalletPrefs;
@@ -49,6 +51,13 @@ export default function WalletSection({
   eyebrow?: React.ReactNode;
   /** Change this to replay the notes' fly-in. */
   arriving?: number;
+  /** Shown inside the wallet when it is opened. */
+  lastEntry?: {
+    id: string;
+    reason: string;
+    direction: "credit" | "debit";
+    amountPaise: number;
+  };
   className?: string;
 }) {
   const reduced = useReducedMotion();
@@ -101,16 +110,14 @@ export default function WalletSection({
         </p>
       </div>
 
-      {/* ACTIONS. Two, and a third that only changes how it looks. */}
+      {/* ACTIONS.
+          There is no "Open wallet" button any more: the wallet opens on tap,
+          and a labelled button next to an object you can just touch is the
+          instruction manual sitting beside the thing it describes. Keyboard
+          access did not go with it — the wallet itself is now a focusable
+          control with a name and an expanded state. */}
       <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
-        {actions}
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="rounded-full border border-border px-5 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
-        >
-          {open ? "Close wallet" : "Open wallet"}
-        </button>
+        {!open && actions}
         <button
           type="button"
           onClick={() => setStudio((s) => !s)}
@@ -120,6 +127,63 @@ export default function WalletSection({
           {studio ? "Done" : "Customise"}
         </button>
       </div>
+
+      {/* WHAT THE OPEN WALLET OFFERS.
+          Opening it is a question — "what's in here?" — so the answer arrives
+          with it: the way to put money in, and the last thing that moved. They
+          replace the standing call to action rather than joining it, because
+          two Add money buttons on one screen is a worse problem than a missing
+          one. */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={reduced ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={reduced ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 220, damping: 26 }}
+            className="overflow-hidden"
+          >
+            <div className="mx-auto mt-6 flex max-w-[560px] flex-col items-center gap-3 pb-1">
+              <Link
+                href="/wallet/topup"
+                className="rounded-full bg-primary px-7 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
+              >
+                Add money
+              </Link>
+
+              {lastEntry ? (
+                <Link
+                  href={`/wallet/transactions/${lastEntry.id}`}
+                  className="cred-slab flex w-full items-center gap-4 px-5 py-3.5 transition-colors"
+                  style={{ color: "var(--wallet-fg)" }}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="cred-label block">Last transaction</span>
+                    <span className="mt-1.5 block truncate text-[13.5px] font-medium">
+                      {lastEntry.reason}
+                    </span>
+                  </span>
+                  <span
+                    className="shrink-0 font-mono text-[13.5px] tabular-nums"
+                    style={{
+                      color:
+                        lastEntry.direction === "credit"
+                          ? "var(--color-success, #2f9e63)"
+                          : "var(--wallet-fg)",
+                    }}
+                  >
+                    {formatEntry(lastEntry.direction, lastEntry.amountPaise)}
+                  </span>
+                </Link>
+              ) : (
+                <p className="text-[12px]" style={{ color: "var(--wallet-fg-muted)" }}>
+                  No transactions yet.
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* THE STUDIO. Slides in under the object, which stays where it is —
           a configurator that moves the thing being configured is a configurator

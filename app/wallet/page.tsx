@@ -121,6 +121,14 @@ export default async function WalletPage() {
           prefs={prefs}
           balancePaise={balancePaise}
           persist
+          lastEntry={
+            rows[0] && {
+              id: rows[0].id,
+              reason: rows[0].reason,
+              direction: rows[0].direction,
+              amountPaise: rows[0].amount_paise,
+            }
+          }
           actions={
             <Link
               href="/wallet/topup"

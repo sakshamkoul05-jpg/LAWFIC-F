@@ -102,10 +102,24 @@ export default function WalletScene({
     <div
       ref={host}
       className={`relative w-full touch-pan-y ${interactive ? "cursor-grab active:cursor-grabbing" : ""} ${className}`}
-      /* Presentational only: the real control is the labelled button beside
-         the wallet. Making the canvas itself a button would put an unlabelled,
-         focusable, drag-handling control in the tab order for no gain. */
-      aria-hidden
+      /* The wallet IS the control now — the labelled button beside it is gone,
+         so this has to be reachable and operable without a mouse or it is a
+         feature only pointer users have. Enter and Space, an accessible name,
+         and expanded state; the drag stays on pointer events, which do not
+         conflict with either key. */
+      {...(onTap
+        ? {
+            role: "button" as const,
+            tabIndex: 0,
+            "aria-label": "Wallet — open or close it",
+            "aria-expanded": open >= 0.5,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              e.preventDefault();
+              onTap();
+            },
+          }
+        : {})}
       style={{ aspectRatio: "16 / 11" }}
       onPointerDown={(e) => {
         if (!interactive) return;

@@ -45,7 +45,7 @@ const OPEN_URL = "/wallet/lawfic-bifold-open.glb";
 const TARGET_W = 11.5;
 
 /** Seconds for the whole turn-swap-turn. */
-const FLIP = 0.9;
+const FLIP = 0.75;
 
 /**
  * How much the open wallet is scaled down to stay in frame.
@@ -143,7 +143,6 @@ export default function WalletBifold({
         roughness: finish.roughness,
         tooth: finish.tooth,
         weave: finish.weave,
-        brushed: finish.brushed,
       }),
     [finish, color],
   );
@@ -154,7 +153,7 @@ export default function WalletBifold({
        would draw a different grain on each. These put the hide at about the
        same physical scale in both states, which matters because the flip
        shows them one after the other. */
-    const rep = finish.weave ? 8 : 12;
+    const rep = finish.weave ? 9 : 12;
     for (const t of [maps.normal, maps.rough, maps.tint]) t.repeat.set(rep, rep);
   }, [maps, finish]);
 
@@ -187,9 +186,11 @@ export default function WalletBifold({
     }
 
     let flipTurn = 0;
+    /* One number drives the whole turn, so its parts cannot fall out of step. */
+    let p = 1;
     if (flipStart.current !== null) {
-      const p = Math.min(1, (t - flipStart.current) / FLIP);
-      /* Out to edge-on and back: a half sine, so the object is moving fastest
+      p = Math.min(1, (t - flipStart.current) / FLIP);
+      /* Out to edge-on and back: a half sine, so the object moves fastest
          where it is thinnest and the exchange is least visible. */
       flipTurn = Math.sin(p * Math.PI) * (Math.PI / 2);
       if (p >= 0.5 && shownRef.current !== want) setShown(want);
@@ -212,8 +213,16 @@ export default function WalletBifold({
     const inner = root.current.children[0] as THREE.Object3D | undefined;
     if (inner) {
       inner.rotation.y = flipTurn;
-      const target = shownRef.current ? OPEN_FRAME_SCALE : 1;
-      inner.scale.setScalar(inner.scale.x + (target - inner.scale.x) * 0.12);
+      /* Interpolated FROM `p`, not eased toward a target a fixed fraction per
+         frame. A per-frame lerp is framerate-dependent — the same move takes
+         twice as long at 30fps as at 60 — and on a machine that stutters
+         during the swap it visibly drags behind the turn, which was most of
+         what made this feel laggy. Elapsed time gives the same shape
+         everywhere. It runs over the second half, after the exchange. */
+      const from = shownRef.current ? 1 : OPEN_FRAME_SCALE;
+      const to = shownRef.current ? OPEN_FRAME_SCALE : 1;
+      const k = Math.min(1, Math.max(0, (p - 0.5) / 0.5));
+      inner.scale.setScalar(from + (to - from) * (1 - Math.pow(1 - k, 3)));
     }
   });
 
@@ -225,10 +234,10 @@ export default function WalletBifold({
        as well would double the dye. */
     color: "#ffffff",
     map: maps.tint,
-    /* A dielectric hide reflecting the whole softbox rig comes back as flat
-       saturated plastic; a metal has no diffuse term at all and goes black
-       under the same reduction. Two problems, two values. */
-    envMapIntensity: finish.metalness > 0.5 ? 1.9 : 0.45,
+    /* A hide reflecting the whole softbox rig comes back as flat saturated
+       plastic. Every finish in the range is a dielectric now, so this is one
+       value rather than the metal/dielectric split it used to carry. */
+    envMapIntensity: 0.45,
     normalMap: maps.normal,
     roughnessMap: maps.rough,
     roughness: finish.roughness,
@@ -245,7 +254,7 @@ export default function WalletBifold({
           <meshPhysicalMaterial {...surface} />
         </mesh>
 
-        <Stitching size={fitted.size} thread={threadColor} open={shown} />
+        <Stitching closedSize={closed.size} openSize={opened.size} thread={threadColor} open={shown} />
 
         {/* The opening, shut. A separate dark strip rather than a line in the
             stitch decal, because that decal has ONE material and a gap between
@@ -265,7 +274,8 @@ export default function WalletBifold({
           engraving={look.engraving}
           emboss={emboss}
           leather={color.hex}
-          size={fitted.size}
+          closedSize={closed.size}
+          openSize={opened.size}
           open={shown}
         />
 
@@ -280,12 +290,19 @@ export default function WalletBifold({
             /* A banknote spans nearly the whole length of an open bifold —
                that is what the compartment is for, and half-width notes read
                as vouchers rattling around inside it. */
-            width={fitted.size.x * 0.86}
+            width={fitted.size.x * 0.78}
             /* Behind the panels and clearing the top edge: the bill slot runs
                along the spine at the back, which is where the client's own
                photograph shows the notes standing up out of. Placed at the
                front the stack sits inside solid geometry. */
-            position={[0, fitted.size.y * 0.38, -fitted.size.z * 0.42]}
+            /* Deep in the slot. The stack was standing half out of the
+               wallet, which is not how a bifold carries cash: the compartment
+               is as tall as a note and only its top edge shows. Protruding
+               paper reads as a rendering fault before it reads as money. */
+            /* Far enough back that the spine occludes the stack's bowed
+               middle. At -0.42 the curve of the paper poked through the gap
+               between the two leaves and read as a tear in the note. */
+            position={[0, fitted.size.y * 0.22, -fitted.size.z * 0.58]}
           />
         )}
       </group>
@@ -309,80 +326,36 @@ function Emboss({
   engraving,
   emboss,
   leather,
-  size,
+  closedSize,
+  openSize,
   open,
 }: {
   engraving: string;
   emboss: { hex: string | null; roughness: number };
   leather: string;
-  size: THREE.Vector3;
+  closedSize: THREE.Vector3;
+  openSize: THREE.Vector3;
   open: boolean;
 }) {
-  const planeW = size.x * 0.98;
-  const planeH = size.y * 0.98;
+  /**
+   * BOTH states are drawn once, up front, and one of them is selected.
+   *
+   * This used to rebuild when the state changed, which put three 1400px
+   * canvases of text and 2D drawing into the very frame where the meshes
+   * exchange — a main-thread stall at exactly the moment the animation has no
+   * budget to spare, and a large part of why the flip felt laggy. Two sets of
+   * maps cost a few milliseconds at mount and nothing at all to switch
+   * between.
+   */
+  const both = useMemo(
+    () => ({
+      closed: embossMaps(closedSize, false),
+      open: embossMaps(openSize, true),
+    }),
+    [engraving, closedSize, openSize],
+  );
 
-  const { bump, rough, mask } = useMemo(() => {
-    const w = 1400;
-    const h = Math.max(1, Math.round((w * planeH) / planeW));
-
-    const draw = (fg: string, bg: string) => {
-      const c = document.createElement("canvas");
-      c.width = w;
-      c.height = h;
-      const ctx = c.getContext("2d")!;
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = fg;
-      ctx.strokeStyle = fg;
-      ctx.textBaseline = "alphabetic";
-
-      const serif = '"Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif';
-
-      /** The IL monogram over the wordmark, as a stacked lockup. */
-      const lockup = (cx: number, baseY: number, unit: number, word: string) => {
-        ctx.textAlign = "center";
-        ctx.font = `700 ${unit * 1.5}px ${serif}`;
-        ctx.letterSpacing = `${-unit * 0.06}px`;
-        ctx.fillText("IL", cx, baseY);
-        ctx.letterSpacing = `${unit * 0.16}px`;
-        ctx.font = `600 ${unit * 0.52}px ${serif}`;
-        ctx.fillText(word, cx, baseY + unit * 0.72);
-        ctx.letterSpacing = "0px";
-      };
-
-      if (open) {
-        /* Pulled well inside the box. The marks were running off the leather
-           and across the coin pocket, because the decal is sized from the
-           BOUNDING BOX and an open wallet's box is bigger than its face — the
-           panels tilt toward the camera, so the box gains height and width
-           that no leather occupies. Insetting is the fix that does not require
-           knowing the tilt. */
-        lockup(w * 0.26, h * 0.7, h * 0.088, "LAWFIC");
-        ctx.textAlign = "right";
-        /* Small enough that twenty-five letterspaced characters still start
-           right of the spine. At the previous size the line was half the
-           plane wide and ran across the fold onto the card slots — the
-           client's renders keep it entirely on the right leaf. */
-        ctx.font = `500 ${h * 0.032}px ${serif}`;
-        ctx.letterSpacing = `${h * 0.012}px`;
-        ctx.fillText("IDEAS · PEOPLE · PROGRESS", w * 0.95, h * 0.8);
-        ctx.letterSpacing = "0px";
-      } else {
-        lockup(w * 0.78, h * 0.76, h * 0.115, "LAWFIC");
-      }
-      return c;
-    };
-
-    const bumpTex = new THREE.CanvasTexture(draw("#101010", "#808080"));
-    const roughTex = new THREE.CanvasTexture(draw("#d0d0d0", "#404040"));
-    /* The mask must be white-on-black and cannot be the bump map: that one is
-       a mid-grey field with near-black marks, so every texel falls below any
-       alpha threshold high enough to remove the field and the whole plane —
-       marks included — disappears. */
-    const maskTex = new THREE.CanvasTexture(draw("#ffffff", "#000000"));
-    for (const t of [bumpTex, roughTex, maskTex]) t.colorSpace = THREE.NoColorSpace;
-    return { bump: bumpTex, rough: roughTex, mask: maskTex };
-  }, [engraving, planeW, planeH, open]);
+  const { bump, rough, mask, planeW, planeH, size } = open ? both.open : both.closed;
 
   /* Blind embossing has no foil: it is the hide's own colour, pressed. */
   const blind = emboss.hex === null;
@@ -414,6 +387,75 @@ function Emboss({
   );
 }
 
+/**
+ * The stamp maps for one state. A plain function, not a hook, so both states
+ * can be built before either is wanted.
+ */
+function embossMaps(size: THREE.Vector3, open: boolean) {
+  const planeW = size.x * 0.98;
+  const planeH = size.y * 0.98;
+  const w = 1400;
+  const h = Math.max(1, Math.round((w * planeH) / planeW));
+
+  const draw = (fg: string, bg: string) => {
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = fg;
+    ctx.strokeStyle = fg;
+    ctx.textBaseline = "alphabetic";
+
+    const serif = '"Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif';
+
+    /** The IL monogram over the wordmark, as a stacked lockup. */
+    const lockup = (cx: number, baseY: number, unit: number, word: string) => {
+      ctx.textAlign = "center";
+      ctx.font = `700 ${unit * 1.5}px ${serif}`;
+      ctx.letterSpacing = `${-unit * 0.06}px`;
+      ctx.fillText("IL", cx, baseY);
+      ctx.letterSpacing = `${unit * 0.16}px`;
+      ctx.font = `600 ${unit * 0.52}px ${serif}`;
+      ctx.fillText(word, cx, baseY + unit * 0.72);
+      ctx.letterSpacing = "0px";
+    };
+
+    if (open) {
+      /* Pulled well inside the box. The marks were running off the leather
+         and across the coin pocket, because the decal is sized from the
+         BOUNDING BOX and an open wallet's box is bigger than its face — the
+         panels tilt toward the camera, so the box gains height and width
+         that no leather occupies. Insetting is the fix that does not require
+         knowing the tilt. */
+      lockup(w * 0.26, h * 0.7, h * 0.088, "LAWFIC");
+      ctx.textAlign = "right";
+      /* Small enough that twenty-five letterspaced characters still start
+         right of the spine. At the previous size the line was half the
+         plane wide and ran across the fold onto the card slots — the
+         client's renders keep it entirely on the right leaf. */
+      ctx.font = `500 ${h * 0.032}px ${serif}`;
+      ctx.letterSpacing = `${h * 0.012}px`;
+      ctx.fillText("IDEAS · PEOPLE · PROGRESS", w * 0.95, h * 0.8);
+      ctx.letterSpacing = "0px";
+    } else {
+    lockup(w * 0.78, h * 0.76, h * 0.115, "LAWFIC");
+    }
+    return c;
+  };
+
+  const bump = new THREE.CanvasTexture(draw("#101010", "#808080"));
+  const rough = new THREE.CanvasTexture(draw("#d0d0d0", "#404040"));
+  /* The mask must be white-on-black and cannot be the bump map: that one is a
+     mid-grey field with near-black marks, so every texel falls below any alpha
+     threshold high enough to remove the field and the whole plane — marks
+     included — disappears. */
+  const mask = new THREE.CanvasTexture(draw("#ffffff", "#000000"));
+  for (const t of [bump, rough, mask]) t.colorSpace = THREE.NoColorSpace;
+  return { bump, rough, mask, planeW, planeH, size };
+}
+
 useGLTF.preload(CLOSED_URL);
 useGLTF.preload(OPEN_URL);
 
@@ -441,85 +483,24 @@ function lighten(hex: string, k: number) {
  * between thread and a groove.
  */
 function Stitching({
-  size,
+  closedSize,
+  openSize,
   thread,
   open,
 }: {
-  size: THREE.Vector3;
+  closedSize: THREE.Vector3;
+  openSize: THREE.Vector3;
   thread: string;
   open: boolean;
 }) {
-  const w = size.x * 0.995;
-  const h = size.y * 0.995;
-
-  const { bump, mask } = useMemo(() => {
-    const px = 1600;
-    const py = Math.max(1, Math.round((px * h) / w));
-
-    const draw = (fg: string, bg: string) => {
-      const c = document.createElement("canvas");
-      c.width = px;
-      c.height = py;
-      const ctx = c.getContext("2d")!;
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, px, py);
-      ctx.strokeStyle = fg;
-      ctx.lineCap = "round";
-
-      /**
-       * The run: down both sides and along the fold, and NOT across the top.
-       *
-       * This is what stops the shut wallet reading as a sealed box. A bifold is
-       * stitched down its sides and around the fold; the top is where the two
-       * leaves separate, and closing that line with thread turns the object
-       * into a block with a lid drawn on it. Leaving the top open is both what
-       * the real construction does and the strongest single cue that the thing
-       * in front of you has flaps.
-       */
-      const run = (inset: number, dash: number, width: number) => {
-        const r = Math.min(px, py) * 0.07;
-        const x0 = px * inset;
-        const y0 = py * inset * (px / py);
-        const x1 = px - x0;
-        const y1 = py - y0;
-        const stop = y0 + (y1 - y0) * 0.1;
-        ctx.lineWidth = width;
-        ctx.setLineDash([dash, dash * 0.85]);
-        ctx.beginPath();
-        ctx.moveTo(x0, stop);
-        ctx.lineTo(x0, y1 - r);
-        ctx.quadraticCurveTo(x0, y1, x0 + r, y1);
-        ctx.lineTo(x1 - r, y1);
-        ctx.quadraticCurveTo(x1, y1, x1, y1 - r);
-        ctx.lineTo(x1, stop);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      };
-
-      if (open) {
-        /* Open, only the spine. The perimeter run is derived from the bounding
-           box, and an open wallet's box is not its outline — its panels tilt
-           toward the camera, so the box is taller and wider than the leather
-           and the dashes float off the edges. The spine is the one run whose
-           position the box does predict. */
-        ctx.lineWidth = px * 0.004;
-        ctx.setLineDash([px * 0.009, px * 0.008]);
-        ctx.beginPath();
-        ctx.moveTo(px * 0.5, py * 0.12);
-        ctx.lineTo(px * 0.5, py * 0.88);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      } else {
-        run(0.035, px * 0.011, px * 0.005);
-      }
-      return c;
-    };
-
-    const bumpTex = new THREE.CanvasTexture(draw("#f0f0f0", "#808080"));
-    const maskTex = new THREE.CanvasTexture(draw("#ffffff", "#000000"));
-    for (const t of [bumpTex, maskTex]) t.colorSpace = THREE.NoColorSpace;
-    return { bump: bumpTex, mask: maskTex };
-  }, [w, h, open]);
+  /* Both states built once, for the same reason as the embossing: redrawing a
+     1600px canvas on the state change lands the work in the frame where the
+     meshes exchange. */
+  const both = useMemo(
+    () => ({ closed: stitchMaps(closedSize, false), open: stitchMaps(openSize, true) }),
+    [closedSize, openSize],
+  );
+  const { bump, mask, w, h, size } = open ? both.open : both.closed;
 
   return (
     <mesh position={[0, 0, size.z / 2 + 0.015]}>
@@ -538,4 +519,79 @@ function Stitching({
       />
     </mesh>
   );
+}
+
+/**
+ * The stitch maps for one state. A plain function, not a hook, so both states
+ * exist before either is wanted.
+ */
+function stitchMaps(size: THREE.Vector3, open: boolean) {
+  const w = size.x * 0.995;
+  const h = size.y * 0.995;
+  const px = 1600;
+  const py = Math.max(1, Math.round((px * h) / w));
+
+  const draw = (fg: string, bg: string) => {
+    const c = document.createElement("canvas");
+    c.width = px;
+    c.height = py;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, px, py);
+    ctx.strokeStyle = fg;
+    ctx.lineCap = "round";
+
+    /**
+     * The run: down both sides and along the fold, and NOT across the top.
+     *
+     * This is what stops the shut wallet reading as a sealed box. A bifold is
+     * stitched down its sides and around the fold; the top is where the two
+     * leaves separate, and closing that line with thread turns the object into
+     * a block with a lid drawn on it. Leaving the top open is both what the
+     * real construction does and the strongest single cue that the thing in
+     * front of you has flaps.
+     */
+    const run = (inset: number, dash: number, width: number) => {
+      const r = Math.min(px, py) * 0.07;
+      const x0 = px * inset;
+      const y0 = py * inset * (px / py);
+      const x1 = px - x0;
+      const y1 = py - y0;
+      const stop = y0 + (y1 - y0) * 0.1;
+      ctx.lineWidth = width;
+      ctx.setLineDash([dash, dash * 0.85]);
+      ctx.beginPath();
+      ctx.moveTo(x0, stop);
+      ctx.lineTo(x0, y1 - r);
+      ctx.quadraticCurveTo(x0, y1, x0 + r, y1);
+      ctx.lineTo(x1 - r, y1);
+      ctx.quadraticCurveTo(x1, y1, x1, y1 - r);
+      ctx.lineTo(x1, stop);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+
+    if (open) {
+      /* Open, only the spine. The perimeter run is derived from the bounding
+         box, and an open wallet's box is not its outline — its panels tilt
+         toward the camera, so the box is taller and wider than the leather and
+         the dashes float off the edges. The spine is the one run whose
+         position the box does predict. */
+      ctx.lineWidth = px * 0.004;
+      ctx.setLineDash([px * 0.009, px * 0.008]);
+      ctx.beginPath();
+      ctx.moveTo(px * 0.5, py * 0.12);
+      ctx.lineTo(px * 0.5, py * 0.88);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      run(0.035, px * 0.011, px * 0.005);
+    }
+    return c;
+  };
+
+  const bump = new THREE.CanvasTexture(draw("#f0f0f0", "#808080"));
+  const mask = new THREE.CanvasTexture(draw("#ffffff", "#000000"));
+  for (const t of [bump, mask]) t.colorSpace = THREE.NoColorSpace;
+  return { bump, mask, w, h, size };
 }

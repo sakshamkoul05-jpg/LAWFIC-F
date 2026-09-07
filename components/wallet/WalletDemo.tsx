@@ -52,6 +52,12 @@ export default function WalletDemo() {
         <WalletSection
           prefs={{ ...prefs, avatarSeed: seed }}
           balancePaise={DEMO_BALANCE_PAISE}
+          lastEntry={{
+            id: DEMO_TXNS[0].id,
+            reason: DEMO_TXNS[0].reason,
+            direction: DEMO_TXNS[0].dir,
+            amountPaise: Math.abs(DEMO_TXNS[0].amount),
+          }}
           actions={
             <Link
               href="/login?next=/wallet"
