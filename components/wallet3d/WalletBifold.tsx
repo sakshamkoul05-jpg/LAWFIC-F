@@ -44,6 +44,28 @@ const OPEN_URL = "/wallet/lawfic-bifold-open.glb";
 /** A real bifold is about 11.5cm across the spine when shut. 1 unit = 1cm. */
 const TARGET_W = 11.5;
 
+/**
+ * How far the cover sits open when the wallet is "shut", in radians.
+ *
+ * NOT ZERO, and this is the difference between a wallet and a block. A bifold
+ * with cards and cash in it never closes flat — the leaves are held apart by
+ * what is between them, so the outer edge gapes a few millimetres and the fold
+ * takes the strain. Clamped shut at exactly 0° the two halves meet with no
+ * parting line anywhere, and the object reads as one solid slab of leather,
+ * which is precisely what it looked like. Three degrees is enough to open a
+ * visible seam down the outer edge and along the top without the wallet
+ * looking as though it is falling open.
+ */
+const REST_AJAR = -0.055;
+
+/**
+ * The cover is very slightly smaller than the back leaf, measured from the
+ * fold. Real bifolds are cut this way so the cover does not overhang, and the
+ * millimetre of step it leaves at the outer edge is one more thing telling the
+ * eye there are two pieces of leather here rather than one.
+ */
+const COVER_TRIM = 0.992;
+
 /** Seconds for the cover to swing open, or shut. */
 const FLIP = 0.85;
 
@@ -239,7 +261,7 @@ export default function WalletBifold({
 
     /* One number drives the whole move, so its parts cannot fall out of step. */
     let p = 1;
-    let cover = 0;
+    let cover = REST_AJAR;
     if (flipStart.current !== null) {
       p = Math.min(1, (t - flipStart.current) / FLIP);
 
@@ -255,7 +277,9 @@ export default function WalletBifold({
          shows the back of the object before the inside — that reads as
          flipping the wallet over to look underneath, not as opening it. */
       const swing = shownRef.current ? 1 - p : p;
-      cover = -Math.PI * (1 - Math.pow(1 - swing, 3));
+      /* From ajar to flat, not from zero — otherwise the cover would snap
+         closed the moment a swing began or ended. */
+      cover = REST_AJAR + (-Math.PI - REST_AJAR) * (1 - Math.pow(1 - swing, 3));
 
       /* Handed over near the end of the swing, not at the middle. */
       if (p >= 0.86 && shownRef.current !== want) setShown(want);
@@ -364,7 +388,12 @@ export default function WalletBifold({
             {/* THE COVER SWINGS. Hinged at the fold — the left edge — with its
                 contents pushed back the same distance, so at rest the pair is
                 an identity and only the swing sees it. */}
-            <group ref={hinge} position={[-closed.size.x / 2, 0, 0]}>
+            <group
+              ref={hinge}
+              position={[-closed.size.x / 2, 0, 0]}
+              rotation={[0, REST_AJAR, 0]}
+              scale={COVER_TRIM}
+            >
               <group position={[closed.size.x / 2, 0, 0]}>
                 <mesh geometry={leaves[0]} scale={closed.scale} castShadow receiveShadow>
                   <meshPhysicalMaterial {...surface} side={THREE.DoubleSide} />
