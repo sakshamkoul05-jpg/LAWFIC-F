@@ -44,8 +44,8 @@ const OPEN_URL = "/wallet/lawfic-bifold-open.glb";
 /** A real bifold is about 11.5cm across the spine when shut. 1 unit = 1cm. */
 const TARGET_W = 11.5;
 
-/** Seconds for the whole turn-swap-turn. */
-const FLIP = 0.75;
+/** Seconds for the cover to swing open, or shut. */
+const FLIP = 0.85;
 
 /**
  * How much the open wallet is scaled down to stay in frame.
@@ -103,6 +103,53 @@ function fit(gltf: { scene: THREE.Object3D }, targetWidth: number): Fit {
   return { geometry, scale, size: raw.clone().multiplyScalar(scale) };
 }
 
+
+/**
+ * Split the shut wallet into its two leaves, at the plane where they meet.
+ *
+ * WHY THIS EXISTS
+ *
+ * The export is a watertight solid: there is no modelled separation between
+ * the front cover and the back, so the whole object could only ever be turned,
+ * not opened. Turned, a bifold seen edge-on is a rectangular block — which is
+ * exactly what it looked like, and exactly what a wallet does not do. A real
+ * bifold keeps its back still and swings only the cover, so the back face is
+ * on screen the entire time and there is never a moment when all you can see
+ * is an edge.
+ *
+ * Triangles are sorted by the z of their centroid. The two halves SHARE their
+ * attribute buffers and differ only in their index, so this costs one pass
+ * over the indices and no extra vertex memory. Triangles that straddle the cut
+ * land on one side or the other, which leaves a slightly ragged seam — at the
+ * fold, where the two leaves are pressed together and it does not show.
+ */
+function splitLeaves(geo: THREE.BufferGeometry): [THREE.BufferGeometry, THREE.BufferGeometry] {
+  const index = geo.getIndex();
+  const pos = geo.getAttribute("position");
+  if (!index) return [geo, geo];
+
+  const front: number[] = [];
+  const back: number[] = [];
+  for (let i = 0; i < index.count; i += 3) {
+    const a = index.getX(i);
+    const b = index.getX(i + 1);
+    const c = index.getX(i + 2);
+    const z = (pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3;
+    (z >= 0 ? front : back).push(a, b, c);
+  }
+
+  const make = (list: number[]) => {
+    const g = new THREE.BufferGeometry();
+    for (const name of ["position", "uv", "normal"]) {
+      const attr = geo.getAttribute(name);
+      if (attr) g.setAttribute(name, attr);
+    }
+    g.setIndex(list);
+    return g;
+  };
+  return [make(front), make(back)];
+}
+
 export default function WalletBifold({
   look,
   open,
@@ -126,6 +173,9 @@ export default function WalletBifold({
      different sizes and the swap would read as a zoom. Its own export is
      roughly twice as wide, so it keeps its own measured width. */
   const opened = useMemo(() => fit(openGltf, TARGET_W * 1.72), [openGltf]);
+
+  /* The shut wallet as two leaves, so the cover can swing on its own. */
+  const leaves = useMemo(() => splitLeaves(closed.geometry), [closed]);
 
   const finish = getFinish(look.finish);
   const color = getColor(finish, look.color);
@@ -157,9 +207,11 @@ export default function WalletBifold({
     for (const t of [maps.normal, maps.rough, maps.tint]) t.repeat.set(rep, rep);
   }, [maps, finish]);
 
-  /* The flip. `shown` is what is drawn; `open` is what was asked for. They
-     differ only during the turn, and they exchange at the edge-on moment. */
+  /* The swing. `shown` is what is drawn; `open` is what was asked for. They
+     differ only during the swing, and they exchange at the edge-on moment. */
   const root = useRef<THREE.Group>(null);
+  const scaler = useRef<THREE.Group>(null);
+  const hinge = useRef<THREE.Group>(null);
   const [shown, setShown] = useState(open >= 0.5);
   const flipStart = useRef<number | null>(null);
   const lastWant = useRef(open >= 0.5);
@@ -185,21 +237,28 @@ export default function WalletBifold({
       flipStart.current = t;
     }
 
-    let flipTurn = 0;
-    /* One number drives the whole turn, so its parts cannot fall out of step. */
+    /* One number drives the whole move, so its parts cannot fall out of step. */
     let p = 1;
+    let cover = 0;
     if (flipStart.current !== null) {
       p = Math.min(1, (t - flipStart.current) / FLIP);
-      /* Out to edge-on and back: a half sine, so the object moves fastest
-         where it is thinnest and the exchange is least visible.
-         NEGATIVE, and that sign is the whole difference between opening a
-         wallet and turning one over. Rotating the other way swings the near
-         edge away and shows the viewer the back of the object before the
-         inside — it reads as flipping it to look underneath. This way the far
-         edge comes toward you and the front lifts, which is what a hand does
-         to a cover. */
-      flipTurn = -Math.sin(p * Math.PI) * (Math.PI / 2);
-      if (p >= 0.5 && shownRef.current !== want) setShown(want);
+
+      /* THE COVER SWINGS A FULL HALF TURN, and the size of that angle is the
+         reason the swap is invisible. At 180° the cover has come to rest
+         alongside the back leaf — two leaves side by side, which is the
+         silhouette of the OPEN wallet. Stopping at 90°, as this did before,
+         hands over at the one angle where the object is a bare edge and the
+         two meshes look nothing like each other.
+
+         Negative, so the far edge lifts toward the viewer and the cover opens
+         to the left. Rotating the other way swings the near edge away and
+         shows the back of the object before the inside — that reads as
+         flipping the wallet over to look underneath, not as opening it. */
+      const swing = shownRef.current ? 1 - p : p;
+      cover = -Math.PI * (1 - Math.pow(1 - swing, 3));
+
+      /* Handed over near the end of the swing, not at the middle. */
+      if (p >= 0.86 && shownRef.current !== want) setShown(want);
       if (p >= 1) flipStart.current = null;
     }
 
@@ -212,23 +271,31 @@ export default function WalletBifold({
     root.current.rotation.x += (tx - root.current.rotation.x) * 0.06;
     root.current.position.y = Math.sin(t * 0.5) * 0.06;
 
-    /* The turn is applied to the inner group so it composes with the tilt
-       instead of fighting it. The frame scale rides the same easing, so the
-       wallet grows and shrinks during the turn rather than popping at the
-       moment the meshes exchange. */
-    const inner = root.current.children[0] as THREE.Object3D | undefined;
+    /* THE HINGE IS AT THE SPINE, NOT THE MIDDLE.
+       Rotating about the object's centre is a turntable: the wallet stays
+       where it is and presents its thick edge to the camera, and for the
+       moment it is edge-on it is a centred rectangular slab — a box. A cover
+       does not turn about its middle, it swings about the fold. Pivoting at
+       the spine sends the body sweeping out to one side and foreshortening as
+       it goes, which is what a flap opening looks like, and the edge-on
+       instant is a thin line off to one side rather than a block in the
+       middle of the frame. */
+    if (hinge.current) hinge.current.rotation.y = cover;
+
+    const inner = scaler.current;
     if (inner) {
-      inner.rotation.y = flipTurn;
       /* Interpolated FROM `p`, not eased toward a target a fixed fraction per
          frame. A per-frame lerp is framerate-dependent — the same move takes
          twice as long at 30fps as at 60 — and on a machine that stutters
          during the swap it visibly drags behind the turn, which was most of
          what made this feel laggy. Elapsed time gives the same shape
          everywhere. It runs over the second half, after the exchange. */
+      /* The object widens as the cover swings out, so the frame scale has to
+         follow the SWING rather than wait for the swap — otherwise the open
+         wallet pops smaller the instant the meshes exchange. */
       const from = shownRef.current ? 1 : OPEN_FRAME_SCALE;
       const to = shownRef.current ? OPEN_FRAME_SCALE : 1;
-      const k = Math.min(1, Math.max(0, (p - 0.5) / 0.5));
-      inner.scale.setScalar(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+      inner.scale.setScalar(from + (to - from) * (1 - Math.pow(1 - p, 2)));
     }
   });
 
@@ -255,73 +322,80 @@ export default function WalletBifold({
 
   return (
     <group ref={root} rotation={[0.06, -0.28, 0]}>
-      <group>
-        <mesh geometry={fitted.geometry} scale={fitted.scale} castShadow receiveShadow>
-          <meshPhysicalMaterial {...surface} />
-        </mesh>
+      <group ref={scaler}>
+        {shown ? (
+          <>
+            <mesh geometry={opened.geometry} scale={opened.scale} castShadow receiveShadow>
+              <meshPhysicalMaterial {...surface} />
+            </mesh>
 
-        {/* Stitching and stamping are on the OUTSIDE of the wallet, so both
-            are drawn for the shut state only and hidden rather than unmounted
-            — keeping them mounted keeps their canvases alive, so reopening
-            costs nothing.
+            <NoteStack
+              notes={notes}
+              open={1}
+              arriving={arriving}
+              style={look.notes}
+              /* A banknote spans nearly the whole length of an open bifold —
+                 that is what the compartment is for, and half-width notes read
+                 as vouchers rattling around inside it. */
+              width={opened.size.x * 0.78}
+              /* Deep in the slot, and far enough back that the spine occludes
+                 the stack's bowed middle. Shallower, the curve of the paper
+                 poked through the gap between the leaves and read as a tear. */
+              position={[0, opened.size.y * 0.22, -opened.size.z * 0.58]}
+            />
+          </>
+        ) : (
+          <>
+            {/* THE BACK LEAF STAYS PUT. This is the whole point of the split:
+                a wallet that opens keeps most of itself on screen, so there is
+                never a frame in which all you can see is an edge. */}
+            <mesh geometry={leaves[1]} scale={closed.scale} castShadow receiveShadow>
+              {/* DOUBLE-SIDED, and not as a precaution.
+                  Each leaf is half of a watertight solid cut open, so the face
+                  it presents to the camera is the CUT — and a cut has no
+                  triangles. What is actually in front of you is the inside of
+                  the leaf's far surface, whose winding points away, and with
+                  front-face culling that renders as nothing at all: the back
+                  leaf simply vanished the moment the cover started to move,
+                  which defeats the entire reason for splitting it. */}
+              <meshPhysicalMaterial {...surface} side={THREE.DoubleSide} />
+            </mesh>
 
-            The open state used to carry a dashed run down the spine and the
-            marks on both leaves. Neither survives contact with the real
-            object: the spine run is a flat decal laid over a fold that is
-            actual geometry, so it read as a stray yellow line rather than as
-            thread, and the marks sat on a plane derived from a bounding box
-            that an open wallet's tilted panels do not fill, so they floated
-            over the leather instead of being pressed into it. Inside, the
-            wallet is now plain hide and its own modelled detail. */}
-        <Stitching size={closed.size} thread={threadColor} visible={!shown} />
+            {/* THE COVER SWINGS. Hinged at the fold — the left edge — with its
+                contents pushed back the same distance, so at rest the pair is
+                an identity and only the swing sees it. */}
+            <group ref={hinge} position={[-closed.size.x / 2, 0, 0]}>
+              <group position={[closed.size.x / 2, 0, 0]}>
+                <mesh geometry={leaves[0]} scale={closed.scale} castShadow receiveShadow>
+                  <meshPhysicalMaterial {...surface} side={THREE.DoubleSide} />
+                </mesh>
 
-        {/* The opening, shut. A separate dark strip rather than a line in the
-            stitch decal, because that decal has ONE material and a gap between
-            two leaves is not the colour of thread. Only when shut: open, the
-            gap is real geometry. */}
-        {!shown && (
-          <mesh
-            position={[0, fitted.size.y * 0.42, fitted.size.z / 2 + 0.01]}
-            renderOrder={2}
-          >
-            <planeGeometry args={[fitted.size.x * 0.9, fitted.size.y * 0.012]} />
-            <meshBasicMaterial color="#120c07" transparent opacity={0.72} depthWrite={false} />
-          </mesh>
-        )}
+                {/* Stitching and stamping are on the OUTSIDE of the cover, so
+                    they ride with it. Both are drawn for the shut state only —
+                    the open wallet's decals were flat planes derived from a
+                    bounding box its tilted panels do not fill, which is why
+                    they floated over the leather instead of pressing into it. */}
+                <Stitching size={closed.size} thread={threadColor} visible />
 
-        <Emboss
-          engraving={look.engraving}
-          emboss={emboss}
-          leather={color.hex}
-          size={closed.size}
-          visible={!shown}
-        />
+                {/* The opening, as a dark line where the two leaves meet. Its
+                    own strip rather than a line in the stitch decal, because
+                    that decal has one material and a gap between two pieces of
+                    leather is not the colour of thread. */}
+                <mesh position={[0, closed.size.y * 0.42, closed.size.z / 2 + 0.01]} renderOrder={2}>
+                  <planeGeometry args={[closed.size.x * 0.9, closed.size.y * 0.012]} />
+                  <meshBasicMaterial color="#120c07" transparent opacity={0.72} depthWrite={false} />
+                </mesh>
 
-        {/* Notes live in the bill compartment, which only exists when the
-            wallet is open. Shut, they would be geometry inside a solid. */}
-        {shown && (
-          <NoteStack
-            notes={notes}
-            open={1}
-            arriving={arriving}
-            style={look.notes}
-            /* A banknote spans nearly the whole length of an open bifold —
-               that is what the compartment is for, and half-width notes read
-               as vouchers rattling around inside it. */
-            width={fitted.size.x * 0.78}
-            /* Behind the panels and clearing the top edge: the bill slot runs
-               along the spine at the back, which is where the client's own
-               photograph shows the notes standing up out of. Placed at the
-               front the stack sits inside solid geometry. */
-            /* Deep in the slot. The stack was standing half out of the
-               wallet, which is not how a bifold carries cash: the compartment
-               is as tall as a note and only its top edge shows. Protruding
-               paper reads as a rendering fault before it reads as money. */
-            /* Far enough back that the spine occludes the stack's bowed
-               middle. At -0.42 the curve of the paper poked through the gap
-               between the two leaves and read as a tear in the note. */
-            position={[0, fitted.size.y * 0.22, -fitted.size.z * 0.58]}
-          />
+                <Emboss
+                  engraving={look.engraving}
+                  emboss={emboss}
+                  leather={color.hex}
+                  size={closed.size}
+                  visible
+                />
+              </group>
+            </group>
+          </>
         )}
       </group>
     </group>
