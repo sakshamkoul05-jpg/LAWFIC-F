@@ -799,3 +799,47 @@
     display: none;
   }
 }
+
+/* ============================================================
+   The running announcement strip (HOM PA INS 1)
+   ------------------------------------------------------------
+   One row of items rendered twice and translated by exactly half
+   the track's width. At -50% the second copy sits where the first
+   began, so the loop restarts on an identical frame and there is
+   no seam. The duration is long because eleven claims at a
+   readable pace is a slow strip, not a fast one — a ticker that
+   outruns reading is decoration.
+   ============================================================ */
+
+.ticker-track {
+  animation: ticker-run 46s linear infinite;
+  will-change: transform;
+}
+
+@keyframes ticker-run {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Stops for anyone reading it — pointer or keyboard. Text that cannot be
+   halted is unreadable to anyone who reads slowly, and this strip carries
+   claims a customer may well want to finish. */
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+  /* Someone who asked for no animation still needs to reach the eleventh
+     item, so the strip becomes a plain horizontal scroller. */
+  .ticker {
+    overflow-x: auto;
+  }
+}

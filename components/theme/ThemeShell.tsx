@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
+import AnnouncementTicker from "@/components/site/AnnouncementTicker";
 import SiteHeader from "@/components/site/SiteHeader";
 import ClassicCategoryTabs from "@/components/classic/ClassicCategoryTabs";
 import Footer from "@/components/site/Footer";
@@ -39,6 +40,8 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
   return (
     <ProfileProvider>
       <div className="flex min-h-screen flex-col bg-background">
+        {/* Above the logo, as the blueprint places it. */}
+        <AnnouncementTicker />
         <SiteHeader />
         <ClassicCategoryTabs />
         <main className="flex-1">{children}</main>

@@ -9,18 +9,30 @@ import {
   tabAccent,
   TABS_ROW_ONE,
   TABS_ROW_TWO,
+  TAB_GRID_COLUMNS,
+  ROW_ONE_SPAN,
+  ROW_TWO_SPAN,
   type NavTab,
 } from "@/lib/nav-tabs";
 
 /**
- * The 21-section navigation strip, on two rows.
+ * The 27-section navigation strip, on two rows.
  *
- * One row of twenty-one only fits by scrolling, and a scroller hides about half
+ * One row of twenty-seven only fits by scrolling, and a scroller hides most of
  * its contents at any width: someone landing on /professionalism saw a bar that
- * appeared not to contain their page. Eleven above and ten below shows every
- * section at once on a desktop, which for a site whose whole proposition is
- * breadth is worth the extra strip of height. Below the breakpoint the two rows
- * become two scrollers, because two rows of eleven on a phone is a wall.
+ * appeared not to contain their page. Fifteen above and twelve below shows
+ * every section at once on a desktop, which for a site whose whole proposition
+ * is breadth is worth the extra strip of height. Below the breakpoint the two
+ * rows become two scrollers, because two rows of fifteen on a phone is a wall.
+ *
+ * THE ROWS LINE UP EXACTLY, AND THAT IS ARITHMETIC RATHER THAN NUDGING
+ *
+ * Fifteen and twelve both divide sixty, so the bar is a sixty-column grid and
+ * the rows take four columns and five. Both rows therefore start and end on the
+ * same pixel and share a boundary every fifth column. The previous version made
+ * one row eleven columns and the other ten — cells of different widths that
+ * could never align — and papered over it with half a cell of padding, which
+ * is why the two rows visibly drifted.
  *
  * Each tab carries its section's colour as a bottom border. With this many
  * items of identical-looking text the eye has nothing to aim at, so a fixed
@@ -88,14 +100,24 @@ export default function ClassicCategoryTabs() {
 
   useEffect(() => close(), [pathname, close]);
 
-  /* A short grace period so the pointer can cross the gap from tab to panel. */
+  /**
+   * The dropdown HOLDS while the pointer is on it.
+   *
+   * Anything the pointer can land on inside the panel cancels the pending
+   * close, so hovering a sub-tab pauses the dismissal rather than racing it.
+   * The grace period is 340ms rather than 140: the panel is anchored below the
+   * bar with a gap to cross, the rows are dense, and a diagonal move toward a
+   * sub-tab in the far corner takes longer than a seventh of a second. Too
+   * short and the menu vanishes out from under the pointer on the way to the
+   * thing it is aiming at, which reads as the site fighting you.
+   */
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = null;
   };
   const scheduleClose = () => {
     cancelClose();
-    closeTimer.current = setTimeout(close, 140);
+    closeTimer.current = setTimeout(close, 340);
   };
   useEffect(() => cancelClose, []);
 
@@ -128,16 +150,12 @@ export default function ClassicCategoryTabs() {
           <div
             key={ri}
             ref={ri === 0 ? scrollerRef : undefined}
-            style={
-              /* Half a cell of inset on the short row, so ten items centre
-                 under eleven and the two rows read as one block rather than
-                 two lists that happen to be stacked. */
-              ri === 1 ? { ["--row-inset" as string]: `${100 / 22}%` } : undefined
-            }
-            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-11 lg:overflow-visible lg:px-6 ${
-              ri === 1
-                ? "border-t border-border/60 lg:grid-cols-10 lg:[padding-inline:calc(1.5rem+var(--row-inset))]"
-                : ""
+            style={{
+              ["--tab-cols" as string]: String(TAB_GRID_COLUMNS),
+              ["--tab-span" as string]: String(ri === 0 ? ROW_ONE_SPAN : ROW_TWO_SPAN),
+            }}
+            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-[repeat(var(--tab-cols),minmax(0,1fr))] lg:overflow-visible lg:px-6 ${
+              ri === 1 ? "border-t border-border/60" : ""
             }`}
           >
             {row.map((tab) => {
@@ -156,7 +174,7 @@ export default function ClassicCategoryTabs() {
                      natural width. At lg and up they share the bar evenly and
                      it spans the full page, which is the only arrangement that
                      does not leave a stretch of empty rule after Contact. */
-                  className={`group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:px-2 ${
+                  className={`group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:col-[span_var(--tab-span)] lg:min-w-0 lg:px-1.5 ${
                     active ? "font-medium" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -220,13 +238,22 @@ function DropdownPanel({
   }
 
   return (
+    /* The outer element starts at the BAR, not at the panel, and the six
+       pixels of visual gap are its padding. That strip is invisible but
+       hoverable, so the pointer never leaves everything at once on its way
+       down — without it, crossing the gap fires the bar's mouseleave with
+       nothing yet entered, and the menu dismisses itself under a pointer that
+       was heading straight for it. */
+    <div
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      style={{ left, top: anchor.top, width: WIDTH, paddingTop: 6 }}
+      className="fixed z-50"
+    >
     <div
       role="menu"
       aria-label={tab.label}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      style={{ left, top: anchor.top + 6, width: WIDTH }}
-      className="fixed z-50 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-surface py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]"
+      className="max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-surface py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]"
     >
       {groups.map((group, gi) => (
         <div key={group.name ?? `g${gi}`}>
@@ -268,6 +295,7 @@ function DropdownPanel({
           This section is still being written.
         </p>
       )}
+    </div>
     </div>
   );
 }

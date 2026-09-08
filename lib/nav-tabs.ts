@@ -197,7 +197,7 @@ export const classicTabs: NavTab[] = [
   },
   {
     id: "new-idea",
-    label: "New Idea",
+    label: "Your Idea",
     sublabel: "Tab 13",
     href: "/new-idea",
     live: false,
@@ -225,7 +225,7 @@ export const classicTabs: NavTab[] = [
   },
   {
     id: "professionalism",
-    label: "Professionalism",
+    label: "Profession",
     sublabel: "Tab 15",
     href: "/professionalism",
     live: false,
@@ -238,7 +238,7 @@ export const classicTabs: NavTab[] = [
   },
   {
     id: "career",
-    label: "Career",
+    label: "Your Career",
     sublabel: "Tab 16",
     href: "/career",
     live: false,
@@ -315,6 +315,93 @@ export const classicTabs: NavTab[] = [
       { label: "Your filings", href: "/orders" },
     ],
   },
+  {
+    id: "my-money",
+    label: "My Money",
+    sublabel: "Tab 11",
+    href: "/wallet",
+    live: true,
+    tagline: "Your LAWFIC balance, your statement and everything it has paid for.",
+    sub: [
+      { label: "Wallet balance", href: "/wallet" },
+      { label: "Add money", href: "/wallet/topup" },
+      { label: "Transactions", href: "/wallet/transactions" },
+      { label: "Customise your wallet", href: "/wallet/customize" },
+    ],
+  },
+  {
+    id: "your-ad",
+    label: "Your Add",
+    sublabel: "Tab 17",
+    href: "/your-ad",
+    live: false,
+    tagline: "Put your business in front of the people already looking for it.",
+    sub: [
+      { label: "Advertise on LAWFIC", href: "/your-ad" },
+      { label: "Local listings", href: "/your-ad#local" },
+      { label: "Rates", href: "/your-ad#rates" },
+    ],
+  },
+  {
+    id: "aakhri-umeed",
+    label: "Aakhri Umeed",
+    sublabel: "Tab 22",
+    href: "/aakhri-umeed",
+    live: false,
+    tagline: "The cases nobody else would take on.",
+    sub: [
+      { label: "What this is", href: "/aakhri-umeed" },
+      { label: "Ask for help", href: "/aakhri-umeed#ask" },
+    ],
+  },
+  {
+    id: "social",
+    label: "Social",
+    sublabel: "Tab 23",
+    href: "/social",
+    live: false,
+    tagline: "Real social work, for a smiling India.",
+    sub: [
+      { label: "Our work", href: "/social" },
+      { label: "Volunteer", href: "/social#volunteer" },
+    ],
+  },
+  {
+    id: "press",
+    label: "Press",
+    sublabel: "Tab 24",
+    href: "/press",
+    live: false,
+    tagline: "LAWFIC in the news, and how to reach us about it.",
+    sub: [
+      { label: "Coverage", href: "/press" },
+      { label: "Media enquiries", href: "/press#enquiries" },
+    ],
+  },
+  {
+    id: "travel",
+    label: "Travel",
+    sublabel: "Tab 26",
+    href: "/travel",
+    live: false,
+    tagline: "Passports, visas and everything else a journey needs on paper.",
+    sub: [
+      { label: "Passport", href: "/document/indian-passport" },
+      { label: "Visa help", href: "/travel#visa" },
+    ],
+  },
+  {
+    id: "lawfic-club",
+    label: "Lawfic Club",
+    sublabel: "Tab 27",
+    href: "/lawfic-club",
+    live: false,
+    tagline: "Membership, and what comes with it.",
+    sub: [
+      { label: "About the club", href: "/lawfic-club" },
+      { label: "Benefits", href: "/lawfic-club#benefits" },
+    ],
+  },
 ];
 
 export function getTabByHref(pathname: string): NavTab | undefined {
@@ -364,6 +451,13 @@ export const TAB_ACCENT: Record<string, string> = {
   "our-store": "#A9C97E",
   "instant-help": "#C97E7E",
   contact: "#9E9EC9",
+  "my-money": "#C9B87E",
+  "your-ad": "#8FC9C9",
+  "aakhri-umeed": "#C98F9E",
+  social: "#9EC98F",
+  press: "#A8A8BF",
+  travel: "#7EB6C9",
+  "lawfic-club": "#C9A85C",
 };
 
 export function tabAccent(id: string): string {
@@ -371,13 +465,64 @@ export function tabAccent(id: string): string {
 }
 
 /**
- * The strip runs on two rows: eleven sections above, ten below.
+ * The strip runs on two rows, in the order the client's blueprint sets out:
+ * fifteen sections above, twelve below.
  *
- * Twenty-one tabs on one line only fit by scrolling, and a scroller hides
- * roughly half its contents at any width — someone landing on /professionalism
- * saw a bar that appeared not to contain their page. Two rows show every
- * section at once on a desktop, which for a site whose whole proposition is
- * breadth is worth the extra strip of height.
+ * The names, the order and the split are theirs, not ours — "Tab 1" to
+ * "Tab 27" in the sheet — so this list is transcribed rather than designed.
+ * Contact is no longer a tab, because it is not one of the twenty-seven; the
+ * page stays and is reached from Instant Help and the footer.
+ *
+ * Both rows span the same width and their cells divide it exactly: fifteen and
+ * twelve both go into sixty, so the grid is sixty columns wide and the rows
+ * take four and five of them. That is what makes the two rows line up at every
+ * fifth boundary instead of drifting apart, which is what happened when they
+ * were eleven and ten columns of different widths with a half-cell of inset
+ * bodged in to disguise it.
  */
-export const TABS_ROW_ONE = classicTabs.slice(0, 11);
-export const TABS_ROW_TWO = classicTabs.slice(11);
+const ORDER_ROW_ONE = [
+  "home",
+  "about",
+  "document",
+  "admission",
+  "education",
+  "startup",
+  "business",
+  "jobs",
+  "professionalism",
+  "branding",
+  "my-money",
+  "investment",
+  "partner",
+  "instant-help",
+  "lawfic",
+];
+
+const ORDER_ROW_TWO = [
+  "new-idea",
+  "your-ad",
+  "career",
+  "entertainment",
+  "our-store",
+  "gift",
+  "aakhri-umeed",
+  "social",
+  "press",
+  "blogs",
+  "travel",
+  "lawfic-club",
+];
+
+const byId = (id: string) => {
+  const tab = classicTabs.find((t) => t.id === id);
+  if (!tab) throw new Error(`nav-tabs: no tab "${id}"`);
+  return tab;
+};
+
+export const TABS_ROW_ONE = ORDER_ROW_ONE.map(byId);
+export const TABS_ROW_TWO = ORDER_ROW_TWO.map(byId);
+
+/** The number of grid columns each row's cells span. 15 x 4 = 12 x 5 = 60. */
+export const TAB_GRID_COLUMNS = 60;
+export const ROW_ONE_SPAN = TAB_GRID_COLUMNS / ORDER_ROW_ONE.length;
+export const ROW_TWO_SPAN = TAB_GRID_COLUMNS / ORDER_ROW_TWO.length;
