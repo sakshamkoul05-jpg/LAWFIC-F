@@ -7,6 +7,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Wordmark from "@/components/site/Wordmark";
 import HeaderSearch from "@/components/site/HeaderSearch";
 import ProfileMenu from "@/components/site/ProfileMenu";
+import HeaderGreeting from "./HeaderGreeting";
 import SignInDialog from "@/components/site/SignInDialog";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { LanguageMenu, FilingStateMenu } from "@/components/site/HeaderMenus";
@@ -144,6 +145,18 @@ export default function SiteHeader() {
               <LanguageMenu />
             </span>
             <ThemeToggle />
+
+            {/* HOM PA INS 5: the greeting sits with the profile, at the far
+                right, as the blueprint places it. */}
+            {mounted && user && (
+              <HeaderGreeting
+                name={
+                  (user.user_metadata?.full_name as string | undefined) ??
+                  user.email?.split("@")[0] ??
+                  null
+                }
+              />
+            )}
 
             {mounted ? (
               <ProfileMenu user={user} onSignInClick={() => setSignIn(true)} />

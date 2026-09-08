@@ -124,4 +124,18 @@ export const promotionalBanners: Banner[] = [
     photoAlt: "A stack of documents squared up on a wooden table",
     tone: "clay",
   },
+  {
+    /* Sixth, because the blueprint sets out six promotional slots and this
+       carousel had five. The photograph was already in the repository. */
+    id: 6,
+    eyebrow: "Trademark & brand",
+    title: "Your name, protected in the right classes",
+    label:
+      "A search first, so you find out a mark is taken before you have printed it on anything.",
+    cta: "Protect your brand",
+    href: "/branding",
+    photo: "/banners/branding.jpg",
+    photoAlt: "A designer's desk with printed brand material laid out",
+    tone: "jade",
+  },
 ];

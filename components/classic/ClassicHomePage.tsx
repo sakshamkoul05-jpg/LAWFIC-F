@@ -8,11 +8,22 @@ import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
 import AdTiles from "./AdTiles";
+import WhyChooseLawfic from "./WhyChooseLawfic";
+import TrendingInLawfic from "./TrendingInLawfic";
+import ServiceByCategory from "./ServiceByCategory";
 
 export default function ClassicHomePage() {
   return (
     <div className="min-h-screen bg-background">
+      {/* Six promotional slots, then the three sections the client's sheet
+          numbers 1, 2 and 3 in its running order: why choose LAWFIC, what is
+          trending, and the nine categories. They sit directly under the
+          banners because that order is the blueprint's, not ours — the hero
+          and the rest of the page follow. */}
       <ClassicPromotionalBanners />
+      <WhyChooseLawfic />
+      <TrendingInLawfic />
+      <ServiceByCategory />
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border">
