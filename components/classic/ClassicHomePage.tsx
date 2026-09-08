@@ -11,8 +11,14 @@ import AdTiles from "./AdTiles";
 import WhyChooseLawfic from "./WhyChooseLawfic";
 import TrendingInLawfic from "./TrendingInLawfic";
 import ServiceByCategory from "./ServiceByCategory";
+import { usePreferencesValue } from "@/components/account/usePreferences";
 
 export default function ClassicHomePage() {
+  /* The dashboard preference decides which of these the reader sees. Defaults
+     are all-on, and the value is read after mount, so nothing flickers off for
+     someone who has never opened the setting. */
+  const { sections } = usePreferencesValue();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Six promotional slots, then the three sections the client's sheet
@@ -20,10 +26,10 @@ export default function ClassicHomePage() {
           trending, and the nine categories. They sit directly under the
           banners because that order is the blueprint's, not ours — the hero
           and the rest of the page follow. */}
-      <ClassicPromotionalBanners />
-      <WhyChooseLawfic />
-      <TrendingInLawfic />
-      <ServiceByCategory />
+      {sections.promotions && <ClassicPromotionalBanners />}
+      {sections.why && <WhyChooseLawfic />}
+      {sections.trending && <TrendingInLawfic />}
+      {sections.categories && <ServiceByCategory />}
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border">

@@ -47,6 +47,31 @@ export default async function TransactionsPage() {
         Every credit and debit, itemised.
       </p>
       <TransactionList rows={rows} />
+
+      {/* A plain link, not a fetch-and-blob. The browser already knows how to
+          save a response with a Content-Disposition, and doing it that way
+          means the file is the whole ledger rather than the fifty entries this
+          page happens to be holding. */}
+      {rows.length > 0 && (
+        <div className="mt-6 text-center">
+          <a
+            href="/api/wallet/statement"
+            download
+            className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-[13px] text-foreground transition-colors hover:border-border-3"
+          >
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <path
+                d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 15.5h12"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Download statement (CSV)
+          </a>
+        </div>
+      )}
       <p className="mt-5 text-center text-[11px] leading-relaxed opacity-25">
         Balance is usable only for LAWFIC services.
       </p>

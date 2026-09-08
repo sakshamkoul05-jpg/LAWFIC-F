@@ -52,14 +52,14 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
       { label: "Create & Design Own Wallet", href: "/wallet/customize" },
       { label: "Wallet Password / PIN Change" },
       { label: "Wallet Transaction History", href: "/wallet/transactions" },
-      { label: "Download Wallet Statement" },
+      { label: "Download Wallet Statement", href: "/wallet/transactions" },
       { label: "Refer Friend & Earn Money" },
     ],
   },
   {
     id: "dashboard",
     title: "Dash Board",
-    rows: [{ label: "Set Dash Board Preference" }],
+    rows: [{ label: "Set Dash Board Preference", href: "/profile/preferences" }],
   },
   { id: "address", title: "Address", rows: [{ label: "Saved addresses" }] },
   {
@@ -71,7 +71,7 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
     id: "privacy",
     title: "Account Privacy",
     rows: [
-      { label: "Who can see your details" },
+      { label: "Who can see your details", href: "/profile/preferences" },
       { label: "Privacy policy", href: "/legal/privacy" },
     ],
   },
