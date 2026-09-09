@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1080" viewBox="0 0 900 1080" role="img" aria-label="A GSTIN in your name in 7–10 days">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1C2A24"/>
+      <stop offset="1" stop-color="#0B0B0C"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.3" r="0.6">
+      <stop offset="0" stop-color="#D0AE55" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#D0AE55" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="1080" fill="url(#g)"/>
+  <rect width="900" height="1080" fill="url(#glow)"/>
+
+  <g transform="translate(450 227.88)">
+      <rect x="-134.64000000000001" y="-166.32" width="245.52" height="332.64" rx="11.879999999999999" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round" transform="rotate(-7)"/>
+      <rect x="-110.88000000000001" y="-158.4" width="245.52" height="332.64" rx="11.879999999999999" stroke="#D0AE55" fill="none" stroke-width="6.336" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="-79.2" y1="-98.52480000000001" x2="71.28" y2="-98.52480000000001" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/><line x1="-79.2" y1="-51.955200000000005" x2="71.28" y2="-51.955200000000005" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/><line x1="-79.2" y1="-5.385600000000011" x2="71.28" y2="-5.385600000000011" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/><line x1="-79.2" y1="41.18399999999997" x2="71.28" y2="41.18399999999997" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/>
+      <circle cx="79.2" cy="118.8" r="55.440000000000005" stroke="#D0AE55" fill="none" stroke-width="6.336" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M51.480000000000004 118.8 l19.8 19.8 l39.6 -43.56" stroke="#D0AE55" fill="none" stroke-width="6.336" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+  <text x="81" y="448.605" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="28.8"
+    font-weight="600" letter-spacing="7.2" fill="#D0AE55">TAX &amp; FILINGS</text>
+
+  <text x="81" y="561.6" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="83.7" font-weight="600"
+    fill="#F5F1EA" textLength="652.86"
+    lengthAdjust="spacingAndGlyphs">A GSTIN in your</text>
+  <text x="81" y="655.344" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="83.7" font-weight="600"
+    fill="#F5F1EA" textLength="738"
+    lengthAdjust="spacingAndGlyphs">name in 7–10 days</text>
+
+  <text x="81" y="724.815" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="24.6"
+    fill="#F5F1EA" opacity="0.72" textLength="738"
+    lengthAdjust="spacing">We answer the department's queries. You get the certificate.</text>
+
+  <rect x="81" y="864" width="666" height="101.52" rx="50.76" fill="#D0AE55"/>
+  <text x="414" y="928.9728" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="34.5168"
+    font-weight="600" fill="#0B0B0C" text-anchor="middle">Start GST registration</text>
+
+  <text x="819" y="1031.3999999999999" font-family="Georgia, 'Times New Roman', serif" font-size="67.5" font-weight="700"
+    letter-spacing="-3.375" fill="#F5F1EA" opacity="0.5" text-anchor="end">IL</text>
+</svg>

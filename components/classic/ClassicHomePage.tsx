@@ -7,7 +7,7 @@ import { plans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
-import AdTiles from "./AdTiles";
+import PhotoAds from "./PhotoAds";
 import WhyChooseLawfic from "./WhyChooseLawfic";
 import TrendingInLawfic from "./TrendingInLawfic";
 import ServiceByCategory from "./ServiceByCategory";
@@ -73,7 +73,10 @@ export default function ClassicHomePage() {
         </div>
       </section>
 
-      <AdTiles />
+      {/* Four ads, each a finished creative with its own type baked in — the
+          technique the reference sites use, and the reason none of this needs
+          an overlay. See PhotoAds. */}
+      <PhotoAds />
 
       {/* ── Service Categories ───────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">

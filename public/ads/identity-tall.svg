@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1080" viewBox="0 0 900 1080" role="img" aria-label="PAN, TAN and DSC without the guesswork">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A2119"/>
+      <stop offset="1" stop-color="#0B0B0C"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.3" r="0.6">
+      <stop offset="0" stop-color="#D0AE55" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#D0AE55" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="1080" fill="url(#g)"/>
+  <rect width="900" height="1080" fill="url(#glow)"/>
+
+  <g transform="translate(450 227.88)">
+      <rect x="-174.24" y="-118.8" width="348.48" height="221.76000000000002" rx="23.759999999999998" stroke="#D0AE55" fill="none" stroke-width="6.336" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="-126.72" y="-55.440000000000005" width="71.28" height="55.440000000000005" rx="7.92" stroke="#D0AE55" fill="none" stroke-width="6.336" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="-126.72" y1="63.36" x2="23.759999999999998" y2="63.36" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/><line x1="-126.72" y1="102.96000000000001" x2="23.759999999999998" y2="102.96000000000001" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/>
+      <circle cx="95.03999999999999" cy="-23.759999999999998" r="39.6" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/>
+      <path d="M31.68 63.36 q63.36 -55.440000000000005 126.72 0" stroke="#F5F1EA" fill="none" stroke-width="4.356" opacity="0.28" stroke-linecap="round"/>
+    </g>
+
+  <text x="81" y="448.605" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="28.8"
+    font-weight="600" letter-spacing="7.2" fill="#D0AE55">IDENTITY</text>
+
+  <text x="81" y="561.6" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="83.7" font-weight="600"
+    fill="#F5F1EA" textLength="696.384"
+    lengthAdjust="spacingAndGlyphs">PAN, TAN and DSC</text>
+  <text x="81" y="655.344" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="83.7" font-weight="600"
+    fill="#F5F1EA" textLength="738"
+    lengthAdjust="spacingAndGlyphs">without the guesswork</text>
+
+  <text x="81" y="724.815" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="26.836363636363636"
+    fill="#F5F1EA" opacity="0.72" textLength="738"
+    lengthAdjust="spacing">Government fee and our fee, itemised before you commit.</text>
+
+  <rect x="81" y="864" width="666" height="101.52" rx="50.76" fill="#D0AE55"/>
+  <text x="414" y="928.9728" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="34.5168"
+    font-weight="600" fill="#0B0B0C" text-anchor="middle">See identity services</text>
+
+  <text x="819" y="1031.3999999999999" font-family="Georgia, 'Times New Roman', serif" font-size="67.5" font-weight="700"
+    letter-spacing="-3.375" fill="#F5F1EA" opacity="0.5" text-anchor="end">IL</text>
+</svg>
