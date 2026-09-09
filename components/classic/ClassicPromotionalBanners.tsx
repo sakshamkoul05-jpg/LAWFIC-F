@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { promotionalBanners, TONES } from "@/lib/promotional";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const DWELL_MS = 6500;
 
@@ -29,6 +30,7 @@ const DWELL_MS = 6500;
  *     operable by keyboard and legible to a screen reader.
  */
 export default function ClassicPromotionalBanners() {
+  const { tx } = useLocale();
   const reduced = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -165,7 +167,7 @@ export default function ClassicPromotionalBanners() {
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="LAWFIC highlights"
+      aria-label={tx("LAWFIC highlights")}
       className="relative border-b border-border bg-surface-2/40"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -217,7 +219,7 @@ export default function ClassicPromotionalBanners() {
                     where the headline sits. */}
                 <Image
                   src={banner.photo}
-                  alt={banner.photoAlt}
+                  alt={tx(banner.photoAlt)}
                   fill
                   priority={i === 0}
                   sizes="100vw"
@@ -243,14 +245,14 @@ export default function ClassicPromotionalBanners() {
                     className="type-label"
                     style={{ color: tone.accent, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
                   >
-                    {banner.eyebrow}
+                    {tx(banner.eyebrow)}
                   </p>
 
                   <h2
                     className="max-w-[19ch] text-[clamp(1.9rem,4.4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-0.035em]"
                     style={{ color: "#F5F1EA", textShadow: "0 2px 10px rgba(0,0,0,0.45)" }}
                   >
-                    {banner.title}
+                    {tx(banner.title)}
                   </h2>
 
                   <p
@@ -260,7 +262,7 @@ export default function ClassicPromotionalBanners() {
                       textShadow: "0 1px 6px rgba(0,0,0,0.5)",
                     }}
                   >
-                    {banner.label}
+                    {tx(banner.label)}
                   </p>
 
                   <div className="pt-2">
@@ -270,7 +272,7 @@ export default function ClassicPromotionalBanners() {
                       className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-medium transition-transform duration-200 hover:translate-x-0.5"
                       style={{ background: tone.accent, color: tone.to }}
                     >
-                      {banner.cta}
+                      {tx(banner.cta)}
                       <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
                         <path
                           d="M3 7h8M7.5 3.5L11 7l-3.5 3.5"
@@ -298,7 +300,7 @@ export default function ClassicPromotionalBanners() {
               key={banner.id}
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Show ${banner.title}`}
+              aria-label={`${tx("Show")} ${tx(banner.title)}`}
               aria-current={i === index}
               className="pointer-events-auto h-1 flex-1 max-w-[68px] overflow-hidden rounded-full bg-white/20 transition-colors hover:bg-white/35"
             >

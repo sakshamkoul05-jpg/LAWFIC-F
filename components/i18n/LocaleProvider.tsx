@@ -1,11 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_LOCALE,
   LOCALE_KEY,
   isLocale,
   translate,
+  translatePhrase,
   type LocaleCode,
 } from "@/lib/i18n";
 
@@ -27,13 +28,17 @@ import {
 type Ctx = {
   locale: LocaleCode;
   setLocale: (l: LocaleCode) => void;
+  /** Keyed lookup, for the chrome strings that were given ids. */
   t: (key: string, fallback?: string) => string;
+  /** Lookup by the English text itself, for everything else. See lib/i18n.ts. */
+  tx: (english: string) => string;
 };
 
 const LocaleContext = createContext<Ctx>({
   locale: DEFAULT_LOCALE,
   setLocale: () => {},
   t: (key, fallback) => translate(DEFAULT_LOCALE, key, fallback),
+  tx: (english) => english,
 });
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
@@ -70,9 +75,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     [locale],
   );
 
-  return (
-    <LocaleContext.Provider value={{ locale, setLocale, t }}>{children}</LocaleContext.Provider>
-  );
+  const tx = useCallback((english: string) => translatePhrase(locale, english), [locale]);
+
+  /* Memoised on the locale rather than rebuilt every render. Without this every
+     consumer of the context re-renders on any parent render, and the consumers
+     here are the header, the tab bar and every section of the home page. */
+  const value = useMemo(() => ({ locale, setLocale, t, tx }), [locale, setLocale, t, tx]);
+
+  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
 export function useLocale(): Ctx {

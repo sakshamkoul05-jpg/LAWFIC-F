@@ -1,27 +1,43 @@
+import { hiPhrases } from "./i18n-hi";
+import { esPhrases } from "./i18n-es";
+import { hiBlurbs, esBlurbs } from "./i18n-blurbs";
+
 /**
- * Language for the site chrome.
+ * Language for the whole page.
  *
- * WHAT IS TRANSLATED HERE, AND WHAT DELIBERATELY IS NOT
+ * TWO TABLES, BECAUSE THERE ARE TWO KINDS OF STRING
  *
- * Navigation, controls and the account menu — the furniture someone uses to get
- * around. Body copy is NOT translated and must not be machine-translated into
- * this file. The site explains statutory obligations: which registration a
- * business needs, what a licence costs, when a return is due. A mistranslation
- * there is not a cosmetic bug, it is wrong advice about the law, and "Udyam"
- * and "Udyog Aadhaar" are not interchangeable words however similar a
- * translation engine finds them.
+ * `translate(locale, key)` handles the chrome: a few dozen controls that were
+ * written with ids from the start — "nav.search", "acct.signIn".
  *
- * So the chrome is translated by hand and the content is left in English until
- * a person who works in the language has written it. That is a smaller promise
- * than a language toggle usually implies, and it is the honest one.
+ * `translatePhrase(locale, english)` handles everything else, and is keyed by
+ * the English sentence itself. Several hundred strings were already written in
+ * English across the blueprint data, the catalogue and the page components;
+ * retrofitting an id onto each one means editing every one of them and
+ * inventing a name for each. Keying by the source text also means the same
+ * sentence translates identically wherever it appears — "GST Registration"
+ * shows up in the trending list, the category grid and the catalogue, and there
+ * is no reading of it where those three should differ.
+ *
+ * Both fall back to English rather than throwing. A missing translation should
+ * degrade to a word someone can still read, never to a blank control.
+ *
+ * WHAT THIS PROMISE DOES AND DOES NOT COVER
+ *
+ * Every word the page renders is translated. The names of Indian statutory
+ * schemes are not invented in the target language: Udyam stays उद्यम and
+ * "Registro Udyam", PAN stays पैन and "Tarjeta PAN", because a customer has to
+ * be able to match what is on the page against what is on the form. Udyam and
+ * Udyog Aadhaar are different registrations however close a translation engine
+ * puts them, and filing the wrong one costs the customer the fee and the time.
  *
  * ADDING A LANGUAGE
  *
- * Add an entry to LOCALES and a block to DICT. Nothing else changes — the
- * switcher, the persistence and the lang attribute all read from here. Do not
- * add a locale until someone who speaks it has checked the strings; a half
- * translated navigation is worse than an untranslated one, because it looks
- * finished.
+ * Add an entry to LOCALES, a block to DICT, and a phrase file beside
+ * i18n-hi.ts. Nothing else changes — the switcher, the persistence and the lang
+ * attribute all read from here. Do not add a locale until someone who speaks it
+ * has checked the strings; a half translated page is worse than an untranslated
+ * one, because it looks finished.
  */
 
 export type LocaleCode = "en" | "hi" | "es";
@@ -230,4 +246,49 @@ export function translate(locale: LocaleCode, key: string, fallback?: string): s
 
 export function isLocale(v: unknown): v is LocaleCode {
   return typeof v === "string" && LOCALES.some((l) => l.code === v);
+}
+
+/**
+ * Phrase tables, keyed by the English source string.
+ *
+ * English has none: it is its own table, and looking a string up to get itself
+ * back is just cost.
+ *
+ * Assembled HERE and nowhere else. The blurbs live in their own file because
+ * they are long and they were found late, but merging them at the point of use
+ * would mean every consumer had to remember to do it — and one of those
+ * consumers is the search index, which is built once at module scope, so a
+ * merge it forgot would show up as a search that silently fails to match Hindi
+ * for one class of row. Exported for that reason.
+ */
+export const PHRASES: Partial<Record<LocaleCode, Record<string, string>>> = {
+  hi: { ...hiPhrases, ...hiBlurbs },
+  es: { ...esPhrases, ...esBlurbs },
+};
+
+/**
+ * Translate a string that was written in English rather than given an id.
+ *
+ * Whitespace is trimmed before the lookup and put back afterwards, because JSX
+ * hands over `{" "}`-padded text often enough that a table keyed on the exact
+ * literal would miss on strings that are plainly present in it.
+ */
+export function translatePhrase(locale: LocaleCode, english: string): string {
+  if (locale === DEFAULT_LOCALE) return english;
+
+  const table = PHRASES[locale];
+  if (!table) return english;
+
+  const hit = table[english];
+  if (hit !== undefined) return hit;
+
+  const trimmed = english.trim();
+  if (trimmed === english) return english;
+
+  const trimmedHit = table[trimmed];
+  if (trimmedHit === undefined) return english;
+
+  const lead = english.slice(0, english.indexOf(trimmed[0] ?? ""));
+  const tail = english.slice(lead.length + trimmed.length);
+  return `${lead}${trimmedHit}${tail}`;
 }

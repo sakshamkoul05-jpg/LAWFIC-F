@@ -36,7 +36,7 @@ export default function HeaderSearch({
 }) {
   const router = useRouter();
   const listId = useId();
-  const { t } = useLocale();
+  const { t, tx } = useLocale();
   /* Scoping the search to a category, the way a storefront does. With
      thirty-nine services across seven categories it is the difference between
      "GST" returning one obvious answer and returning everything that mentions
@@ -105,10 +105,10 @@ export default function HeaderSearch({
             aria-label={t("nav.searchIn")}
             className="max-w-[8.5rem] shrink-0 cursor-pointer truncate rounded-l-full border-r border-border bg-transparent py-2 pl-4 pr-2 text-[12px] text-muted-foreground outline-none"
           >
-            <option value="">All</option>
+            <option value="">{tx("All")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {tx(c.name)}
               </option>
             ))}
           </select>
@@ -157,18 +157,18 @@ export default function HeaderSearch({
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] text-foreground">
-                    <Marked text={hit.label} query={query} />
+                    <Marked text={tx(hit.label)} query={query} />
                   </span>
                   {hit.blurb && (
                     <span className="mt-0.5 block truncate text-[11.5px] text-muted-foreground">
-                      {hit.blurb}
+                      {tx(hit.blurb)}
                     </span>
                   )}
                 </span>
                 <span className="mt-0.5 shrink-0 text-[10px] uppercase tracking-[0.12em] text-subtle">
                   {/* Says what it is, and says when it is not open yet — a
                       result you cannot buy should not look like one you can. */}
-                  {hit.live ? hit.kind : t("nav.soon")}
+                  {hit.live ? tx(hit.kind) : t("nav.soon")}
                 </span>
               </button>
             </li>

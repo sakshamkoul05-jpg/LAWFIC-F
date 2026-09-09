@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/components/i18n/LocaleProvider";
+
 /**
  * The running strip above the header — HOM PA INS 1 in the client's blueprint.
  *
@@ -47,6 +49,8 @@ export const ANNOUNCEMENTS = [
 ];
 
 function Run({ hidden = false }: { hidden?: boolean }) {
+  const { tx } = useLocale();
+
   return (
     <ul
       className="flex shrink-0 items-center"
@@ -55,7 +59,7 @@ function Run({ hidden = false }: { hidden?: boolean }) {
     >
       {ANNOUNCEMENTS.map((line) => (
         <li key={line} className="flex items-center whitespace-nowrap">
-          <span className="px-6 text-[11.5px] tracking-[0.14em] text-white/90">{line}</span>
+          <span className="px-6 text-[11.5px] tracking-[0.14em] text-white/90">{tx(line)}</span>
           <span aria-hidden className="text-white/25">
             ·
           </span>
@@ -66,10 +70,12 @@ function Run({ hidden = false }: { hidden?: boolean }) {
 }
 
 export default function AnnouncementTicker() {
+  const { tx } = useLocale();
+
   return (
     <div
       className="ticker group relative w-full overflow-hidden bg-black"
-      aria-label="LAWFIC service highlights"
+      aria-label={tx("LAWFIC service highlights")}
     >
       <div className="ticker-track flex w-max">
         <Run />

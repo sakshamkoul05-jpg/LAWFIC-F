@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ProfileMenu from "@/components/site/ProfileMenu";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
 import { usePreferencesValue } from "@/components/account/usePreferences";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * The far-right corner: a face, the greeting under it, and the account menu.
@@ -57,6 +58,7 @@ export default function ProfileCorner({
   onSignInClick?: () => void;
 }) {
   const [greeting, setGreeting] = useState<{ text: string; emoji: string } | null>(null);
+  const { tx } = useLocale();
   const { privacy } = usePreferencesValue();
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function ProfileCorner({
             <>
               <span aria-hidden>{greeting.emoji}</span>
               <span>
-                {greeting.text}
+                {tx(greeting.text)}
                 {name ? `, ${name.split(" ")[0]}` : ""}
               </span>
             </>

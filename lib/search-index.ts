@@ -1,6 +1,7 @@
 import { categories } from "./catalogue";
 import { documents } from "./documents";
 import { classicTabs } from "./nav-tabs";
+import { PHRASES } from "./i18n";
 
 /**
  * What the header search can find, and how it ranks it.
@@ -15,6 +16,17 @@ import { classicTabs } from "./nav-tabs";
  * Registration" — they type "udyog aadhaar", "tds", "pvt ltd", "49a". Those
  * live in the catalogue already and are matched but never displayed, so the
  * result still shows the name the site uses.
+ *
+ * ONE INDEX, EVERY LANGUAGE
+ *
+ * The translations of a row's own text are folded into its match terms, so
+ * typing "आधार" or "pasaporte" finds the same service that "aadhaar" and
+ * "passport" find. The index has to be built once and shared — it is module
+ * state, not per-render — so it cannot be rebuilt when the reader changes
+ * language; carrying all the languages at once is what makes that work, and it
+ * has the better behaviour anyway. Someone reading the page in Hindi may still
+ * type the English name they saw on the government form, and someone reading in
+ * English may paste a Hindi name from a document. Both should find the row.
  */
 
 export type SearchHit = {
@@ -30,6 +42,20 @@ export type SearchHit = {
   cat?: string;
 };
 
+/** Every language's version of a string, lowercased, with blanks dropped. */
+function forms(...source: (string | undefined)[]): string[] {
+  const out = new Set<string>();
+  for (const text of source) {
+    if (!text) continue;
+    out.add(text.toLowerCase());
+    for (const table of Object.values(PHRASES)) {
+      const translated = table[text];
+      if (translated) out.add(translated.toLowerCase());
+    }
+  }
+  return [...out];
+}
+
 function build(): SearchHit[] {
   const out: SearchHit[] = [];
 
@@ -41,7 +67,7 @@ function build(): SearchHit[] {
         href: `/services/${s.slug}`,
         kind: "Service",
         blurb: s.blurb,
-        terms: [s.name, s.blurb, cat.name, ...(s.aliases ?? [])].map((t) => t.toLowerCase()),
+        terms: forms(s.name, s.blurb, cat.name, ...(s.aliases ?? [])),
         live: s.status === "live",
         cat: cat.id,
       });
@@ -55,7 +81,7 @@ function build(): SearchHit[] {
       href: d.href,
       kind: "Document",
       blurb: d.blurb,
-      terms: [d.label, d.blurb ?? "", d.group].map((t) => t.toLowerCase()),
+      terms: forms(d.label, d.blurb, d.group),
       live: d.live,
     });
   }
@@ -67,7 +93,7 @@ function build(): SearchHit[] {
       href: t.href,
       kind: "Section",
       blurb: t.tagline,
-      terms: [t.label, t.tagline ?? ""].map((x) => x.toLowerCase()),
+      terms: forms(t.label, t.tagline),
       live: t.live,
     });
   }

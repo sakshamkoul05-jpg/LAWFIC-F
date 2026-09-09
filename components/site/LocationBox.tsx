@@ -41,7 +41,7 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 const CITY_KEY = "lawfic.city";
 
 export default function LocationBox({ className = "" }: { className?: string }) {
-  const { t } = useLocale();
+  const { t, tx } = useLocale();
   const [code, setCode] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -111,17 +111,17 @@ export default function LocationBox({ className = "" }: { className?: string }) 
           <span aria-hidden className="text-[13px] leading-none">
             🇮🇳
           </span>
-          <span className="type-label text-subtle">India</span>
+          <span className="type-label text-subtle">{tx("India")}</span>
           <Chevron open={open} />
         </span>
 
         {/* The promise, running. */}
         <span className="marquee-clip w-full">
           <span className="marquee-track text-[10.5px] font-medium text-primary">
-            <span className="pr-8">Pan India Best &amp; Quality Service.</span>
+            <span className="pr-8">{tx("Pan India Best & Quality Service.")}</span>
             {/* A second copy, so the loop has no gap to jump across. */}
             <span aria-hidden className="pr-8">
-              Pan India Best &amp; Quality Service.
+              {tx("Pan India Best & Quality Service.")}
             </span>
           </span>
         </span>
@@ -172,7 +172,7 @@ export default function LocationBox({ className = "" }: { className?: string }) 
             onChange={(e) => save(code, e.target.value || null)}
             className="mt-1.5 w-full rounded-lg border border-border bg-surface-2 px-2.5 py-2 text-[13px] text-foreground outline-none focus:border-primary/60 disabled:opacity-40"
           >
-            <option value="">{cities.length ? "Any city" : "Choose a state first"}</option>
+            <option value="">{tx(cities.length ? "Any city" : "Choose a state first")}</option>
             {cities.map((c) => (
               <option key={c} value={c}>
                 {c}

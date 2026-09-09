@@ -277,6 +277,8 @@ function DropdownPanel({
   onLeave: () => void;
   onNavigate: () => void;
 }) {
+  const { t, tx } = useLocale();
+
   const WIDTH = 260;
   const left =
     typeof window === "undefined"
@@ -304,13 +306,13 @@ function DropdownPanel({
     >
       <div
         role="menu"
-        aria-label={tab.label}
+        aria-label={t(`tab.${tab.id}`, tab.label)}
         className="max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-surface py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]"
       >
         {groups.map((group, gi) => (
           <div key={group.name ?? `g${gi}`}>
             {group.name && (
-              <p className="type-label px-3.5 pb-1 pt-2.5 text-subtle">{group.name}</p>
+              <p className="type-label px-3.5 pb-1 pt-2.5 text-subtle">{tx(group.name)}</p>
             )}
             {group.items.map((item) => (
               <Link
@@ -320,7 +322,7 @@ function DropdownPanel({
                 onClick={onNavigate}
                 className="flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
               >
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{tx(item.label)}</span>
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0 text-subtle" aria-hidden>
                   <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -331,7 +333,7 @@ function DropdownPanel({
 
         {!tab.live && (
           <p className="mt-1 border-t border-border px-3.5 pb-1 pt-2 text-[10.5px] text-subtle">
-            This section is still being written.
+            {tx("This section is still being written.")}
           </p>
         )}
       </div>

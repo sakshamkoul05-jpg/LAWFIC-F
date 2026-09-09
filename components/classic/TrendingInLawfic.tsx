@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { TRENDING } from "@/lib/blueprint";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * "Tranding In LAWFIC !!" — section two in the client's running order.
@@ -17,6 +20,7 @@ import { TRENDING } from "@/lib/blueprint";
  * to be sorted by anyway.
  */
 export default function TrendingInLawfic() {
+  const { tx } = useLocale();
   const [featured, rest] = [TRENDING.slice(0, 4), TRENDING.slice(4)];
 
   return (
@@ -27,13 +31,13 @@ export default function TrendingInLawfic() {
     >
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h2 id="trending-heading" className="type-h2 text-foreground">
-          Trending in LAWFIC
+          {tx("Trending in LAWFIC")}
         </h2>
         <Link
           href="/services"
           className="text-[13px] font-medium text-primary transition-colors hover:text-primary-hover"
         >
-          All services →
+          {tx("All services")} →
         </Link>
       </div>
 
@@ -52,12 +56,12 @@ export default function TrendingInLawfic() {
             >
               {t.rank}
             </span>
-            <p className="type-label text-subtle">{t.section}</p>
+            <p className="type-label text-subtle">{tx(t.section)}</p>
             <h3 className="mt-2 text-[15.5px] font-medium leading-snug text-foreground">
-              {t.label}
+              {tx(t.label)}
             </h3>
             <p className="mt-4 text-[12.5px] text-muted-foreground">
-              {t.live ? "Available now" : "Enquire"}
+              {tx(t.live ? "Available now" : "Enquire")}
               <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
                 →
               </span>
@@ -77,9 +81,9 @@ export default function TrendingInLawfic() {
                 {t.rank}
               </span>
               <span className="min-w-0 flex-1 truncate text-[13.5px] text-foreground">
-                {t.label}
+                {tx(t.label)}
               </span>
-              <span className="type-label shrink-0 text-subtle">{t.section}</span>
+              <span className="type-label shrink-0 text-subtle">{tx(t.section)}</span>
             </Link>
           </li>
         ))}

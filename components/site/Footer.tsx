@@ -1,12 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { categories, liveServices, totalServices } from "@/lib/catalogue";
 import { company, formatAddress } from "@/lib/company";
 import { legalDocs } from "@/lib/legal";
 import CategoryIcon from "./CategoryIcon";
 import Wordmark from "./Wordmark";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { locale, tx } = useLocale();
 
   return (
     <footer className="relative mt-32 border-t border-border bg-surface-2/50">
@@ -15,18 +19,19 @@ export default function Footer() {
           <div>
             <Wordmark />
             <p className="type-body mt-5 max-w-xs text-muted">
-              Registrations, licences and compliance for Indian businesses — prepared properly,
-              priced in the open.
+              {tx(
+                "Registrations, licences and compliance for Indian businesses — prepared properly, priced in the open.",
+              )}
             </p>
 
             <p className="type-data mt-6 text-[12px] text-muted">
-              <span className="text-primary">{totalServices}</span> services
+              <span className="text-primary">{totalServices}</span> {tx("services")}
               <span className="mx-1.5 text-border-3">·</span>
-              <span className="text-success">{liveServices.length}</span> live
+              <span className="text-success">{liveServices.length}</span> {tx("live")}
             </p>
 
             <div className="mt-7 flex flex-col gap-2.5 border-t border-border pt-6">
-              <p className="type-label">Support</p>
+              <p className="type-label">{tx("Support")}</p>
               {company.supportEmail && (
                 <a
                   href={`mailto:${company.supportEmail}`}
@@ -43,12 +48,12 @@ export default function Footer() {
                   {company.supportPhone}
                 </a>
               )}
-              <p className="text-[12px] text-muted">{company.supportHours}</p>
+              <p className="text-[12px] text-muted">{tx(company.supportHours)}</p>
               <Link
                 href="/contact"
                 className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] text-primary transition-colors hover:text-primary-hover"
               >
-                Contact &amp; grievances
+                {tx("Contact & grievances")}
               </Link>
             </div>
           </div>
@@ -58,7 +63,7 @@ export default function Footer() {
               <div key={c.id}>
                 <p className="mb-3.5 flex items-center gap-2">
                   <CategoryIcon name={c.icon} size={14} className="text-primary" />
-                  <span className="type-label">{c.name}</span>
+                  <span className="type-label">{tx(c.name)}</span>
                 </p>
                 <ul className="flex flex-col gap-2">
                   {c.services.slice(0, 5).map((s) =>
@@ -68,12 +73,12 @@ export default function Footer() {
                           href={`/services/${s.slug}`}
                           className="text-[12.5px] text-muted transition-colors hover:text-foreground"
                         >
-                          {s.name}
+                          {tx(s.name)}
                         </Link>
                       </li>
                     ) : (
                       <li key={s.slug} className="text-[12.5px] text-subtle">
-                        {s.name}
+                        {tx(s.name)}
                       </li>
                     )
                   )}
@@ -83,7 +88,7 @@ export default function Footer() {
                         href={`/services#${c.id}`}
                         className="text-[12.5px] text-primary transition-colors hover:text-primary-hover"
                       >
-                        +{c.services.length - 5} more
+                        +{c.services.length - 5} {tx("more")}
                       </Link>
                     </li>
                   )}
@@ -93,7 +98,7 @@ export default function Footer() {
 
             <div className="flex flex-col gap-8">
               <div>
-                <p className="type-label mb-3.5">Company</p>
+                <p className="type-label mb-3.5">{tx("Company")}</p>
                 <ul className="flex flex-col gap-2 text-[12.5px] text-muted">
                   {[
                     ["/services", "All services"],
@@ -104,7 +109,7 @@ export default function Footer() {
                   ].map(([href, label]) => (
                     <li key={href}>
                       <Link href={href} className="transition-colors hover:text-foreground">
-                        {label}
+                        {tx(label)}
                       </Link>
                     </li>
                   ))}
@@ -112,12 +117,12 @@ export default function Footer() {
               </div>
 
               <div>
-                <p className="type-label mb-3.5">Legal</p>
+                <p className="type-label mb-3.5">{tx("Legal")}</p>
                 <ul className="flex flex-col gap-2 text-[12.5px] text-muted">
                   {legalDocs.map((d) => (
                     <li key={d.slug}>
                       <Link href={`/legal/${d.slug}`} className="transition-colors hover:text-foreground">
-                        {d.title}
+                        {tx(d.title)}
                       </Link>
                     </li>
                   ))}
@@ -129,13 +134,25 @@ export default function Footer() {
 
         {/* disclaimer */}
         <div className="mt-14 border border-border bg-surface p-5">
-          <p className="type-label mb-2.5 text-primary">Important</p>
+          <p className="type-label mb-2.5 text-primary">{tx("Important")}</p>
           <p className="max-w-3xl text-[12.5px] leading-relaxed text-muted">
-            LAWFIC is a private consultancy. We are not affiliated with UIDAI, the Income Tax
-            Department, GSTN, FSSAI, the Ministry of Corporate Affairs or any other government
-            body, and we are not a GST Suvidha Provider. Government fees are payable to the
-            government and are always shown to you separately from our professional fee.
+            {tx(
+              "LAWFIC is a private consultancy. We are not affiliated with UIDAI, the Income Tax Department, GSTN, FSSAI, the Ministry of Corporate Affairs or any other government body, and we are not a GST Suvidha Provider. Government fees are payable to the government and are always shown to you separately from our professional fee.",
+            )}
           </p>
+          {/* Which text controls, when two texts say nearly the same thing.
+              This paragraph is a statement about who LAWFIC is not, and it is
+              the kind of statement a customer may one day rely on. Translating
+              it and staying silent about which version governs leaves that
+              question open; saying so costs a line and closes it. Shown only
+              when there is in fact a second version on screen. */}
+          {locale !== "en" && (
+            <p className="mt-3 text-[11.5px] leading-relaxed text-subtle">
+              {tx(
+                "This page is translated for convenience. Where the wording differs, the English version governs.",
+              )}
+            </p>
+          )}
         </div>
       </div>
 
@@ -144,11 +161,11 @@ export default function Footer() {
         <div className="mx-auto max-w-6xl px-5 py-7 sm:px-8">
           {(company.legalName || company.cin || company.registeredAddress || company.gstin) && (
             <dl className="mb-6 grid gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-              {company.legalName && <Identity k="Registered name" v={company.legalName} />}
+              {company.legalName && <Identity k={tx("Registered name")} v={company.legalName} />}
               {company.cin && <Identity k="CIN" v={company.cin} mono />}
               {company.gstin && <Identity k="GSTIN" v={company.gstin} mono />}
               {company.registeredAddress && (
-                <Identity k="Registered office" v={formatAddress(company.registeredAddress)} />
+                <Identity k={tx("Registered office")} v={formatAddress(company.registeredAddress)} />
               )}
             </dl>
           )}
@@ -164,13 +181,13 @@ export default function Footer() {
                   <rect x="3.2" y="7" width="9.6" height="6.4" rx="1.4" stroke="currentColor" strokeWidth="1.2" />
                   <path d="M5.6 7V5.2a2.4 2.4 0 0 1 4.8 0V7" stroke="currentColor" strokeWidth="1.2" />
                 </svg>
-                Secured by TLS
+                {tx("Secured by TLS")}
               </span>
               <span className="text-[11px] text-muted">
-                Payments by <span className="text-foreground">Razorpay</span>
+                {tx("Payments by")} <span className="text-foreground">Razorpay</span>
               </span>
               <Link href="/legal/wallet-terms" className="text-[11px] text-muted hover:text-foreground transition-colors">
-                Wallet is closed-loop
+                {tx("Wallet is closed-loop")}
               </Link>
             </div>
 
@@ -179,7 +196,7 @@ export default function Footer() {
                 goes, the avatar style has to change back at the same time.
                 See components/wallet/WalletAvatar.tsx. */}
             <p className="mt-4 text-[10.5px] leading-relaxed text-subtle">
-              Avatar artwork by Micah Lanier, licensed under{" "}
+              {tx("Avatar artwork by Micah Lanier, licensed under")}{" "}
               <a
                 href="https://creativecommons.org/licenses/by/4.0/"
                 rel="noopener noreferrer license"

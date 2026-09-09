@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePreferencesValue } from "@/components/account/usePreferences";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * The greeting beside the profile — HOM PA INS 5 in the client's blueprint,
@@ -35,6 +36,7 @@ function greetingFor(hour: number): string {
 export default function HeaderGreeting({ name }: { name: string | null }) {
   const [greeting, setGreeting] = useState<string | null>(null);
   const { privacy } = usePreferencesValue();
+  const { tx } = useLocale();
 
   useEffect(() => {
     setGreeting(greetingFor(new Date().getHours()));
@@ -44,7 +46,7 @@ export default function HeaderGreeting({ name }: { name: string | null }) {
 
   return (
     <span className="mr-1 hidden min-w-0 flex-col items-end leading-tight lg:flex">
-      <span className="type-label text-subtle">{greeting}</span>
+      <span className="type-label text-subtle">{tx(greeting)}</span>
       <span className="max-w-[14ch] truncate text-[13px] font-medium text-foreground">
         {name}
       </span>

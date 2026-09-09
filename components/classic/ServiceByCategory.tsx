@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { SERVICE_CATEGORIES } from "@/lib/blueprint";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * "Service Explore By Category !!" — section three in the client's running
@@ -23,6 +26,8 @@ import { SERVICE_CATEGORIES } from "@/lib/blueprint";
  * section is that a visitor can see how much is on offer at once.
  */
 export default function ServiceByCategory() {
+  const { tx } = useLocale();
+
   return (
     <section
       id="categories-blueprint"
@@ -31,19 +36,21 @@ export default function ServiceByCategory() {
     >
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <h2 id="categories-blueprint-heading" className="type-h2 text-foreground">
-          Service explore by category
+          {tx("Service explore by category")}
         </h2>
         <p className="mt-2 max-w-2xl text-[13.5px] text-muted-foreground">
-          Nine categories. Every row goes to the page that does the work.
+          {tx("Nine categories. Every row goes to the page that does the work.")}
         </p>
 
         <div className="mt-9 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICE_CATEGORIES.map((cat) => (
             <div key={cat.n}>
-              <p className="type-label text-subtle">Category {cat.n}</p>
+              <p className="type-label text-subtle">
+                {tx("Category")} {cat.n}
+              </p>
               <h3 className="mt-1.5 text-[14.5px] font-semibold leading-snug text-foreground">
                 <Link href={cat.href} className="transition-colors hover:text-primary">
-                  {cat.title}
+                  {tx(cat.title)}
                 </Link>
               </h3>
 
@@ -55,14 +62,14 @@ export default function ServiceByCategory() {
                         href={item.href}
                         className="group flex items-baseline gap-2 py-[3px] text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        <span className="min-w-0 flex-1">{item.label}</span>
+                        <span className="min-w-0 flex-1">{tx(item.label)}</span>
                         {/* A quiet mark for the ones that are actually
                             written, so a visitor can tell what they can
                             finish today from what needs a conversation. */}
                         {item.live && (
                           <span
-                            aria-label="Available now"
-                            title="Available now"
+                            aria-label={tx("Available now")}
+                            title={tx("Available now")}
                             className="mt-[3px] size-[5px] shrink-0 rounded-full bg-primary"
                           />
                         )}
@@ -74,15 +81,15 @@ export default function ServiceByCategory() {
                       href={cat.href}
                       className="text-[12.5px] font-medium text-primary transition-colors hover:text-primary-hover"
                     >
-                      &amp; more →
+                      {tx("& more")} →
                     </Link>
                   </li>
                 </ul>
               ) : (
                 <p className="mt-4 text-[13px] leading-relaxed text-subtle">
-                  The list for this category is still being written.{" "}
+                  {tx("The list for this category is still being written.")}{" "}
                   <Link href={cat.href} className="text-primary hover:text-primary-hover">
-                    See the section
+                    {tx("See the section")}
                   </Link>
                   .
                 </p>

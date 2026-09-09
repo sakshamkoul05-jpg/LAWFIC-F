@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { WHY_LAWFIC } from "@/lib/blueprint";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * "Why Choose LAWFIC Service ?" — section one in the client's running order.
@@ -13,6 +16,8 @@ import { WHY_LAWFIC } from "@/lib/blueprint";
  * has spent its best position on nothing.
  */
 export default function WhyChooseLawfic() {
+  const { tx } = useLocale();
+
   return (
     <section
       id="why-lawfic"
@@ -22,13 +27,13 @@ export default function WhyChooseLawfic() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h2 id="why-lawfic-heading" className="type-h2 text-foreground">
-            Why Choose LAWFIC Service?
+            {tx("Why Choose LAWFIC Service?")}
           </h2>
           <Link
             href="/about"
             className="text-[13px] font-medium text-primary transition-colors hover:text-primary-hover"
           >
-            Read more about LAWFIC →
+            {tx("Read more about LAWFIC")} →
           </Link>
         </div>
 
@@ -41,10 +46,10 @@ export default function WhyChooseLawfic() {
                 {String(i + 1).padStart(2, "0")}
               </p>
               <h3 className="mt-3 text-[15px] font-medium leading-snug text-foreground">
-                {reason.title}
+                {tx(reason.title)}
               </h3>
               <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-                {reason.body}
+                {tx(reason.body)}
               </p>
             </li>
           ))}

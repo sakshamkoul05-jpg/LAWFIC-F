@@ -32,13 +32,13 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  */
 
 export default function MegaMenu({ onNavigate }: { onNavigate: () => void }) {
-  const { t } = useLocale();
+  const { t, tx } = useLocale();
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-2.5">
-      <Group label="Sections" tabs={TABS_ROW_ONE} openId={openId} setOpenId={setOpenId} onNavigate={onNavigate} t={t} />
-      <Group label="More" tabs={TABS_ROW_TWO} openId={openId} setOpenId={setOpenId} onNavigate={onNavigate} t={t} />
+      <Group label={tx("Sections")} tabs={TABS_ROW_ONE} openId={openId} setOpenId={setOpenId} onNavigate={onNavigate} t={t} />
+      <Group label={tx("More")} tabs={TABS_ROW_TWO} openId={openId} setOpenId={setOpenId} onNavigate={onNavigate} t={t} />
     </div>
   );
 }
@@ -58,6 +58,8 @@ function Group({
   onNavigate: () => void;
   t: (key: string, fallback?: string) => string;
 }) {
+  const { tx } = useLocale();
+
   return (
     <section className="mb-2">
       <p className="type-label px-1.5 pb-1.5 pt-2 text-subtle">{label}</p>
@@ -80,7 +82,7 @@ function Group({
                     type="button"
                     onClick={() => setOpenId(open ? null : tab.id)}
                     aria-expanded={open}
-                    aria-label={`${open ? "Hide" : "Show"} services under ${tab.label}`}
+                    aria-label={`${tx(open ? "Hide" : "Show")} ${tx("services")} — ${t(`tab.${tab.id}`, tab.label)}`}
                     className="grid w-9 shrink-0 place-items-center rounded-lg text-subtle transition-colors hover:bg-surface-2 hover:text-foreground"
                   >
                     <svg
@@ -112,7 +114,7 @@ function Group({
                       onClick={onNavigate}
                       className="truncate rounded-lg px-2.5 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
                     >
-                      {item.label}
+                      {tx(item.label)}
                     </Link>
                   ))}
                 </div>

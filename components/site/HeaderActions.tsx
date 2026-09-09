@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * The action row, in the blueprint's order: help, store, theme, my money,
@@ -91,6 +92,8 @@ const ACTIONS: Action[] = [
 ];
 
 export default function HeaderActions({ className = "" }: { className?: string }) {
+  const { tx } = useLocale();
+
   return (
     <div
       className={`shrink-0 grid-flow-col auto-cols-[58px] items-stretch ${className}`}
@@ -104,7 +107,7 @@ export default function HeaderActions({ className = "" }: { className?: string }
         <span className="grid h-[22px] place-items-center [&_button]:!size-[22px] [&_button]:!rounded-md [&_button]:!border-0 [&_button]:!bg-transparent">
           <ThemeToggle />
         </span>
-        <Label>Theme</Label>
+        <Label>{tx("Theme")}</Label>
       </Cell>
 
       {ACTIONS.slice(2).map((a) => (
@@ -135,6 +138,8 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 function ActionLink({ action }: { action: Action }) {
+  const { tx } = useLocale();
+
   return (
     <Link
       href={action.href}
@@ -155,7 +160,7 @@ function ActionLink({ action }: { action: Action }) {
           {action.icon}
         </svg>
       </span>
-      <Label>{action.label}</Label>
+      <Label>{tx(action.label)}</Label>
     </Link>
   );
 }

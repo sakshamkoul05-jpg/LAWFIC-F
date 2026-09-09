@@ -1,3 +1,7 @@
+"use client";
+
+import { useLocale } from "@/components/i18n/LocaleProvider";
+
 /**
  * The mark: emblem, name, tagline — stacked and CENTRED on one another.
  *
@@ -13,6 +17,8 @@
  * at every breakpoint instead of only at the one the sizes were picked at.
  */
 export default function Wordmark({ className = "" }: { className?: string }) {
+  const { tx } = useLocale();
+
   return (
     <span className={`flex flex-col items-center leading-none ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -29,7 +35,7 @@ export default function Wordmark({ className = "" }: { className?: string }) {
           and tight; matching them by choosing a font size alone leaves one
           line visibly wider at every breakpoint but the one it was picked at. */}
       <span className="mt-[3px] hidden w-full text-center text-[5.5px] font-medium uppercase leading-none text-muted-foreground sm:block sm:text-[6px] lg:text-[6.6px] [letter-spacing:0.02em]">
-        Quality service with love
+        {tx("Quality service with love")}
       </span>
     </span>
   );
