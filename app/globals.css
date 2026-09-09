@@ -843,3 +843,57 @@
     overflow-x: auto;
   }
 }
+
+/* ============================================================
+   Marquee — the running lines in the chrome
+   ------------------------------------------------------------
+   Two of these: the announcement bar across the very top, and the
+   promise inside the location box. Both run continuously, and both
+   have to obey the same two rules.
+
+   PAUSE ON HOVER. A line that keeps sliding while someone is
+   trying to read it is worse than one that never moved.
+
+   STOP UNDER prefers-reduced-motion. Perpetual movement in a
+   header, on every page, is precisely what that setting exists to
+   switch off — and the text stays legible when it stops, because
+   the animation only translates it.
+
+   The track holds the text TWICE and travels exactly -50%, so the
+   second copy is under the pointer at the moment the first leaves.
+   A single copy has to jump back to the start, and that jump is
+   visible however fast it is.
+   ============================================================ */
+
+.marquee-clip {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  min-width: 100%;
+  width: max-content;
+  animation: marquee-scroll 14s linear infinite;
+}
+
+.marquee-clip:hover .marquee-track,
+.marquee-clip:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}

@@ -6,28 +6,33 @@ import { useEffect, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Wordmark from "@/components/site/Wordmark";
 import HeaderSearch from "@/components/site/HeaderSearch";
-import ProfileMenu from "@/components/site/ProfileMenu";
-import HeaderGreeting from "./HeaderGreeting";
 import SignInDialog from "@/components/site/SignInDialog";
-import ThemeToggle from "@/components/theme/ThemeToggle";
-import { LanguageMenu, FilingStateMenu } from "@/components/site/HeaderMenus";
+import LocationBox from "@/components/site/LocationBox";
+import HeaderActions from "@/components/site/HeaderActions";
+import ProfileCorner from "@/components/site/ProfileCorner";
+import MegaMenu from "@/components/site/MegaMenu";
+import { LanguageMenu } from "@/components/site/HeaderMenus";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { classicTabs, tabAccent } from "@/lib/nav-tabs";
 
 /**
- * The title bar: identity, a way into everything, search, account.
+ * The title bar, laid out as the client's blueprint sets it.
  *
- * The mark leads at full size on the far left — emblem, name, tagline — because
- * the first thing on every page should be whose site this is.
+ * Left to right: the menu, the mark, where you are filing, the language, then
+ * the search — long and centred, which is the one shape everybody already knows
+ * how to use — then the seven actions, then the account corner hard right.
  *
- * The hamburger sits next to it at every width rather than only on mobile. With
- * twenty-one sections and thirty-nine services, a single place that lists
- * everything is worth having even on a wide screen where the strip below is
- * fully visible; the strip is for aiming at a section you already know, the
- * drawer is for finding out what exists.
+ * WHY THE SEARCH IS THE MIDDLE AND EVERYTHING ELSE IS AN EDGE
  *
- * Cart and saved services are here because the header is where people look for
- * them, and being absent is a worse answer than being empty.
+ * A site with twenty-seven sections and several hundred services cannot be
+ * navigated by browsing alone; most people arrive knowing the words for what
+ * they want ("pan card", "gst") and not which of twenty-seven tabs owns it. So
+ * the search gets the widest, most central slot on the bar and the rest is
+ * pushed to the margins, where it is still reachable but is not competing.
+ *
+ * The hamburger stays at every width rather than appearing only on mobile: the
+ * strip below is for aiming at a section you already know, the drawer is for
+ * finding out what exists, and those are different jobs.
  */
 
 type User = {
@@ -80,7 +85,7 @@ export default function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="flex w-full items-center gap-3 px-3 py-2.5 sm:gap-5 sm:px-5 lg:px-6">
+        <div className="flex w-full items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 lg:gap-4 lg:px-5">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -89,12 +94,7 @@ export default function SiteHeader() {
             className="grid size-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-              <path
-                d="M2 4.5h14M2 9h14M2 13.5h14"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+              <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
 
@@ -102,66 +102,27 @@ export default function SiteHeader() {
             <Wordmark />
           </Link>
 
-          <HeaderSearch className="hidden min-w-0 flex-1 md:block lg:mx-4" />
+          {/* Where you are filing, then the language — both to the left of the
+              search, as the sheet places them. */}
+          <LocationBox className="hidden xl:block" />
+          <span className="hidden lg:block">
+            <LanguageMenu />
+          </span>
 
-          <div className="ml-auto flex shrink-0 items-center gap-1.5 md:ml-0">
-            <span className="hidden sm:contents">
-              <IconLink
-                href="/wishlist"
-                label={t("acct.saved")}
-                active={isActive("/wishlist")}
-              >
-              <path
-                d="M10 16s-6-3.8-6-8a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 16 8c0 4.2-6 8-6 8Z"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-              </IconLink>
-            </span>
+          {/* The middle, and it takes everything left over.
+              No max-width: the client's note is that the search is long, and a
+              cap would leave a gap on a wide screen for no reason. It is the
+              only flexible item in the row, so it also absorbs the shrinking
+              rather than squeezing the controls either side of it. */}
+          <HeaderSearch className="hidden min-w-[200px] flex-1 md:block" />
 
-            <IconLink href="/cart" label={t("acct.cart")} active={isActive("/cart")}>
-              <path
-                d="M3 4h2l1.7 8.2a1.4 1.4 0 0 0 1.4 1.1h6.1a1.4 1.4 0 0 0 1.4-1.1L17 7H6"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="8.5" cy="16" r="1.1" fill="currentColor" />
-              <circle cx="14.5" cy="16" r="1.1" fill="currentColor" />
-            </IconLink>
+          <HeaderActions className="hidden xl:flex" />
 
-            {mounted && user && (
-              <IconLink href="/wallet" label={t("acct.wallet")} active={isActive("/wallet")}>
-                <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.4" />
-                <circle cx="14" cy="12.5" r="1.15" fill="currentColor" />
-              </IconLink>
-            )}
-
-            <span className="hidden items-center gap-1.5 md:flex">
-              <FilingStateMenu />
-              <LanguageMenu />
-            </span>
-            <ThemeToggle />
-
-            {/* HOM PA INS 5: the greeting sits with the profile, at the far
-                right, as the blueprint places it. */}
-            {mounted && user && (
-              <HeaderGreeting
-                name={
-                  (user.user_metadata?.full_name as string | undefined) ??
-                  user.email?.split("@")[0] ??
-                  null
-                }
-              />
-            )}
-
+          <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-0">
             {mounted ? (
-              <ProfileMenu user={user} onSignInClick={() => setSignIn(true)} />
+              <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
-              <span className="h-9 w-20" aria-hidden />
+              <span className="h-11 w-20" aria-hidden />
             )}
           </div>
         </div>
@@ -182,14 +143,14 @@ export default function SiteHeader() {
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
           />
           <nav className="absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col overflow-y-auto border-r border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <span className="text-[13px] font-semibold tracking-tight text-foreground">
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
+              <span className="font-display text-[15px] font-semibold text-foreground">
                 {t("nav.allSections")}
               </span>
               <button
                 type="button"
                 onClick={() => setDrawer(false)}
-                aria-label="Close menu"
+                aria-label={t("nav.closeMenu")}
                 className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-foreground"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -198,42 +159,15 @@ export default function SiteHeader() {
               </button>
             </div>
 
-            <ul className="px-2 py-2">
-              {classicTabs.map((tab) => {
-                const active = isActive(tab.href);
-                return (
-                  <li key={tab.id}>
-                    <Link
-                      href={tab.href}
-                      aria-current={active ? "page" : undefined}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-foreground transition-colors hover:bg-surface-2"
-                    >
-                      {/* The section's colour, so the drawer and the strip
-                          teach the same thing. */}
-                      <span
-                        aria-hidden
-                        className="h-5 w-[3px] shrink-0 rounded-full"
-                        style={{ background: tabAccent(tab.id), opacity: active ? 1 : 0.55 }}
-                      />
-                      <span className={active ? "font-medium" : undefined}>
-                        {t(`tab.${tab.id}`, tab.label)}
-                      </span>
-                      {!tab.live && (
-                        <span className="ml-auto text-[10px] uppercase tracking-[0.12em] text-subtle">
-                          {t("nav.soon")}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <MegaMenu onNavigate={() => setDrawer(false)} />
 
-            {/* The preferences that do not fit in a phone header. Labelled
-                here, which they cannot be up there. */}
-            <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border px-4 py-4 md:hidden">
-              <FilingStateMenu />
-              <LanguageMenu />
+            {/* Below the wide breakpoints these three are not on the bar, so
+                the drawer is where they live. */}
+            <div className="mt-auto flex shrink-0 flex-wrap items-center gap-2 border-t border-border px-4 py-4 xl:hidden">
+              <LocationBox className="lg:hidden" />
+              <span className="lg:hidden">
+                <LanguageMenu />
+              </span>
               <Link
                 href="/wishlist"
                 className="rounded-full border border-border px-3 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"

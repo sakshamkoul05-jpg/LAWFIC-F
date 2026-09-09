@@ -6,50 +6,55 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   classicTabs,
-  tabAccent,
-  TABS_ROW_ONE,
-  TABS_ROW_TWO,
-  TAB_GRID_COLUMNS,
-  ROW_ONE_SPAN,
-  ROW_TWO_SPAN,
+  TABS_VISIBLE,
+  TABS_COLLAPSED,
   type NavTab,
 } from "@/lib/nav-tabs";
 
 /**
- * The 27-section navigation strip, on two rows.
+ * The section bar: eleven tabs on a black band in gold, and the rest behind a
+ * chevron.
  *
- * One row of twenty-seven only fits by scrolling, and a scroller hides most of
- * its contents at any width: someone landing on /professionalism saw a bar that
- * appeared not to contain their page. Fifteen above and twelve below shows
- * every section at once on a desktop, which for a site whose whole proposition
- * is breadth is worth the extra strip of height. Below the breakpoint the two
- * rows become two scrollers, because two rows of fifteen on a phone is a wall.
+ * WHAT CHANGED AND WHY
  *
- * THE ROWS LINE UP EXACTLY, AND THAT IS ARITHMETIC RATHER THAN NUDGING
+ * It used to be all twenty-seven, on two rows, each tab carrying its own
+ * accent colour. The client's instruction is black ground, gold text, eleven
+ * showing. That is not only a taste call — twenty-seven items in a permanent
+ * block is a wall a reader scans rather than reads, and twenty-seven different
+ * colours is a toy shelf. One ground and one ink makes the row read as a set,
+ * and the current section is then the only thing on the bar with a bright
+ * mark on it, which is the whole job of a nav bar.
  *
- * Fifteen and twelve both divide sixty, so the bar is a sixty-column grid and
- * the rows take four columns and five. Both rows therefore start and end on the
- * same pixel and share a boundary every fifth column. The previous version made
- * one row eleven columns and the other ten — cells of different widths that
- * could never align — and papered over it with half a cell of padding, which
- * is why the two rows visibly drifted.
+ * THE CHEVRON
  *
- * Each tab carries its section's colour as a bottom border. With this many
- * items of identical-looking text the eye has nothing to aim at, so a fixed
- * colour per section is the thing that makes the bar learnable — see TAB_ACCENT
- * for why they are muted rather than bright. The border sits at low opacity
- * until a tab is hovered or current, so the resting strip is still calm.
+ * Centred under the eleven, and it opens on hover as well as on click: a
+ * pointer user should not have to click to look, and a keyboard or touch user
+ * cannot hover, so it has to answer both. It closes on a second click, on
+ * Escape, on leaving the bar, and on navigating — four ways out, because a
+ * panel that covers the page with no obvious dismissal is the thing people
+ * complain about in mega menus.
+ *
+ * The colours are hard-coded rather than themed. This band is black in both
+ * light and dark mode by instruction, so a token that flips with the theme
+ * would be the wrong tool: what is wanted is a constant, and writing it as one
+ * is more honest than defining a token that never varies.
  */
+
+const BAND = "#0B0B0C";
+const GOLD = "#D0AE55";
+const GOLD_DIM = "#9A803C";
+
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
   const { t } = useLocale();
+
   const [openId, setOpenId] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<{ left: number; top: number } | null>(null);
-  const [edges, setEdges] = useState({ start: false, end: false });
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const expandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const openTab = openId ? classicTabs.find((t) => t.id === openId) : null;
+  const openTab = openId ? classicTabs.find((x) => x.id === openId) : null;
 
   const isActive = useCallback(
     (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href)),
@@ -61,34 +66,7 @@ export default function ClassicCategoryTabs() {
     setAnchor(null);
   }, []);
 
-  /* Which edges are still hiding tabs. */
-  const measureEdges = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setEdges({
-      start: el.scrollLeft > 4,
-      end: el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
-    });
-  }, []);
-
-  useEffect(() => {
-    measureEdges();
-    const el = scrollerRef.current;
-    el?.addEventListener("scroll", measureEdges, { passive: true });
-    window.addEventListener("resize", measureEdges);
-    return () => {
-      el?.removeEventListener("scroll", measureEdges);
-      window.removeEventListener("resize", measureEdges);
-    };
-  }, [measureEdges]);
-
-  /* Bring the current section into view. */
-  useEffect(() => {
-    const el = scrollerRef.current?.querySelector<HTMLElement>("[data-active='true']");
-    el?.scrollIntoView({ block: "nearest", inline: "center" });
-  }, [pathname]);
-
-  /* A dropdown anchored to the viewport has to close when the page moves. */
+  /* A viewport-anchored dropdown has to close when the page moves under it. */
   useEffect(() => {
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);
@@ -98,18 +76,28 @@ export default function ClassicCategoryTabs() {
     };
   }, [close]);
 
-  useEffect(() => close(), [pathname, close]);
+  useEffect(() => {
+    close();
+    setExpanded(false);
+  }, [pathname, close]);
+
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      close();
+      setExpanded(false);
+    };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [close]);
 
   /**
-   * The dropdown HOLDS while the pointer is on it.
+   * The dropdown holds while the pointer is on it.
    *
-   * Anything the pointer can land on inside the panel cancels the pending
-   * close, so hovering a sub-tab pauses the dismissal rather than racing it.
-   * The grace period is 340ms rather than 140: the panel is anchored below the
-   * bar with a gap to cross, the rows are dense, and a diagonal move toward a
-   * sub-tab in the far corner takes longer than a seventh of a second. Too
-   * short and the menu vanishes out from under the pointer on the way to the
-   * thing it is aiming at, which reads as the site fighting you.
+   * 340ms rather than a tenth of a second: the panel sits below the bar with a
+   * gap to cross, and a diagonal move toward an item in its far corner takes
+   * longer than that. Too short and the menu vanishes out from under a pointer
+   * that was heading straight for it, which reads as the site fighting you.
    */
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -119,7 +107,21 @@ export default function ClassicCategoryTabs() {
     cancelClose();
     closeTimer.current = setTimeout(close, 340);
   };
-  useEffect(() => cancelClose, []);
+  const cancelCollapse = () => {
+    if (expandTimer.current) clearTimeout(expandTimer.current);
+    expandTimer.current = null;
+  };
+  const scheduleCollapse = () => {
+    cancelCollapse();
+    expandTimer.current = setTimeout(() => setExpanded(false), 340);
+  };
+  useEffect(
+    () => () => {
+      cancelClose();
+      cancelCollapse();
+    },
+    [],
+  );
 
   const open = (tab: NavTab, el: HTMLElement) => {
     cancelClose();
@@ -129,72 +131,84 @@ export default function ClassicCategoryTabs() {
     setOpenId(tab.id);
   };
 
-  return (
-    <div className="relative border-b border-border bg-surface">
-      {/* Edge fades — pure decoration over a scroller, never hit-testable. */}
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-surface to-transparent transition-opacity duration-200 ${
-          edges.start ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-surface to-transparent transition-opacity duration-200 ${
-          edges.end ? "opacity-100" : "opacity-0"
-        }`}
-      />
+  const renderTab = (tab: NavTab) => {
+    const active = isActive(tab.href);
+    return (
+      <Link
+        key={tab.id}
+        href={tab.href}
+        data-active={active}
+        aria-current={active ? "page" : undefined}
+        onMouseEnter={(e) => open(tab, e.currentTarget)}
+        onFocus={(e) => open(tab, e.currentTarget)}
+        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:px-2"
+        style={{ color: active ? GOLD : GOLD_DIM }}
+      >
+        <span className="group-hover:!text-[var(--gold)]" style={{ ["--gold" as string]: GOLD }}>
+          {t(`tab.${tab.id}`, tab.label)}
+        </span>
+        {/* The current section is the only lit thing on the bar. */}
+        <span
+          aria-hidden
+          className={`absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
+            active ? "opacity-100" : "opacity-0 group-hover:opacity-50"
+          }`}
+          style={{ background: GOLD }}
+        />
+      </Link>
+    );
+  };
 
-      <nav aria-label="Sections" onMouseLeave={scheduleClose}>
-        {[TABS_ROW_ONE, TABS_ROW_TWO].map((row, ri) => (
-          <div
-            key={ri}
-            ref={ri === 0 ? scrollerRef : undefined}
-            style={{
-              ["--tab-cols" as string]: String(TAB_GRID_COLUMNS),
-              ["--tab-span" as string]: String(ri === 0 ? ROW_ONE_SPAN : ROW_TWO_SPAN),
-            }}
-            className={`classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-[repeat(var(--tab-cols),minmax(0,1fr))] lg:overflow-visible lg:px-6 ${
-              ri === 1 ? "border-t border-border/60" : ""
-            }`}
+  return (
+    <div className="relative" style={{ background: BAND }} onMouseLeave={scheduleClose}>
+      <nav aria-label="Sections">
+        {/* THE ELEVEN */}
+        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-11 lg:overflow-visible lg:px-6">
+          {TABS_VISIBLE.map(renderTab)}
+        </div>
+
+        {/* THE CHEVRON, centred under them. */}
+        <div
+          className="flex justify-center"
+          onMouseEnter={() => {
+            cancelCollapse();
+            setExpanded(true);
+          }}
+          onMouseLeave={scheduleCollapse}
+        >
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-controls="more-sections"
+            aria-label={expanded ? "Hide the other sections" : "Show the other sections"}
+            className="grid h-5 w-16 place-items-center rounded-b-lg transition-colors"
+            style={{ color: GOLD }}
           >
-            {row.map((tab) => {
-              const active = isActive(tab.href);
-              const accent = tabAccent(tab.id);
-              return (
-                <Link
-                  key={tab.id}
-                  href={tab.href}
-                  data-active={active}
-                  aria-current={active ? "page" : undefined}
-                  onMouseEnter={(e) => open(tab, e.currentTarget)}
-                  onFocus={(e) => open(tab, e.currentTarget)}
-                  style={{ ["--tab-accent" as string]: accent }}
-                  /* Below the breakpoint the row scrolls, so tabs keep their
-                     natural width. At lg and up they share the bar evenly and
-                     it spans the full page, which is the only arrangement that
-                     does not leave a stretch of empty rule after Contact. */
-                  className={`group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:col-[span_var(--tab-span)] lg:min-w-0 lg:px-1.5 ${
-                    active ? "font-medium" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <span style={active ? { color: accent } : undefined}>
-                    {t(`tab.${tab.id}`, tab.label)}
-                  </span>
-                  {/* The section's colour, quiet at rest and lit when the tab is
-                      current or under the pointer. */}
-                  <span
-                    aria-hidden
-                    className={`absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
-                      active ? "opacity-100" : "opacity-20 group-hover:opacity-70"
-                    }`}
-                    style={{ background: accent }}
-                  />
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              aria-hidden
+              className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            >
+              <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+        {/* THE REST */}
+        <div
+          id="more-sections"
+          hidden={!expanded}
+          onMouseEnter={cancelCollapse}
+          onMouseLeave={scheduleCollapse}
+          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:grid lg:grid-cols-8 lg:overflow-visible lg:px-6"
+          style={{ borderColor: "rgba(208,174,85,0.18)" }}
+        >
+          {TABS_COLLAPSED.map(renderTab)}
+        </div>
       </nav>
 
       {openTab && anchor && openTab.sub.length > 0 && (
@@ -238,64 +252,49 @@ function DropdownPanel({
   }
 
   return (
-    /* The outer element starts at the BAR, not at the panel, and the six
-       pixels of visual gap are its padding. That strip is invisible but
-       hoverable, so the pointer never leaves everything at once on its way
-       down — without it, crossing the gap fires the bar's mouseleave with
-       nothing yet entered, and the menu dismisses itself under a pointer that
-       was heading straight for it. */
+    /* The outer element starts at the BAR and the gap is its padding, so the
+       pointer never leaves everything at once on the way down. Without that
+       strip, crossing the gap fires the bar's mouseleave with nothing yet
+       entered and the menu dismisses itself under a pointer heading for it. */
     <div
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       style={{ left, top: anchor.top, width: WIDTH, paddingTop: 6 }}
       className="fixed z-50"
     >
-    <div
-      role="menu"
-      aria-label={tab.label}
-      className="max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-surface py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]"
-    >
-      {groups.map((group, gi) => (
-        <div key={group.name ?? `g${gi}`}>
-          {group.name && (
-            <p className="type-label px-3.5 pb-1 pt-2.5 text-subtle">{group.name}</p>
-          )}
-          {group.items.map((item) => (
-            <Link
-              key={`${item.href}-${item.label}`}
-              href={item.href}
-              role="menuitem"
-              onClick={onNavigate}
-              className="flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
-            >
-              <span className="truncate">{item.label}</span>
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 10 10"
-                fill="none"
-                className="shrink-0 text-subtle"
-                aria-hidden
+      <div
+        role="menu"
+        aria-label={tab.label}
+        className="max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-surface py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)]"
+      >
+        {groups.map((group, gi) => (
+          <div key={group.name ?? `g${gi}`}>
+            {group.name && (
+              <p className="type-label px-3.5 pb-1 pt-2.5 text-subtle">{group.name}</p>
+            )}
+            {group.items.map((item) => (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                role="menuitem"
+                onClick={onNavigate}
+                className="flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
               >
-                <path
-                  d="M3 2l3 3-3 3"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-          ))}
-        </div>
-      ))}
+                <span className="truncate">{item.label}</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0 text-subtle" aria-hidden>
+                  <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            ))}
+          </div>
+        ))}
 
-      {!tab.live && (
-        <p className="mt-1 border-t border-border px-3.5 pb-1 pt-2 text-[10.5px] text-subtle">
-          This section is still being written.
-        </p>
-      )}
-    </div>
+        {!tab.live && (
+          <p className="mt-1 border-t border-border px-3.5 pb-1 pt-2 text-[10.5px] text-subtle">
+            This section is still being written.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

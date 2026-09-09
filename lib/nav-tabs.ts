@@ -522,6 +522,18 @@ const byId = (id: string) => {
 export const TABS_ROW_ONE = ORDER_ROW_ONE.map(byId);
 export const TABS_ROW_TWO = ORDER_ROW_TWO.map(byId);
 
+/**
+ * Eleven tabs are on show; the other sixteen live behind the chevron.
+ *
+ * The client's instruction, and it is the right call for a different reason
+ * than it might look: twenty-seven items in a permanent two-row block is a wall
+ * that a reader scans instead of reads. Eleven is about as many as the eye
+ * takes in as a row rather than as a list, and everything else is one click
+ * away rather than hidden — which is the distinction that matters.
+ */
+export const TABS_VISIBLE = [...TABS_ROW_ONE, ...TABS_ROW_TWO].slice(0, 11);
+export const TABS_COLLAPSED = [...TABS_ROW_ONE, ...TABS_ROW_TWO].slice(11);
+
 /** The number of grid columns each row's cells span. 15 x 4 = 12 x 5 = 60. */
 export const TAB_GRID_COLUMNS = 60;
 export const ROW_ONE_SPAN = TAB_GRID_COLUMNS / ORDER_ROW_ONE.length;
