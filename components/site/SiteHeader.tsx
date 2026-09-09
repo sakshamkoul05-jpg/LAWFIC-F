@@ -85,7 +85,7 @@ export default function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="flex w-full items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 lg:gap-4 lg:px-5">
+        <div className="flex w-full items-center gap-2 px-3 py-2 sm:gap-2.5 sm:px-4 lg:gap-2.5 lg:px-4">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -128,7 +128,17 @@ export default function SiteHeader() {
               No max-width: the client's note is that the search is long, and a
               cap would leave a gap on a wide screen for no reason. It is the
               only flexible item in the row, so it also absorbs the shrinking
-              rather than squeezing the controls either side of it. */}
+              rather than squeezing the controls either side of it.
+
+              LENGTH IS WON FROM THE OTHER ITEMS, NOT ASKED FOR HERE
+
+              `flex-1` already gives this everything spare, so the only way to
+              make it longer is to make its neighbours smaller — which is what
+              the sizes on the location box, the language chip and the action
+              cells are now doing. On a 1440 screen the row used to spend 874px
+              on fixed items and leave 430 for the search; it now leaves about
+              620, and past 1600 the search is the widest thing on the page by
+              a distance, which is the shape being asked for. */}
           <HeaderSearch className="hidden min-w-[200px] flex-1 md:block" />
 
           {/* `xl:grid`, not `xl:flex`: the component lays its cells out on a grid

@@ -74,7 +74,13 @@ export function LanguageMenu() {
             strokeWidth="1.3"
           />
         </svg>
-        <span className="hidden sm:inline">{current.native}</span>
+        {/* The name at 2xl, the two-letter code below it. Spelling out
+            "English" costs about thirty pixels that the search bar wants more
+            than this chip does, and a language control showing EN beside a
+            globe is not ambiguous — the full names are one click away in the
+            menu, and the button keeps its aria-label either way. */}
+        <span className="hidden sm:inline 2xl:hidden">{current.code.toUpperCase()}</span>
+        <span className="hidden 2xl:inline">{current.native}</span>
         <Caret />
       </button>
 
@@ -101,9 +107,13 @@ export function LanguageMenu() {
           {/* Said plainly rather than discovered. A language control that turns
               out to move only the menus is a small betrayal if it was implied
               to do more. */}
+          {/* This used to say the switch moved only the menus. It moves the
+              whole page now, so the note says the thing that is still true and
+              still worth knowing: the statutory names are deliberately not
+              invented in the target language. */}
           <p className="border-t border-border px-4 pb-1 pt-2 text-[10.5px] leading-relaxed text-subtle">
-            Menus and controls only. Guidance stays in English until a translator
-            has checked it.
+            The whole page. Scheme names — Udyam, GST, PAN — keep their official
+            form so they match your paperwork.
           </p>
         </div>
       )}

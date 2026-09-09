@@ -96,14 +96,14 @@ export default function HeaderActions({ className = "" }: { className?: string }
 
   return (
     <div
-      className={`shrink-0 grid-flow-col auto-cols-[58px] items-stretch ${className}`}
+      className={`shrink-0 grid-flow-col auto-cols-[34px] items-stretch 2xl:auto-cols-[58px] ${className}`}
     >
       {ACTIONS.slice(0, 2).map((a) => (
         <ActionLink key={a.label} action={a} />
       ))}
 
       {/* The theme switch, in the same cell as everything else. */}
-      <Cell>
+      <Cell title={tx("Theme")}>
         <span className="grid h-[22px] place-items-center [&_button]:!size-[22px] [&_button]:!rounded-md [&_button]:!border-0 [&_button]:!bg-transparent">
           <ThemeToggle />
         </span>
@@ -117,15 +117,39 @@ export default function HeaderActions({ className = "" }: { className?: string }
   );
 }
 
-/* 58px, because "Suggestion" is the longest label and at anything narrower it
-   truncates to "Suggest…" — a row of equal cells with one word cut off reads
-   as a mistake rather than as a constraint. The column width is set by the
-   longest word, not by an average. */
+/* THE COLUMN IS SET BY THE LONGEST LABEL, AND THE LABEL BY THE SEARCH BAR
+
+   58px was the width at which "Suggestion" stopped truncating to "Suggest…",
+   and a row of equal cells with one word cut off reads as a mistake rather
+   than as a constraint. But seven cells at 58 is 406px — as much as the search
+   bar itself had — and the search is the control this page is actually
+   navigated with.
+
+   The floor was measured rather than guessed: "Suggestion" sets it at 47px of
+   text plus 4px of padding, so 54 is the narrowest a labelled cell goes and 48
+   truncated it again. Seven of those is 378px — still the largest single item
+   on the row after the search, and the search only had 505.
+
+   WHICH IS WHY THE LABEL WAITS FOR ROOM
+
+   The words are wanted and they are kept, but between 1280 and 1535 the row
+   cannot pay for them and the search bar at the same time. So below 2xl each
+   cell is the icon alone at 34px, and the label comes back at 2xl where there
+   is width for both. That is 238px instead of 378, and the 140 goes straight
+   into the search.
+
+   Nothing is lost when the text is hidden. Every cell keeps the same word as
+   its accessible name and its tooltip, so a screen reader reads "Suggestion"
+   at every width and a pointer reveals it on hover — the label is invisible,
+   not absent. */
 
 /** The shell every action shares: fixed column, icon box, one label line. */
-function Cell({ children }: { children: React.ReactNode }) {
+function Cell({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
-    <span className="flex h-full flex-col items-center justify-start gap-[5px] rounded-lg px-0.5 py-1.5 transition-colors hover:bg-surface-2">
+    <span
+      title={title}
+      className="flex h-full flex-col items-center justify-start gap-[5px] rounded-lg px-0.5 py-1.5 transition-colors hover:bg-surface-2"
+    >
       {children}
     </span>
   );
@@ -133,16 +157,23 @@ function Cell({ children }: { children: React.ReactNode }) {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span className="w-full truncate text-center text-[9.5px] leading-none">{children}</span>
+    <span className="hidden w-full truncate text-center leading-none 2xl:block 2xl:text-[9.5px]">
+      {children}
+    </span>
   );
 }
 
 function ActionLink({ action }: { action: Action }) {
   const { tx } = useLocale();
+  const label = tx(action.label);
 
   return (
     <Link
       href={action.href}
+      /* The name and the tooltip carry the word at every width, so hiding the
+         printed label below 2xl costs neither a screen reader nor a pointer. */
+      aria-label={label}
+      title={label}
       className="flex h-full flex-col items-center justify-start gap-[5px] rounded-lg px-0.5 py-1.5 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
     >
       <span className="grid h-[22px] place-items-center">
@@ -160,7 +191,7 @@ function ActionLink({ action }: { action: Action }) {
           {action.icon}
         </svg>
       </span>
-      <Label>{tx(action.label)}</Label>
+      <Label>{label}</Label>
     </Link>
   );
 }

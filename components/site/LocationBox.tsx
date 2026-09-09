@@ -101,7 +101,12 @@ export default function LocationBox({ className = "" }: { className?: string }) 
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="flex w-[168px] flex-col items-start gap-0.5 rounded-xl border border-border px-2.5 py-1.5 text-left transition-colors hover:border-border-3"
+        /* 140, not the 168 it was and not the 124 it briefly became. The
+             search bar wanted the difference, but the second line is a marquee
+             and a marquee needs enough width to read as a sentence going past
+             rather than as three words in a slot — at 124 it showed about half
+             a phrase at any instant. */
+        className="flex w-[140px] flex-col items-start gap-0.5 rounded-xl border border-border px-2 py-1.5 text-left transition-colors hover:border-border-3 2xl:w-[160px]"
       >
         <span className="flex w-full items-center gap-1.5">
           <PinIcon />
