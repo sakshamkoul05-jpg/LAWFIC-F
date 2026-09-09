@@ -12,22 +12,22 @@ import {
 } from "@/lib/nav-tabs";
 
 /**
- * The section bar: eleven tabs on a black band in gold, and the rest behind a
- * chevron.
+ * The section bar: the blueprint's first row on a black band in gold, and its
+ * second row behind a chevron.
  *
  * WHAT CHANGED AND WHY
  *
- * It used to be all twenty-seven, on two rows, each tab carrying its own
- * accent colour. The client's instruction is black ground, gold text, eleven
- * showing. That is not only a taste call — twenty-seven items in a permanent
- * block is a wall a reader scans rather than reads, and twenty-seven different
- * colours is a toy shelf. One ground and one ink makes the row read as a set,
+ * It used to be all twenty-seven at once, each tab carrying its own accent
+ * colour. The client's instruction is black ground, gold text, and the sheet's
+ * fifteen showing with its twelve folded away. That is not only a taste call:
+ * twenty-seven items in a permanent block is a wall a reader scans rather than
+ * reads, and twenty-seven different colours is a toy shelf. One ground and one ink makes the row read as a set,
  * and the current section is then the only thing on the bar with a bright
  * mark on it, which is the whole job of a nav bar.
  *
  * THE CHEVRON
  *
- * Centred under the eleven, and it opens on hover as well as on click: a
+ * Centred under the first row, and it opens on hover as well as on click: a
  * pointer user should not have to click to look, and a keyboard or touch user
  * cannot hover, so it has to answer both. It closes on a second click, on
  * Escape, on leaving the bar, and on navigating — four ways out, because a
@@ -141,7 +141,7 @@ export default function ClassicCategoryTabs() {
         aria-current={active ? "page" : undefined}
         onMouseEnter={(e) => open(tab, e.currentTarget)}
         onFocus={(e) => open(tab, e.currentTarget)}
-        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12.5px] transition-colors lg:min-w-0 lg:px-2"
+        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12px] transition-colors lg:min-w-0 lg:px-1"
         style={{ color: active ? GOLD : GOLD_DIM }}
       >
         <span className="group-hover:!text-[var(--gold)]" style={{ ["--gold" as string]: GOLD }}>
@@ -162,8 +162,8 @@ export default function ClassicCategoryTabs() {
   return (
     <div className="relative" style={{ background: BAND }} onMouseLeave={scheduleClose}>
       <nav aria-label="Sections">
-        {/* THE ELEVEN */}
-        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-11 lg:overflow-visible lg:px-6">
+        {/* THE FIRST ROW — the sheet's Tab 1 to Tab 15. */}
+        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-[repeat(15,minmax(0,1fr))] lg:overflow-visible lg:px-6">
           {TABS_VISIBLE.map(renderTab)}
         </div>
 
@@ -182,7 +182,7 @@ export default function ClassicCategoryTabs() {
             aria-expanded={expanded}
             aria-controls="more-sections"
             aria-label={expanded ? "Hide the other sections" : "Show the other sections"}
-            className="grid h-5 w-16 place-items-center rounded-b-lg transition-colors"
+            className="grid h-5 w-20 place-items-center rounded-b-lg transition-colors"
             style={{ color: GOLD }}
           >
             <svg
@@ -198,13 +198,13 @@ export default function ClassicCategoryTabs() {
           </button>
         </div>
 
-        {/* THE REST */}
+        {/* THE SECOND ROW — Tab 16 to Tab 27. */}
         <div
           id="more-sections"
           hidden={!expanded}
           onMouseEnter={cancelCollapse}
           onMouseLeave={scheduleCollapse}
-          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:grid lg:grid-cols-8 lg:overflow-visible lg:px-6"
+          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:grid lg:grid-cols-[repeat(12,minmax(0,1fr))] lg:overflow-visible lg:px-6"
           style={{ borderColor: "rgba(208,174,85,0.18)" }}
         >
           {TABS_COLLAPSED.map(renderTab)}

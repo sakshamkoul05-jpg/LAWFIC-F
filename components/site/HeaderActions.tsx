@@ -15,8 +15,15 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
  * the one they want. The label costs one line of small type and removes the
  * guessing, which on a row this wide is a trade worth making every time.
  *
- * The theme control is the odd one out: it is a switch rather than a
- * destination, so it keeps its own component and only borrows the layout.
+ * EVERY CELL IS THE SAME CELL
+ *
+ * One fixed width, one icon box, one label line, at one type size — and the
+ * theme switch is drawn INSIDE that shell rather than dropped in beside it.
+ * It was a different component with its own padding and its own icon size, so
+ * it sat a few pixels off every neighbour and pushed the two after it out of
+ * step; seven items that are nearly aligned look worse than seven that are
+ * obviously not, because the eye keeps trying to line them up. A grid with
+ * equal columns removes the question.
  */
 
 type Action = {
@@ -85,16 +92,20 @@ const ACTIONS: Action[] = [
 
 export default function HeaderActions({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex shrink-0 items-stretch ${className}`}>
+    <div
+      className={`shrink-0 grid-flow-col auto-cols-[58px] items-stretch ${className}`}
+    >
       {ACTIONS.slice(0, 2).map((a) => (
         <ActionLink key={a.label} action={a} />
       ))}
 
-      {/* The theme switch sits where the blueprint puts it, third. */}
-      <span className="flex min-w-[46px] flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1 transition-colors hover:bg-surface-2">
-        <ThemeToggle />
-        <span className="text-[9.5px] leading-none text-muted-foreground">Theme</span>
-      </span>
+      {/* The theme switch, in the same cell as everything else. */}
+      <Cell>
+        <span className="grid h-[22px] place-items-center [&_button]:!size-[22px] [&_button]:!rounded-md [&_button]:!border-0 [&_button]:!bg-transparent">
+          <ThemeToggle />
+        </span>
+        <Label>Theme</Label>
+      </Cell>
 
       {ACTIONS.slice(2).map((a) => (
         <ActionLink key={a.label} action={a} />
@@ -103,26 +114,48 @@ export default function HeaderActions({ className = "" }: { className?: string }
   );
 }
 
+/* 58px, because "Suggestion" is the longest label and at anything narrower it
+   truncates to "Suggest…" — a row of equal cells with one word cut off reads
+   as a mistake rather than as a constraint. The column width is set by the
+   longest word, not by an average. */
+
+/** The shell every action shares: fixed column, icon box, one label line. */
+function Cell({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex h-full flex-col items-center justify-start gap-[5px] rounded-lg px-0.5 py-1.5 transition-colors hover:bg-surface-2">
+      {children}
+    </span>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="w-full truncate text-center text-[9.5px] leading-none">{children}</span>
+  );
+}
+
 function ActionLink({ action }: { action: Action }) {
   return (
     <Link
       href={action.href}
-      className="flex min-w-[46px] flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+      className="flex h-full flex-col items-center justify-start gap-[5px] rounded-lg px-0.5 py-1.5 text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
     >
-      <svg
-        width="19"
-        height="19"
-        viewBox="0 0 20 20"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        {action.icon}
-      </svg>
-      <span className="whitespace-nowrap text-[9.5px] leading-none">{action.label}</span>
+      <span className="grid h-[22px] place-items-center">
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          {action.icon}
+        </svg>
+      </span>
+      <Label>{action.label}</Label>
     </Link>
   );
 }

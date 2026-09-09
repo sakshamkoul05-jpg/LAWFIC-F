@@ -88,10 +88,11 @@ export default function LocationBox({ className = "" }: { className?: string }) 
   const region = getRegion(code);
   const cities = citiesFor(code);
 
-  /* The answer, in the sheet's own order: city first, then state. */
-  const chosen = region
-    ? [city, region.name].filter(Boolean).join(", ")
-    : t("nav.allIndia", "All India");
+  /* The answer, in the sheet's own order: city first, then state.
+     Empty when nothing has been chosen — an "All India" placeholder is a line
+     of text that says nothing, and the row below the box should either carry a
+     fact or carry nothing at all. */
+  const chosen = region ? [city, region.name].filter(Boolean).join(", ") : "";
 
   return (
     <div ref={box} className={`relative shrink-0 ${className}`}>
@@ -126,10 +127,12 @@ export default function LocationBox({ className = "" }: { className?: string }) 
         </span>
       </button>
 
-      {/* The answer, below the box. */}
-      <p className="mt-0.5 truncate px-2.5 text-[11.5px] font-medium text-foreground" title={chosen}>
-        {chosen}
-      </p>
+      {/* The answer, below the box — and nothing at all until there is one. */}
+      {chosen && (
+        <p className="mt-0.5 truncate px-2.5 text-[11.5px] font-medium text-foreground" title={chosen}>
+          {chosen}
+        </p>
+      )}
 
       {open && (
         <div

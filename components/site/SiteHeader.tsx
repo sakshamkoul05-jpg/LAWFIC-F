@@ -93,8 +93,23 @@ export default function SiteHeader() {
             aria-expanded={drawer}
             className="grid size-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
           >
+            {/* FOUR LINES, FOUR COLOURS.
+                The client's note is about the ICON, not the menu behind it: the
+                hamburger itself carries the four bars in different colours so
+                the way into everything is the one control on the bar that is
+                not monochrome. It is the only colour left in the chrome, which
+                is what makes it work — a strip that used to carry an accent per
+                section had twenty-seven, and at that count colour stops being a
+                signal and becomes wallpaper.
+
+                Colour alone never carries meaning here: this is decoration on a
+                control that already has a label, so it costs a viewer who
+                cannot separate the hues precisely nothing. */}
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-              <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
             </svg>
           </button>
 
@@ -116,13 +131,21 @@ export default function SiteHeader() {
               rather than squeezing the controls either side of it. */}
           <HeaderSearch className="hidden min-w-[200px] flex-1 md:block" />
 
-          <HeaderActions className="hidden xl:flex" />
+          {/* `xl:grid`, not `xl:flex`: the component lays its cells out on a grid
+              with equal columns, and a `flex` here silently overrode that and
+              let every cell collapse to its own content — which is exactly the
+              ragged row this was meant to fix. */}
+          <HeaderActions className="hidden xl:grid" />
 
-          <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-0">
+          {/* Compact, and no longer pinned to the far edge with `ml-auto`.
+              Signed out this used to be a "Sign in" pill a hundred and forty
+              pixels wide, held against the right rail; the search wanted that
+              width more than a second call to action did. */}
+          <div className="ml-auto flex shrink-0 items-center xl:ml-0">
             {mounted ? (
               <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
-              <span className="h-11 w-20" aria-hidden />
+              <span className="h-11 w-14" aria-hidden />
             )}
           </div>
         </div>
