@@ -202,12 +202,19 @@ export default function ClassicPromotionalBanners() {
                   background: `linear-gradient(115deg, ${tone.from} 0%, ${tone.to} 72%)`,
                 }}
               >
-                {/* The photograph, then a scrim over it.
-                    A headline set straight on a photo is a coin toss — it is
-                    legible over the dark parts and vanishes over the bright
-                    ones. The gradient is opaque where the text sits and clears
-                    towards the right, so the picture is visible, the words are
-                    always readable, and neither is left to chance. */}
+                {/* The photograph, and a gradient over the LEFT COLUMN ONLY.
+                    This used to be a full-frame scrim — around ninety per cent
+                    opaque at a third of the way across and still forty per cent
+                    at the far edge — which made the picture a texture rather
+                    than a photograph. That is the thing the client is objecting
+                    to, and they are right: if the image is worth choosing it is
+                    worth seeing.
+                    What replaces it is a shadow, not a cover. It is dense where
+                    the words are, thins fast, and is gone by two thirds across,
+                    so the right half of every banner is the photograph
+                    untouched. The text also carries its own shadow, which is
+                    the backstop for the frame that happens to be pale exactly
+                    where the headline sits. */}
                 <Image
                   src={banner.photo}
                   alt={banner.photoAlt}
@@ -220,7 +227,7 @@ export default function ClassicPromotionalBanners() {
                   aria-hidden
                   className="absolute inset-0"
                   style={{
-                    background: `linear-gradient(100deg, ${tone.to} 0%, ${tone.to}F0 34%, ${tone.from}B8 62%, ${tone.from}66 100%)`,
+                    background: `linear-gradient(96deg, ${tone.to}F2 0%, ${tone.to}D6 26%, ${tone.from}73 48%, transparent 68%)`,
                   }}
                 />
 
@@ -234,21 +241,24 @@ export default function ClassicPromotionalBanners() {
                 <div className="relative mx-auto flex min-h-[300px] max-w-6xl flex-col justify-center gap-5 px-6 py-14 sm:min-h-[360px] sm:px-10 sm:py-20">
                   <p
                     className="type-label"
-                    style={{ color: tone.accent }}
+                    style={{ color: tone.accent, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
                   >
                     {banner.eyebrow}
                   </p>
 
                   <h2
                     className="max-w-[19ch] text-[clamp(1.9rem,4.4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-0.035em]"
-                    style={{ color: "#F5F1EA" }}
+                    style={{ color: "#F5F1EA", textShadow: "0 2px 10px rgba(0,0,0,0.45)" }}
                   >
                     {banner.title}
                   </h2>
 
                   <p
                     className="max-w-[52ch] text-[15px] leading-relaxed sm:text-[16px]"
-                    style={{ color: "rgba(245,241,234,0.68)" }}
+                    style={{
+                      color: "rgba(245,241,234,0.82)",
+                      textShadow: "0 1px 6px rgba(0,0,0,0.5)",
+                    }}
                   >
                     {banner.label}
                   </p>

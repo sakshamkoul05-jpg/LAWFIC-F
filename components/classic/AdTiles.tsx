@@ -6,9 +6,32 @@ import { useProfile } from "@/components/profile/ProfileProvider";
 import { matchesTrack } from "@/lib/profile";
 
 /**
- * The photo tile grid, in the shape a large retail homepage uses: a picture,
- * a heading, a short line, one link out. Several at a time rather than one
- * banner, because a grid is scanned and a carousel is waited on.
+ * The photo tile grid, in the shape a large retail homepage uses — the client's
+ * reference is hairoriginals.com, where the words sit ON the picture and the
+ * picture is left alone.
+ *
+ * TEXT ON THE PHOTO, AND WHAT THAT ACTUALLY COSTS
+ *
+ * These used to be a photo with a card of text underneath it. Moving the words
+ * onto the image is what was asked and it does look better, but it trades a
+ * guarantee for a gamble: a headline on a photograph is legible over the dark
+ * parts and gone over the bright ones, and these are photographs of daylight
+ * offices and paperwork. Covering the whole frame to fix that is the scrim the
+ * client is objecting to, so the answer is neither of the two obvious ones.
+ *
+ * What is here instead:
+ *
+ *   - the text is anchored to the BOTTOM of the frame, always, so there is one
+ *     region to protect rather than a different one per photograph;
+ *   - the gradient over it is short. It is opaque under the words and gone by
+ *     just under halfway up, so the top half of every picture is untouched —
+ *     which is the difference between a shadow and a scrim;
+ *   - a text-shadow underneath as the backstop, for the photo that turns out
+ *     to be pale right where the headline lands. It costs nothing and it is
+ *     the thing that stops a tile ever being unreadable.
+ *
+ * Several at a time rather than one banner, because a grid is scanned and a
+ * carousel is waited on.
  *
  * The tiles reorder for a signed-in customer. Someone preparing for an exam
  * sees Education first; a business owner sees registrations first. Nothing is
@@ -30,6 +53,8 @@ type Tile = {
   href: string;
   photo: string;
   alt: string;
+  /** The words on the button. */
+  cta: string;
   /** Which kind of reader this tile is for, used only for ordering. */
   audience: "business" | "student" | "everyone";
 };
@@ -43,6 +68,7 @@ const TILES: Tile[] = [
     href: "/services/msme-udyam",
     photo: "/banners/msme.jpg",
     alt: "The glass display counter of a small shop",
+    cta: "Start now",
     audience: "business",
   },
   {
@@ -53,6 +79,7 @@ const TILES: Tile[] = [
     href: "/services/gst",
     photo: "/banners/gst.jpg",
     alt: "A desk with a calculator, reading glasses and printed statements",
+    cta: "File a return",
     audience: "business",
   },
   {
@@ -63,6 +90,7 @@ const TILES: Tile[] = [
     href: "/document/domicile-certificate",
     photo: "/banners/education.jpg",
     alt: "A stack of books on a wooden table",
+    cta: "See courses",
     audience: "student",
   },
   {
@@ -73,6 +101,7 @@ const TILES: Tile[] = [
     href: "/jobs",
     photo: "/banners/jobs.jpg",
     alt: "Rows of empty desks in an open-plan workplace",
+    cta: "Browse jobs",
     audience: "student",
   },
   {
@@ -83,6 +112,7 @@ const TILES: Tile[] = [
     href: "/document/fssai",
     photo: "/banners/food.jpg",
     alt: "A stainless steel commercial kitchen",
+    cta: "Get branded",
     audience: "business",
   },
   {
@@ -93,6 +123,7 @@ const TILES: Tile[] = [
     href: "/document/rent-agreement",
     photo: "/banners/legal.jpg",
     alt: "Ring binders lined up on an office shelf",
+    cta: "Explore",
     audience: "everyone",
   },
 ];
@@ -134,29 +165,63 @@ export default function AdTiles() {
           <Link
             key={t.id}
             href={t.href}
-            className="group overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-primary/50"
+            className="group relative block aspect-[4/5] overflow-hidden rounded-xl sm:aspect-[5/6]"
           >
-            <div className="relative aspect-[16/10] overflow-hidden">
-              <Image
-                src={t.photo}
-                alt={t.alt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                loading={i < 3 ? "eager" : "lazy"}
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
-              />
-              <p className="type-label absolute left-4 top-4 text-white/85">{t.eyebrow}</p>
-            </div>
+            <Image
+              src={t.photo}
+              alt={t.alt}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              loading={i < 3 ? "eager" : "lazy"}
+              className="object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
+            />
 
-            <div className="p-4">
-              <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+            {/* Short, and only under the words. Opaque at the foot, gone by
+                46% — the top half of the photograph is never touched. */}
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(10,9,7,0.88) 0%, rgba(10,9,7,0.62) 22%, rgba(10,9,7,0.16) 38%, transparent 46%)",
+              }}
+            />
+
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+              <p
+                className="type-label text-white/80"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}
+              >
+                {t.eyebrow}
+              </p>
+              <h3
+                className="mt-1.5 text-[19px] font-semibold leading-[1.15] tracking-[-0.02em] text-white sm:text-[21px]"
+                style={{ textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
+              >
                 {t.title}
               </h3>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{t.line}</p>
+              <p
+                className="mt-1.5 max-w-[34ch] text-[12.5px] leading-relaxed text-white/85"
+                style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}
+              >
+                {t.line}
+              </p>
+
+              {/* A solid button, as the reference has it. On a photograph a
+                  filled shape is the only control that reads instantly —
+                  an outline or a bare word takes on whatever is behind it. */}
+              <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-[#12100C] transition-colors group-hover:bg-primary group-hover:text-background">
+                {t.cta}
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path
+                    d="M2 6h7M6 3l3 3-3 3"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </div>
           </Link>
         ))}

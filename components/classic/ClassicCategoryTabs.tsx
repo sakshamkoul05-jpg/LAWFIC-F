@@ -52,6 +52,8 @@ export default function ClassicCategoryTabs() {
   const [anchor, setAnchor] = useState<{ left: number; top: number } | null>(null);
   const [expanded, setExpanded] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* The tab the panel hangs off, kept so it can be re-measured on scroll. */
+  const anchorEl = useRef<HTMLElement | null>(null);
   const expandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openTab = openId ? classicTabs.find((x) => x.id === openId) : null;
@@ -66,15 +68,52 @@ export default function ClassicCategoryTabs() {
     setAnchor(null);
   }, []);
 
-  /* A viewport-anchored dropdown has to close when the page moves under it. */
+  /**
+   * THE PANEL FOLLOWS THE BAR. IT DOES NOT DISMISS ITSELF.
+   *
+   * This used to be `addEventListener("scroll", close, true)`, and the `true`
+   * is the whole bug: a capture-phase scroll listener fires for a scroll in ANY
+   * element, not just the page. The panel's own list is scrollable — Document
+   * alone carries dozens of services — so scrolling it to read it closed it.
+   * The menu vanished out from under the pointer at exactly the moment someone
+   * was using it, which is the report.
+   *
+   * Closing was the wrong response to scrolling anyway. The panel is anchored
+   * to a tab, that tab is a real element, and the honest answer to the page
+   * moving is to move with it. It only gives up when the tab itself has left
+   * the screen, at which point there is genuinely nothing to point at.
+   *
+   * Positions are recomputed on a frame and written back only when they have
+   * actually changed, so a scroll inside the list — where the tab has not
+   * moved at all — costs one measurement and no re-render.
+   */
   useEffect(() => {
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
+    if (!openId) return;
+    let frame = 0;
+
+    const reposition = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const el = anchorEl.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return close();
+        setAnchor((prev) =>
+          prev && prev.left === r.left && prev.top === r.bottom
+            ? prev
+            : { left: r.left, top: r.bottom },
+        );
+      });
     };
-  }, [close]);
+
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [openId, close]);
 
   useEffect(() => {
     close();
@@ -126,6 +165,7 @@ export default function ClassicCategoryTabs() {
   const open = (tab: NavTab, el: HTMLElement) => {
     cancelClose();
     if (tab.sub.length === 0) return close();
+    anchorEl.current = el;
     const r = el.getBoundingClientRect();
     setAnchor({ left: r.left, top: r.bottom });
     setOpenId(tab.id);
