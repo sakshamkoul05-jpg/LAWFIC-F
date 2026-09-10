@@ -84,8 +84,19 @@ export default function ProfileMenu({
         aria-label={user ? "Your account" : "Account and sign in"}
         className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
       >
-        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
-          <path d="M2.5 5h13M2.5 9h13M2.5 13h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        {/* TWO LINES, BOTH COLOURED — the small sibling of the four-line
+            icon on the far left. Two rather than four because this one opens
+            an account list and not the whole site, and the count is the only
+            thing distinguishing them at a glance; the colours say they are the
+            same kind of control. The two hues are taken from the four on the
+            left rather than invented, so the pair reads as one family.
+
+            Colour carries no meaning here — the button has a label and a
+            tooltip either way — so it costs nothing to a viewer who cannot
+            separate the hues. */}
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden>
+          <path d="M3 6.5h12" stroke="#C58F6B" strokeWidth="2" strokeLinecap="round" />
+          <path d="M3 11.5h12" stroke="#7FA8A0" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>
 

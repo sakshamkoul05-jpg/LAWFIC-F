@@ -198,40 +198,88 @@ export default function ClassicPromotionalBanners() {
               aria-hidden={i !== index}
               className="w-full shrink-0 snap-center"
             >
+              {/* A BLOCK HAS TO CARRY THE COLOUR THE PHOTOGRAPH USED TO.
+
+                  The tones were mixed to sit UNDER a picture, so `from` is a
+                  very dark brown or green and the panel is nearly black by
+                  itself. That was right when an image supplied all the light,
+                  and wrong the moment the image went away: eleven of them in a
+                  row read as eleven empty dark rectangles.
+
+                  So a slide with no photograph is lit from its own accent —
+                  the leading corner is mixed a third of the way towards it,
+                  which lifts the hue without leaving the family, and it falls
+                  back to the original dark by the far edge so the type still
+                  has something to sit on. A slide WITH a photograph keeps the
+                  old, deliberately dark mix. */}
               <div
                 className="relative overflow-hidden"
                 style={{
-                  background: `linear-gradient(115deg, ${tone.from} 0%, ${tone.to} 72%)`,
+                  background: banner.photo
+                    ? `linear-gradient(115deg, ${tone.from} 0%, ${tone.to} 72%)`
+                    : `linear-gradient(115deg, color-mix(in oklab, ${tone.from} 66%, ${tone.accent}) 0%, ${tone.from} 46%, ${tone.to} 100%)`,
                 }}
               >
-                {/* The photograph, and a gradient over the LEFT COLUMN ONLY.
-                    This used to be a full-frame scrim — around ninety per cent
-                    opaque at a third of the way across and still forty per cent
-                    at the far edge — which made the picture a texture rather
-                    than a photograph. That is the thing the client is objecting
-                    to, and they are right: if the image is worth choosing it is
-                    worth seeing.
-                    What replaces it is a shadow, not a cover. It is dense where
-                    the words are, thins fast, and is gone by two thirds across,
-                    so the right half of every banner is the photograph
-                    untouched. The text also carries its own shadow, which is
-                    the backstop for the frame that happens to be pale exactly
-                    where the headline sits. */}
-                <Image
-                  src={banner.photo}
-                  alt={tx(banner.photoAlt)}
-                  fill
-                  priority={i === 0}
-                  sizes="100vw"
-                  className="object-cover"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{
-                    background: `linear-gradient(96deg, ${tone.to}F2 0%, ${tone.to}D6 26%, ${tone.from}73 48%, transparent 68%)`,
-                  }}
-                />
+                {/* A PHOTOGRAPH IF THERE IS ONE, THE COLOUR BLOCK IF NOT.
+
+                    The slides are colour blocks at the moment by request, with
+                    photographs to be dropped in later. So the picture and the
+                    gradient that goes with it render only when `photo` is set,
+                    and adding one back is a single field on the banner — no
+                    change here.
+
+                    The gradient covers the LEFT COLUMN ONLY, not the frame.
+                    It used to be a full-frame scrim, around ninety per cent
+                    opaque a third of the way across and still forty at the far
+                    edge, which made the picture a texture rather than a
+                    photograph. What replaces it is a shadow: dense where the
+                    words are, thinning fast, gone by two thirds across. The
+                    text carries its own shadow as the backstop for a frame that
+                    happens to be pale exactly where the headline sits. */}
+                {banner.photo && (
+                  <>
+                    <Image
+                      src={banner.photo}
+                      alt={banner.photoAlt ? tx(banner.photoAlt) : ""}
+                      fill
+                      priority={i === 0}
+                      sizes="100vw"
+                      className="object-cover"
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(96deg, ${tone.to}F2 0%, ${tone.to}D6 26%, ${tone.from}73 48%, transparent 68%)`,
+                      }}
+                    />
+                  </>
+                )}
+
+                {/* What keeps a bare block from reading as an empty div: a
+                    band of the tone's own accent down the leading edge, and a
+                    very faint diagonal ruling across the right half where the
+                    photograph will go. Both are built from the slide's colours,
+                    so eleven blocks are eleven different panels rather than
+                    eleven rectangles of slightly different brown. */}
+                {!banner.photo && (
+                  <>
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 left-0 w-[3px]"
+                      style={{ background: tone.accent, opacity: 0.85 }}
+                    />
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-y-0 right-0 w-1/2"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(115deg, ${tone.accent}0F 0px, ${tone.accent}0F 1px, transparent 1px, transparent 13px)`,
+                        maskImage: "linear-gradient(to right, transparent, #000 60%)",
+                        WebkitMaskImage: "linear-gradient(to right, transparent, #000 60%)",
+                      }}
+                    />
+                  </>
+                )}
 
                 {/* A single soft light source, keyed to the slide's accent. */}
                 <div

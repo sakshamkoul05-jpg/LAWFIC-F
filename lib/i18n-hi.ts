@@ -499,4 +499,7 @@ export const hiPhrases: Record<string, string> = {
   All: "सभी",
   Service: "सेवा",
   Section: "अनुभाग",
+  /* ── Two more on the action row ────────────────────────── */
+  Wishlist: "इच्छा-सूची",
+  Favourite: "पसंदीदा",
 };

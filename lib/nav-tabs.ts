@@ -45,7 +45,7 @@ export const classicTabs: NavTab[] = [
   },
   {
     id: "about",
-    label: "About",
+    label: "About us",
     sublabel: "Tab 2",
     href: "/about",
     live: true,

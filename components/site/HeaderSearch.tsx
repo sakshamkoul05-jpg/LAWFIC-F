@@ -126,14 +126,21 @@ export default function HeaderSearch({
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
+            /* The placeholder is the client's line and it is long on purpose —
+               it is the one piece of copy on the page that tells a first-time
+               visitor how much is behind the field. The ACCESSIBLE NAME is the
+               short one: a screen reader announces a field's name every time
+               focus lands on it, and a hundred and fifty characters of
+               marketing read out on every visit is not a label, it is an
+               obstacle. Two strings, two jobs. */
             placeholder={t("nav.search")}
-            aria-label={t("nav.search")}
+            aria-label={t("nav.searchShort", "Search services and documents")}
             role="combobox"
             aria-expanded={showList}
             aria-controls={listId}
             aria-autocomplete="list"
             aria-activedescendant={cursor >= 0 ? `${listId}-${cursor}` : undefined}
-            className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-foreground outline-none placeholder:text-subtle"
+            className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-foreground outline-none placeholder:text-[12.5px] placeholder:text-subtle"
           />
         </div>
       </form>

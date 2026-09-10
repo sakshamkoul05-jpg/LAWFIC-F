@@ -6,7 +6,7 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 
 /**
  * The action row, in the blueprint's order: help, store, theme, my money,
- * post ad, suggestion, my bag.
+ * post ad, suggestion, wishlist, favourites, my bag.
  *
  * ICON OVER LABEL, NOT ICON ALONE
  *
@@ -77,6 +77,29 @@ const ACTIONS: Action[] = [
         <path d="M3.5 5.5h13v8h-7l-3.5 3v-3h-2.5z" />
         <path d="M7 9.5h6M7 11.5h3.5" />
       </>
+    ),
+  },
+  {
+    /* A bookmark, not a second heart. Wishlist and Favourites sit next to each
+       other, so they cannot share a shape — two hearts in a row would be two
+       controls a customer has to click to tell apart. A bookmark reads as
+       "put this aside", which is what a wishlist is. */
+    label: "Wishlist",
+    href: "/wishlist",
+    icon: <path d="M5.5 3.5h9v13l-4.5-3.2-4.5 3.2z" />,
+  },
+  {
+    /* The heart the client asked for, and it is filled rather than outlined:
+       every other glyph on this row is line art, so a solid one is the one
+       thing the eye finds without reading the label. */
+    label: "Favourite",
+    href: "/wishlist?view=favourites",
+    icon: (
+      <path
+        d="M10 16.5c-.3 0-5.9-3.5-7.1-6.6a4 4 0 0 1 7.1-3.6 4 4 0 0 1 7.1 3.6c-1.2 3.1-6.8 6.6-7.1 6.6Z"
+        fill="currentColor"
+        stroke="none"
+      />
     ),
   },
   {

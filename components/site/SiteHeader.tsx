@@ -91,7 +91,20 @@ export default function SiteHeader() {
             onClick={() => setDrawer(true)}
             aria-label={t("nav.openMenu")}
             aria-expanded={drawer}
-            className="grid size-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
+            /* SYMMETRIC WITH THE EMBLEM, WHICH MEANS TWO THINGS.
+
+               Size: the wordmark's image is 40, 48 and 56px at the three
+               breakpoints and this was a flat 40, so past sm the pair went out
+               of step — a square control beside a larger round one.
+
+               And position: `self-start`, because the mark is a STACK — emblem,
+               then LAWFIC, then the tagline — 89px tall against the emblem's
+               56. Centring both in the row put the hamburger's middle level
+               with the middle of the whole stack and therefore 16px below the
+               middle of the circle, which is the part of the mark the eye
+               actually pairs it with. Aligning the tops puts two 56px squares
+               on the same line. */
+            className="grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
           >
             {/* FOUR LINES, FOUR COLOURS.
                 The client's note is about the ICON, not the menu behind it: the
@@ -105,7 +118,12 @@ export default function SiteHeader() {
                 Colour alone never carries meaning here: this is decoration on a
                 control that already has a label, so it costs a viewer who
                 cannot separate the hues precisely nothing. */}
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+            <svg
+              viewBox="0 0 18 18"
+              fill="none"
+              aria-hidden
+              className="size-[18px] sm:size-[22px] lg:size-[26px]"
+            >
               <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
               <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
               <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />

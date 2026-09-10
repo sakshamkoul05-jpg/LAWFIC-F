@@ -181,7 +181,12 @@ export default function ClassicCategoryTabs() {
         aria-current={active ? "page" : undefined}
         onMouseEnter={(e) => open(tab, e.currentTarget)}
         onFocus={(e) => open(tab, e.currentTarget)}
-        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[12px] transition-colors lg:min-w-0 lg:px-1"
+        /* 13.5px in a taller band. At 12px in a 15-across grid the row read
+           as a caption rather than as the site's main navigation, which is what
+           it is — this strip is how someone reaches any of twenty-seven
+           sections. The extra height is what lets the size go up without the
+           labels touching the rule under them. */
+        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-3.5 text-center text-[13.5px] transition-colors lg:min-w-0 lg:px-1.5"
         style={{ color: active ? GOLD : GOLD_DIM }}
       >
         <span className="group-hover:!text-[var(--gold)]" style={{ ["--gold" as string]: GOLD }}>

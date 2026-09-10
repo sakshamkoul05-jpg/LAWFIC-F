@@ -36,12 +36,18 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  * across a room.
  */
 
-function greetingFor(hour: number): { text: string; emoji: string } {
-  if (hour < 5) return { text: "Good night", emoji: "🌙" };
-  if (hour < 12) return { text: "Good morning", emoji: "☀️" };
-  if (hour < 17) return { text: "Good afternoon", emoji: "🌤️" };
-  if (hour < 21) return { text: "Good evening", emoji: "🌆" };
-  return { text: "Good night", emoji: "🌙" };
+/* One smiley for all five, not a sun and a moon and a dusk.
+   The words already say which part of the day it is; a second glyph saying the
+   same thing is redundant, and the client asked for a smiley — which does the
+   job the emoji is actually there for, which is warmth, not information. */
+const GREETING_EMOJI = "😊";
+
+function greetingFor(hour: number): string {
+  if (hour < 5) return "Good night";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
+  return "Good night";
 }
 
 type User = {
@@ -57,7 +63,7 @@ export default function ProfileCorner({
   user: User | null;
   onSignInClick?: () => void;
 }) {
-  const [greeting, setGreeting] = useState<{ text: string; emoji: string } | null>(null);
+  const [greeting, setGreeting] = useState<string | null>(null);
   const { tx } = useLocale();
   const { privacy } = usePreferencesValue();
 
@@ -80,15 +86,17 @@ export default function ProfileCorner({
 
         {/* Reserved height even before the greeting resolves, so the header
             does not jolt a few milliseconds after it paints. */}
-        <span className="hidden h-[13px] items-center gap-1 whitespace-nowrap text-[10.5px] leading-none text-muted-foreground lg:flex">
+        <span className="hidden h-[14px] items-center gap-1 whitespace-nowrap text-[11px] leading-none text-muted-foreground lg:flex">
           {greeting && privacy.showName && (
-            <>
-              <span aria-hidden>{greeting.emoji}</span>
-              <span>
-                {tx(greeting.text)}
-                {name ? `, ${name.split(" ")[0]}` : ""}
-              </span>
-            </>
+            <span>
+              {/* "Good morning Saksham 😊" — the first name only, and no comma.
+                  A comma turns a greeting into a salutation on a letter, and
+                  the first name is what a person is called rather than what
+                  their account is registered as. A guest gets the greeting
+                  without a name rather than a placeholder word. */}
+              {tx(greeting)}
+              {name ? ` ${name.split(" ")[0]}` : ""} <span aria-hidden>{GREETING_EMOJI}</span>
+            </span>
           )}
         </span>
       </div>
