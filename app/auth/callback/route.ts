@@ -1,25 +1,57 @@
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Auth callback — handles the one-time code exchange when Supabase redirects
- * back after email OTP verification or a magic link click. Exchanges the
- * code for a session cookie, then routes new users to profile setup.
+ * Where every emailed link lands: a magic link, a sign-up confirmation, or a
+ * password reset. It turns the one-time credential in the URL into a session
+ * cookie and then decides where the reader actually wanted to go.
  *
- * `next` is constrained to a path on this site — an open redirect here would
- * let a crafted link bounce a freshly signed-in user to somewhere else with
- * their session already established.
+ * TWO SHAPES OF LINK, BECAUSE SUPABASE SENDS EITHER
+ *
+ * `{{ .ConfirmationURL }}` in an email template produces `?code=…` and is
+ * redeemed with `exchangeCodeForSession`. `{{ .TokenHash }}` produces
+ * `?token_hash=…&type=…` and is redeemed with `verifyOtp`. Which one arrives
+ * depends on how somebody edited the templates in the dashboard, months from
+ * now, without touching this file. Handling only the first is how a working
+ * reset flow breaks silently after a template edit, so both are handled.
+ *
+ * `next` is constrained to a path on this site. An open redirect here would let
+ * a crafted link bounce a freshly signed-in user somewhere else with their
+ * session already established.
  */
+
+const OTP_TYPES: EmailOtpType[] = [
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email_change",
+  "email",
+];
+
+function isOtpType(v: string | null): v is EmailOtpType {
+  return v !== null && (OTP_TYPES as string[]).includes(v);
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const tokenHash = url.searchParams.get("token_hash");
+  const type = url.searchParams.get("type");
+
   const rawNext = url.searchParams.get("next") ?? "/wallet";
   const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/wallet";
 
-  if (!code) {
+  /* A recovery is on its way to the new-password form, so its own failure
+     message belongs on the reset page rather than on the sign-in page. */
+  const recovering = type === "recovery" || next.startsWith("/auth/reset");
+  const failure = recovering ? "/login?error=reset_expired" : "/login?error=link_expired";
+
+  if (!code && !tokenHash) {
     return NextResponse.redirect(new URL("/login?error=missing_code", url.origin));
   }
 
@@ -28,17 +60,32 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?error=not_configured", url.origin));
   }
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = tokenHash
+    ? await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: isOtpType(type) ? type : "email",
+      })
+    : await supabase.auth.exchangeCodeForSession(code!);
+
   if (error) {
-    console.warn("[auth] code exchange failed", error.message);
-    return NextResponse.redirect(new URL("/login?error=link_expired", url.origin));
+    console.warn("[auth] callback failed", error.message);
+    return NextResponse.redirect(new URL(failure, url.origin));
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
+  /* A password reset goes to the reset form and NOWHERE else. Without this,
+     an account that never finished onboarding gets diverted to profile setup
+     by the rule below, and the one thing the person came to do — the thing
+     they cannot do anywhere else, because the link is single-use — is the one
+     thing they are not offered. */
+  if (recovering) {
+    return NextResponse.redirect(new URL("/auth/reset", url.origin));
+  }
 
-  // New users (no full_name metadata yet) land on profile setup first.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // New users (no onboarded metadata yet) land on profile setup first.
   const isNew = user && !user.user_metadata?.onboarded;
-  const target = isNew ? "/profile/setup" : next;
-
-  return NextResponse.redirect(new URL(target, url.origin));
+  return NextResponse.redirect(new URL(isNew ? "/profile/setup" : next, url.origin));
 }
