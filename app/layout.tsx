@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import AuthErrorCatcher from "@/components/site/AuthErrorCatcher";
 
 /* One UI family carries display and body alike — the way Apple ships SF and
    CRED ships Gilroy. Playfair Display (a high-contrast Didone) and Inter were
@@ -49,6 +50,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <ThemeProvider>
           <LocaleProvider>
+          {/* A dead email link is thrown at the Site URL, which is the bare
+              origin — so the page that has to notice is every page. */}
+          <AuthErrorCatcher />
           <ThemeShell>{children}</ThemeShell>
           </LocaleProvider>
         </ThemeProvider>
