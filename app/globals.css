@@ -883,6 +883,19 @@
   animation-play-state: paused;
 }
 
+/* THE SEARCH BAR'S RUNNING PLACEHOLDER IS THE EXCEPTION, AND HAS TO BE.
+
+   That one is laid OVER the input and is `pointer-events: none`, so the
+   pointer passes straight through it to the field — which also means the
+   overlay can never match :hover, and the rule above would silently do
+   nothing on the one marquee a customer is most likely to stop and read.
+   The shell around it does take pointer events, so the pause hangs off
+   that instead. Same rule, reached from the one element that can see the
+   pointer. */
+.search-shell:hover .marquee-track {
+  animation-play-state: paused;
+}
+
 @keyframes marquee-scroll {
   from {
     transform: translateX(0);

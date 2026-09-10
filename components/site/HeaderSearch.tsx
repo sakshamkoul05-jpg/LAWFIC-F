@@ -45,6 +45,8 @@ export default function HeaderSearch({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(-1);
+  /* Only so the running placeholder knows to get out of the way. */
+  const [focused, setFocused] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
   const hits = useMemo(() => searchSuggest(query, 8, scope || undefined), [query, scope]);
@@ -98,12 +100,21 @@ export default function HeaderSearch({
   return (
     <div ref={boxRef} className={`relative ${className}`}>
       <form onSubmit={submit} role="search">
-        <div className="flex w-full items-center gap-2 rounded-full border border-border bg-surface-2/60 pr-4 transition-colors focus-within:border-primary/50 focus-within:bg-surface">
+        <div className="search-shell flex w-full items-center gap-2 rounded-full border border-border bg-surface-2/60 pr-4 transition-colors focus-within:border-primary/50 focus-within:bg-surface">
           <select
             value={scope}
             onChange={(e) => setScope(e.target.value)}
             aria-label={t("nav.searchIn")}
-            className="max-w-[8.5rem] shrink-0 cursor-pointer truncate rounded-l-full border-r border-border bg-transparent py-2 pl-4 pr-2 text-[12px] text-muted-foreground outline-none"
+            /* NARROW, BECAUSE THE FIELD BESIDE IT IS THE POINT
+               This was 136px, sized so "Intellectual Property" could show in
+               full while closed. But the closed state reads "All" nine times
+               out of ten, and the OPEN list is not clipped by this width at
+               all — the browser draws the popup as wide as its longest option
+               regardless. The width was being spent on a case that barely
+               happens, next to the one control on the page that wanted every
+               pixel. 84 holds "All" and its chevron, truncates a long category
+               name once one is chosen, and hands fifty back to the field. */
+            className="w-[84px] shrink-0 cursor-pointer truncate rounded-l-full border-r border-border bg-transparent py-2 pl-3.5 pr-1 text-[12px] text-muted-foreground outline-none"
           >
             <option value="">{tx("All")}</option>
             {categories.map((c) => (
@@ -116,32 +127,74 @@ export default function HeaderSearch({
             <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" strokeWidth="1.7" />
             <path d="M13 13l4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
           </svg>
-          <input
-            type="search"
-            value={query}
-            autoFocus={autoFocus}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setOpen(true);
-            }}
-            onFocus={() => setOpen(true)}
-            onKeyDown={onKeyDown}
-            /* The placeholder is the client's line and it is long on purpose —
-               it is the one piece of copy on the page that tells a first-time
-               visitor how much is behind the field. The ACCESSIBLE NAME is the
-               short one: a screen reader announces a field's name every time
-               focus lands on it, and a hundred and fifty characters of
-               marketing read out on every visit is not a label, it is an
-               obstacle. Two strings, two jobs. */
-            placeholder={t("nav.search")}
-            aria-label={t("nav.searchShort", "Search services and documents")}
-            role="combobox"
-            aria-expanded={showList}
-            aria-controls={listId}
-            aria-autocomplete="list"
-            aria-activedescendant={cursor >= 0 ? `${listId}-${cursor}` : undefined}
-            className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-foreground outline-none placeholder:text-[12.5px] placeholder:text-subtle"
-          />
+          {/* The field and its running placeholder share one box, so the
+              banner is positioned against the FIELD and not against the
+              rounded shell. Anchoring it to the shell would mean a hand-counted
+              offset — select width plus gap plus icon plus gap — that goes
+              wrong the next time any of those four changes, silently and only
+              on screen. */}
+          <span className="relative min-w-0 flex-1 self-stretch">
+            <input
+              type="search"
+              value={query}
+              autoFocus={autoFocus}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setOpen(true);
+              }}
+              onFocus={() => {
+                setOpen(true);
+                setFocused(true);
+              }}
+              onBlur={() => setFocused(false)}
+              onKeyDown={onKeyDown}
+              /* NO `placeholder` ATTRIBUTE. A real placeholder cannot move, and
+                 the client's line runs to about a hundred and fifty characters
+                 — in a 500px field it stopped dead at "51000+ S". The copy is
+                 drawn as a running banner underneath instead.
+
+                 The ACCESSIBLE NAME stays the short one. A screen reader
+                 announces a field's name every time focus lands on it, and a
+                 hundred and fifty characters of marketing read out on every
+                 visit is not a label, it is an obstacle. */
+              aria-label={t("nav.searchShort", "Search services and documents")}
+              role="combobox"
+              aria-expanded={showList}
+              aria-controls={listId}
+              aria-autocomplete="list"
+              aria-activedescendant={cursor >= 0 ? `${listId}-${cursor}` : undefined}
+              className="absolute inset-0 w-full bg-transparent text-[13.5px] text-foreground outline-none"
+            />
+
+            {/* THE PLACEHOLDER, RUNNING.
+
+                Laid over the field rather than set on it, because the attribute
+                cannot be animated. `pointer-events-none`, so a click still
+                lands on the input beneath; `aria-hidden`, because the input
+                already has a name and hearing this sentence as well would be
+                the long-label problem arriving by another door.
+
+                It shows only while the field is EMPTY AND UNFOCUSED. Text
+                sliding past a blinking caret reads as a fault rather than as a
+                prompt, so the moment someone means to type, it leaves.
+
+                `.marquee-clip` is the pair the top strip and the location box
+                already use: the copy is held twice and travels exactly -50%, so
+                the second arrives as the first leaves and there is no jump. It
+                pauses on hover and stops outright under reduced motion, which
+                is the whole reason to reuse it rather than write a third. */}
+            {!query && !focused && (
+              <span
+                aria-hidden
+                className="marquee-clip pointer-events-none absolute inset-0 flex items-center text-[12.5px] text-subtle"
+              >
+                <span className="marquee-track">
+                  <span className="pr-16">{t("nav.search")}</span>
+                  <span className="pr-16">{t("nav.search")}</span>
+                </span>
+              </span>
+            )}
+          </span>
         </div>
       </form>
 

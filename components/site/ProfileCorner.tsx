@@ -79,6 +79,14 @@ export default function ProfileCorner({
 
   const seed = name ?? "guest";
 
+  /* A GUEST IS ADDRESSED TOO.
+     Signed out this read "Good morning 😊" — a greeting with nobody in it,
+     which looks less like a choice than like a name that failed to load. So a
+     visitor with no account is "User": the sentence has the same shape whoever
+     is reading it, and it fills in with the real first name the moment there
+     is one. */
+  const addressee = name ? name.split(" ")[0] : tx("User");
+
   return (
     <div className="flex shrink-0 items-start gap-1.5">
       <div className="flex flex-col items-center gap-1">
@@ -89,13 +97,12 @@ export default function ProfileCorner({
         <span className="hidden h-[14px] items-center gap-1 whitespace-nowrap text-[11px] leading-none text-muted-foreground lg:flex">
           {greeting && privacy.showName && (
             <span>
-              {/* "Good morning Saksham 😊" — the first name only, and no comma.
-                  A comma turns a greeting into a salutation on a letter, and
+              {/* "Good morning Saksham 😊", or "Good morning User 😊" before
+                  anyone has signed in. The first name only, and no comma: a
+                  comma turns a greeting into the salutation on a letter, and
                   the first name is what a person is called rather than what
-                  their account is registered as. A guest gets the greeting
-                  without a name rather than a placeholder word. */}
-              {tx(greeting)}
-              {name ? ` ${name.split(" ")[0]}` : ""} <span aria-hidden>{GREETING_EMOJI}</span>
+                  their account happens to be registered as. */}
+              {tx(greeting)} {addressee} <span aria-hidden>{GREETING_EMOJI}</span>
             </span>
           )}
         </span>

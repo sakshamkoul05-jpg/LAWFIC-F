@@ -502,4 +502,6 @@ export const hiPhrases: Record<string, string> = {
   /* ── Two more on the action row ────────────────────────── */
   Wishlist: "इच्छा-सूची",
   Favourite: "पसंदीदा",
+  /* ── Greeting ──────────────────────────────────────────── */
+  User: "उपयोगकर्ता",
 };

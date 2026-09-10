@@ -495,4 +495,6 @@ export const esPhrases: Record<string, string> = {
   /* ── Two more on the action row ────────────────────────── */
   Wishlist: "Lista de deseos",
   Favourite: "Favoritos",
+  /* ── Greeting ──────────────────────────────────────────── */
+  User: "Usuario",
 };
