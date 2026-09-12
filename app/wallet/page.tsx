@@ -11,6 +11,7 @@ import WalletOnboarding from "@/components/wallet/WalletOnboarding";
 import WalletQuickActions from "@/components/wallet/WalletQuickActions";
 import WalletActivity, { type ActivityRow } from "@/components/wallet/WalletActivity";
 import WalletMenu from "@/components/wallet/WalletMenu";
+import MembershipCard from "@/components/account/MembershipCard";
 
 /**
  * The wallet home, rebuilt in CRED's visual language.
@@ -154,6 +155,13 @@ export default async function WalletPage() {
 
       <div className="mt-6">
         <WalletQuickActions />
+      </div>
+
+      {/* The membership sits above the ledger, because a recurring debit is
+          the one movement a customer wants to know about BEFORE it happens
+          and the activity list can only show it afterwards. */}
+      <div className="mt-16">
+        <MembershipCard />
       </div>
 
       <div className="mt-16">

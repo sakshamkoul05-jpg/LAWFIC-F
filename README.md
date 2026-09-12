@@ -142,6 +142,61 @@ PGlite as superuser, which **bypasses row security** — it can prove the polici
 parse but never that they grant correctly. Only a real round trip through
 PostgREST can, and that is what `doctor` is.
 
+## Email: sign-in codes come from Hostinger
+
+Auth mail is sent by **Supabase**, not by this app, so the mailbox goes in the
+Supabase dashboard and nothing about it belongs in `.env.local`. Authentication
+→ Emails → SMTP Settings:
+
+| Field | Value |
+| --- | --- |
+| Host | `smtp.hostinger.com` |
+| Port | `465` (implicit TLS) — or `587` for STARTTLS |
+| Username | the full business address, e.g. `no-reply@lawfic.in` |
+| Password | that mailbox's own password |
+| Sender email | the same address as the username |
+| Sender name | `LAWFIC` |
+
+Two things that are easy to get wrong and both fail the same way — mail that
+silently never arrives:
+
+- **The sender must be the authenticated mailbox.** Hostinger rejects a
+  `From:` it did not issue, so a sender of `hello@lawfic.in` on a mailbox
+  logged in as `no-reply@lawfic.in` bounces.
+- **SPF, DKIM and DMARC have to resolve for the domain.** Hostinger publishes
+  these when the domain's email is hosted there; if the DNS lives elsewhere
+  they have to be copied across, or the codes land in spam rather than failing
+  visibly. Verify before launch, not after a customer says they never got one.
+
+Hostinger business mailboxes are rate-limited per hour and per day — generous
+for sign-in codes at this stage, but they are a mailbox and not a transactional
+sender. If sign-in volume ever outgrows it, the change is these same six fields
+pointed at a transactional provider; no code moves.
+
+### The template has to carry the code
+
+Supabase sends whatever the template says, and a link cannot be typed into a
+six-digit box. `{{ .Token }}` must appear in **both**:
+
+- **Magic link or OTP** — used when the address already has an account;
+- **Confirm signup** — used the first time an address is seen, which is the
+  one that gets missed, because it is the template a new customer meets.
+
+Keep `{{ .ConfirmationURL }}` alongside it. The code and the link both work —
+the link lands on `/auth/callback` — so whichever a customer reaches for, they
+get in.
+
+**Reset password stays link-only.** `/auth/reset` needs the link to establish a
+session before it will show the new-password form; a code there would give
+someone something to type with nowhere to type it.
+
+### Redirect URLs
+
+Authentication → URL Configuration → Redirect URLs needs `http://localhost:3000/**`
+and the production origin. Supabase falls back to the Site URL for anything not
+on that list, so a missing entry does not error — it drops a successful
+sign-in on the home page, signed out.
+
 ## Going live
 
 In order, because two of these have external lead times:
@@ -164,6 +219,10 @@ In order, because two of these have external lead times:
 6. **DLT registration** for mobile OTP — entity ID, sender header and templates
    on a DLT portal, or operators drop the SMS. Email sign-in works throughout
    and stays as the fallback. *(Several days.)*
+7. **Memberships** need the Razorpay Subscriptions product enabled on the
+   account and an e-mandate method live (UPI Autopay or cards). Until then
+   `/api/subscription/checkout` returns 503 and says so; the plan pages, the
+   pricing maths and the wallet card all work without it.
 
 Before real money moves, work through the live checklist in the backend repo's
 README — no test suite can prove RLS.

@@ -25,23 +25,27 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  *
  * THIS DEPENDS ON MAIL ACTUALLY LEAVING THE BUILDING
  *
- * OTP was in this file once before and was removed, for a reason that has not
- * gone away on its own: Supabase's built-in sender delivers about two messages
- * an hour and only to addresses on the project team. Under that sender the code
- * form is a sign-in page that cannot sign a customer in, and the reset form is
- * a dead end. So both are written to FAIL LOUDLY rather than quietly — a send
- * that is refused says so, in words, and says what to do — and the project
- * needs custom SMTP configured in Supabase (Authentication → Emails → SMTP)
- * before either is any use to a real customer. Nothing here can substitute for
- * that; it is a setting on the project, not code.
+ * OTP was in this file once before and was removed because Supabase's built-in
+ * sender delivers about two messages an hour and only to addresses on the
+ * project team — under which a code form is a sign-in page that cannot sign a
+ * customer in. The project now sends through its own Hostinger mailbox, so that
+ * constraint is gone; the setup and the two traps in it are in the README under
+ * "Email: sign-in codes come from Hostinger".
+ *
+ * The loud failures stay anyway. A refused send still says so in words and
+ * still points at the password form, because a mailbox can be rate-limited, a
+ * DNS record can lapse, and a sign-in page that goes quiet when mail stops is
+ * a sign-in page nobody can report a fault on.
  *
  * WHAT THE CODE EMAIL HAS TO CONTAIN
  *
- * Supabase sends whatever the "Magic Link" template says. The default template
- * only has a link, and a link cannot be typed into the six boxes below. The
- * template needs `{{ .Token }}` in it for the code path to work. The link still
- * works either way — it lands on /auth/callback — so a customer who clicks
- * instead of typing is not stranded.
+ * Supabase sends whatever the template says, and a link cannot be typed into
+ * the six boxes below, so `{{ .Token }}` has to be in TWO templates: "Magic
+ * link or OTP" for an address that already has an account, and "Confirm
+ * signup" for the first time an address is seen. The second is the one that
+ * gets forgotten, and it is the one a new customer meets. The link still works
+ * either way — it lands on /auth/callback — so whichever they reach for, they
+ * get in.
  */
 
 type Mode = "code" | "password" | "signup" | "forgot";

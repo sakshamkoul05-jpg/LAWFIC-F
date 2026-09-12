@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
 import { plans, pricingCommitments, pricingFaq } from "@/lib/pricing";
+import {
+  ANNUAL_MONTHS_CHARGED,
+  cancellation,
+  priceFor,
+} from "@/lib/subscription";
 import { services } from "@/lib/services";
 import Reveal from "@/components/ui/Reveal";
 import TrustStrip from "@/components/marketing/TrustStrip";
@@ -53,15 +58,46 @@ export default function PricingPage() {
                   {plan.tagline}
                 </p>
 
+                {/* THE FEE, THE TAX AND THE TOTAL — three numbers that add up.
+                    The large figure stays the professional fee, because that is
+                    the part LAWFIC sets and the part being compared against
+                    other firms. GST is shown underneath as its own line, the
+                    same way a government fee is shown on a service page: a
+                    statutory amount on this site is never folded into ours.
+                    The annual line is there because paying yearly is cheaper
+                    and a customer should not have to find that out later. */}
                 <div className="mt-6 border-y border-border py-5">
                   {plan.monthlyPaise === null ? (
-                    <p className="type-data text-[36px] text-primary">₹0</p>
+                    <>
+                      <p className="type-data text-[36px] text-primary">₹0</p>
+                      <p className="type-label mt-2.5">{plan.priceNote}</p>
+                    </>
                   ) : (
-                    <p className="type-data text-[36px] text-foreground">
-                      {formatPaise(plan.monthlyPaise)}
-                    </p>
+                    (() => {
+                      const monthly = priceFor(plan.monthlyPaise, "monthly");
+                      const annual = priceFor(plan.monthlyPaise, "annual");
+                      return (
+                        <>
+                          <p className="type-data text-[36px] text-foreground">
+                            {formatPaise(monthly.feePaise)}
+                          </p>
+                          <p className="type-label mt-2.5">{plan.priceNote}</p>
+                          <p className="mt-3 text-[12px] leading-relaxed text-muted">
+                            + {formatPaise(monthly.gstPaise)} GST ={" "}
+                            <span className="type-data text-foreground">
+                              {formatPaise(monthly.totalPaise)}
+                            </span>{" "}
+                            debited each month
+                          </p>
+                          <p className="mt-2 text-[12px] leading-relaxed text-subtle">
+                            Or {formatPaise(annual.totalPaise)} a year —{" "}
+                            {ANNUAL_MONTHS_CHARGED} months instead of 12, saving{" "}
+                            {formatPaise(annual.savingPaise)}
+                          </p>
+                        </>
+                      );
+                    })()
                   )}
-                  <p className="type-label mt-2.5">{plan.priceNote}</p>
                 </div>
 
                 <p className="mt-5 text-[13px] leading-relaxed text-muted">{plan.bestFor}</p>
@@ -157,6 +193,40 @@ export default function PricingPage() {
             </table>
           </div>
         </Reveal>
+      </section>
+
+      {/* RENEWAL AND CANCELLATION, BEFORE THE COMMITMENTS AND BEFORE THE FAQ.
+          Not in a policy page and not at the bottom. The CCPA's dark-pattern
+          guidelines require the renewal amount, its frequency and the way out
+          to be disclosed AT THE POINT OF SUBSCRIPTION, and "subscription
+          trap" — easy to join, hard to leave — is one of the thirteen patterns
+          they name. A page that sells a recurring charge and explains it six
+          screens later has met the letter of nothing. */}
+      <section
+        aria-labelledby="renewal-heading"
+        className="border-y border-border bg-surface/40"
+      >
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
+          <Reveal>
+            <p className="type-label text-primary">Before you subscribe</p>
+            <h2 id="renewal-heading" className="type-h1 mt-5 max-w-2xl text-foreground">
+              {cancellation.heading}
+            </h2>
+          </Reveal>
+
+          <ul className="mt-10 grid max-w-4xl gap-x-10 gap-y-5 sm:grid-cols-2">
+            {cancellation.points.map((point, i) => (
+              <Reveal key={point} delay={i * 0.05}>
+                <li className="flex gap-3 text-[13.5px] leading-relaxed text-muted">
+                  <span className="type-data mt-px shrink-0 text-[11px] text-primary">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  {point}
+                </li>
+              </Reveal>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* commitments */}
