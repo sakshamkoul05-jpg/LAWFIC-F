@@ -16,8 +16,22 @@
  *   2. THE GOVERNMENT FEE IS NEVER INSIDE A PLAN PRICE. Plans buy LAWFIC's
  *      work. Statutory fees are passed through at cost, always on their own
  *      line. A plan that bundled them would make the pass-through unverifiable.
- *   3. THREE TIERS, NOT FIVE. Past four, a pricing page stops helping people
- *      choose and starts making them leave.
+ *
+ * SIX PAID TIERS, WHICH IS MORE THAN A CARD GRID CAN CARRY
+ *
+ * This file used to say "three tiers, not five", on the reasonable ground that
+ * past four a pricing page stops helping people choose. LAWFIC has set six
+ * price points — ₹99 through ₹1,999 — and the reasoning still holds, so the
+ * PRESENTATION changed rather than the advice being ignored: six tiers are a
+ * comparison table, where a reader scans one row to find the thing they care
+ * about, and not seven cards, where they read seven near-identical lists.
+ *
+ * The ladder also has to be legible as a ladder. It spans two different
+ * customers — someone getting a passport, and a company running payroll — so
+ * the low tiers buy STANDING BENEFITS (a document vault, due-date reminders, a
+ * place in the queue) and only the top three buy INCLUDED FILINGS. A ₹99 tier
+ * that included a ₹499 filing would lose money on every member who used it,
+ * which is a promise withdrawn within a quarter.
  */
 
 export type Plan = {
@@ -54,43 +68,116 @@ export const plans: Plan[] = [
     cta: { label: "Browse services", href: "/services" },
   },
   {
-    id: "compliance",
-    name: "Compliance",
-    tagline: "For a registered business with recurring filings.",
-    monthlyPaise: 199900,
-    priceNote: "per month, billed monthly",
-    featured: true,
-    bestFor: "Businesses already registered for GST that would rather not think about due dates.",
+    id: "basic",
+    name: "Basic",
+    tagline: "For keeping your own documents in order.",
+    monthlyPaise: 9900,
+    priceNote: "per month",
+    bestFor: "One person, with the usual identity and certificate paperwork to keep current.",
     includes: [
-      "Everything in Pay per filing",
-      "GST returns — GSTR-1 and 3B, filed monthly",
-      "Annual income tax return for the business",
-      "A due-date calendar, with reminders before the deadline",
-      "10% off any one-off service in the catalogue",
-      "Named point of contact",
+      "5% off every service in the catalogue",
+      "Document vault — every certificate we file for you, kept and downloadable",
+      "Reminders before a renewal or a due date, not after",
+      "Wallet, order tracking and receipts",
+    ],
+    cta: { label: "Start Basic", href: "/pricing#join" },
+  },
+  {
+    id: "personal",
+    name: "Personal",
+    tagline: "The same, with your file moved up the queue.",
+    monthlyPaise: 19900,
+    priceNote: "per month",
+    bestFor: "A family keeping several people's documents in one place.",
+    includes: [
+      "8% off every service in the catalogue",
+      "Everything in Basic, for up to four family members",
+      "Priority queue — your file is looked at the same working day",
+      "One free re-issue of a lost certificate each year",
+    ],
+    cta: { label: "Start Personal", href: "/pricing#join" },
+  },
+  {
+    id: "professional",
+    name: "Professional",
+    tagline: "For someone billing under their own name.",
+    monthlyPaise: 59900,
+    priceNote: "per month",
+    featured: true,
+    bestFor: "Freelancers and consultants — a PAN, a GST number and an annual return.",
+    includes: [
+      "10% off every service in the catalogue",
+      "Everything in Personal",
+      "A named point of contact who knows your file",
+      "Annual income tax return, prepared and filed",
     ],
     excludes: ["Government fees, which are always passed through at cost"],
-    cta: { label: "Talk to us", href: "/contact" },
+    cta: { label: "Start Professional", href: "/pricing#join" },
+  },
+  {
+    id: "startup",
+    name: "Startup",
+    tagline: "For a registered business that files every month.",
+    monthlyPaise: 99900,
+    priceNote: "per month",
+    bestFor: "Businesses registered for GST that would rather not think about due dates.",
+    includes: [
+      "12% off every service in the catalogue",
+      "Everything in Professional",
+      "GST returns — GSTR-1 and 3B, filed monthly",
+      "A due-date calendar with reminders before the deadline",
+    ],
+    excludes: ["Government fees, which are always passed through at cost"],
+    cta: { label: "Start Startup", href: "/pricing#join" },
   },
   {
     id: "business",
     name: "Business",
-    tagline: "For companies with payroll, statutory audits and a board.",
-    monthlyPaise: 499900,
-    priceNote: "per month, billed monthly",
-    bestFor: "Private limited companies and LLPs carrying full ROC and payroll compliance.",
+    tagline: "For a business with people on the payroll.",
+    monthlyPaise: 149900,
+    priceNote: "per month",
+    bestFor: "Companies and LLPs deducting TDS and running a monthly payroll.",
     includes: [
-      "Everything in Compliance",
-      "ROC annual filings — AOC-4, MGT-7 and director KYC",
+      "15% off every service in the catalogue",
+      "Everything in Startup",
       "TDS returns and Form 16 issuance",
-      "PF and ESI monthly filings",
       "Payroll processing up to 25 employees",
-      "Priority turnaround and a dedicated compliance manager",
+    ],
+    excludes: ["Government fees, which are always passed through at cost"],
+    cta: { label: "Start Business", href: "/pricing#join" },
+  },
+  {
+    id: "compliance",
+    name: "Compliance",
+    tagline: "For carrying the whole statutory calendar.",
+    monthlyPaise: 199900,
+    priceNote: "per month",
+    bestFor: "Private limited companies carrying full ROC, payroll and audit compliance.",
+    includes: [
+      "18% off every service in the catalogue",
+      "Everything in Business",
+      "ROC annual filings — AOC-4, MGT-7 and director KYC",
+      "PF and ESI monthly filings",
+      "A dedicated compliance manager and 24-hour turnaround",
     ],
     excludes: ["Government fees, which are always passed through at cost"],
     cta: { label: "Talk to us", href: "/contact" },
   },
 ];
+
+/**
+ * The three shown on the home page.
+ *
+ * Seven plans in a three-column teaser leaves an orphan on the last row and
+ * asks somebody skimming a home page to compare seven things. The full ladder
+ * is one click away on /pricing, where it is a table and comparison is what
+ * the layout is for.
+ */
+export const TEASER_PLAN_IDS = ["per-filing", "professional", "compliance"];
+
+export const teaserPlans = TEASER_PLAN_IDS.map(
+  (id) => plans.find((p) => p.id === id)!,
+);
 
 /** The differentiator, stated as commitments rather than adjectives. */
 export const pricingCommitments = [

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { categories, liveServices, totalServices } from "@/lib/catalogue";
 import { services } from "@/lib/services";
-import { plans } from "@/lib/pricing";
+import { teaserPlans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
@@ -186,7 +186,7 @@ export default function ClassicHomePage() {
           </Link>
         </div>
         <div className="grid gap-px sm:grid-cols-3" style={{ gap: "1px" }}>
-          {plans.map((plan) => (
+          {teaserPlans.map((plan) => (
             <Link
               key={plan.id}
               href="/pricing"

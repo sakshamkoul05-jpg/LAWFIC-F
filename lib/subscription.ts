@@ -85,15 +85,45 @@ export type Membership = {
   includedMonthly: { slug: string; label: string; count: number }[];
   /** Turnaround promise, if the tier carries one. */
   priorityHours?: number;
+  /**
+   * Standing benefits that are not a filing and not a discount — a vault, a
+   * place in the queue, a named person.
+   *
+   * The low tiers are built almost entirely out of these, and deliberately. A
+   * ₹99 membership that included a ₹499 filing would lose money on every
+   * member who used it, and a benefit withdrawn a quarter after launch is
+   * worse than one never offered. Still denominated in service rather than
+   * money, which is the rule the whole file turns on.
+   */
+  perks?: string[];
 };
 
 export const memberships: Membership[] = [
   {
-    id: "compliance",
+    id: "basic",
+    discountPercent: 5,
+    includedMonthly: [],
+    perks: ["Document vault", "Renewal reminders"],
+  },
+  {
+    id: "personal",
+    discountPercent: 8,
+    includedMonthly: [],
+    perks: ["Up to four family members", "Priority queue", "One free re-issue a year"],
+  },
+  {
+    id: "professional",
     discountPercent: 10,
+    includedMonthly: [],
+    perks: ["Named point of contact", "Annual income tax return"],
+  },
+  {
+    id: "startup",
+    discountPercent: 12,
     includedMonthly: [
       { slug: "gst-returns", label: "GST returns (GSTR-1 and 3B)", count: 1 },
     ],
+    perks: ["Due-date calendar"],
   },
   {
     id: "business",
@@ -103,7 +133,19 @@ export const memberships: Membership[] = [
       { slug: "tds-returns", label: "TDS return", count: 1 },
       { slug: "payroll", label: "Payroll run, up to 25 employees", count: 1 },
     ],
+    perks: ["Form 16 issuance"],
+  },
+  {
+    id: "compliance",
+    discountPercent: 18,
+    includedMonthly: [
+      { slug: "gst-returns", label: "GST returns (GSTR-1 and 3B)", count: 1 },
+      { slug: "tds-returns", label: "TDS return", count: 1 },
+      { slug: "payroll", label: "Payroll run, up to 25 employees", count: 1 },
+      { slug: "pf-esi", label: "PF and ESI filings", count: 1 },
+    ],
     priorityHours: 24,
+    perks: ["ROC annual filings", "Dedicated compliance manager"],
   },
 ];
 
@@ -185,14 +227,40 @@ export function canAutoRenew(totalPaise: number): boolean {
 }
 
 /**
- * An annual membership is over the ceiling at today's prices, so it is a
- * single payment rather than a standing instruction. Recomputed rather than
- * hardcoded: if a tier is ever cheap enough to annualise inside the limit,
- * this stops saying otherwise on its own.
+ * Whether a given tier and period can be put on autopay.
+ *
+ * PER TIER, BECAUSE THE ANSWER DIFFERS BY TIER
+ *
+ * Every monthly price on this ladder clears the ceiling comfortably — the
+ * dearest is ₹1,999, which is ₹2,358.82 debited. Yearly is where it splits.
+ * Ten months of fee plus 18% has to come in under ₹15,000, which means a
+ * monthly fee of at most ₹1,271:
+ *
+ *     ₹99    →  ₹1,168.20 a year   autopay
+ *     ₹199   →  ₹2,348.20          autopay
+ *     ₹599   →  ₹7,068.20          autopay
+ *     ₹999   → ₹11,788.20          autopay
+ *     ₹1,499 → ₹17,688.20          one authenticated payment a year
+ *     ₹1,999 → ₹23,588.20          one authenticated payment a year
+ *
+ * So the top two tiers can be paid yearly but cannot be MANDATED yearly, and
+ * the checkout has to say which it is before the customer commits. Computed
+ * from the price list rather than written down, so it follows a price change
+ * instead of quietly becoming wrong.
  */
-export const ANNUAL_NEEDS_AFA = paidPlans().some(
-  (p) => !canAutoRenew(priceFor(p.monthlyPaise, "annual").totalPaise),
-);
+export function autopayable(monthlyPaise: number, period: BillingPeriod): boolean {
+  return canAutoRenew(priceFor(monthlyPaise, period).totalPaise);
+}
+
+/** The tiers whose YEARLY price is over the mandate ceiling, by id. */
+export function annualNeedsAfa(): string[] {
+  return paidPlans()
+    .filter((p) => !autopayable(p.monthlyPaise, "annual"))
+    .map((p) => p.id);
+}
+
+/** True when at least one tier cannot be mandated yearly. */
+export const ANNUAL_NEEDS_AFA = annualNeedsAfa().length > 0;
 
 /**
  * Throws if a plan has been priced where its renewals would start failing.

@@ -4,7 +4,12 @@ import { formatPaise } from "@/lib/money";
 import { plans, pricingCommitments, pricingFaq } from "@/lib/pricing";
 import {
   ANNUAL_MONTHS_CHARGED,
+  GST_RATE,
+  annualNeedsAfa,
+  autopayable,
   cancellation,
+  membershipFor,
+  paidPlans,
   priceFor,
 } from "@/lib/subscription";
 import { services } from "@/lib/services";
@@ -18,6 +23,10 @@ export const metadata: Metadata = {
 };
 
 export default function PricingPage() {
+  /* The one tier with no price, pulled out by id rather than by position so
+     reordering the ladder cannot silently promote a paid plan into this slot. */
+  const freePlan = plans.find((p) => p.monthlyPaise === null)!;
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-border">
@@ -37,107 +46,184 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* plans */}
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="grid gap-px border border-border lg:grid-cols-3">
-          {plans.map((plan, i) => (
-            <Reveal key={plan.id} delay={i * 0.07}>
-              <div
-                className={`relative flex h-full flex-col bg-surface p-7 ${
-                  plan.featured ? "ring-1 ring-primary" : ""
-                }`}
-              >
-                {plan.featured && (
-                  <span className="type-data absolute right-5 top-5 text-[10px] text-primary">
-                    Popular
-                  </span>
-                )}
+      {/* THE LADDER AS A TABLE, NOT AS SEVEN CARDS.
+          Six paid tiers plus the free one is seven near-identical bulleted
+          lists if they are cards, and a reader compares them by scrolling
+          sideways and remembering. As rows they are read down one column —
+          "what does this cost", "what do I get", "can I put it on autopay" —
+          which is the question a pricing page is actually asked.
 
-                <h2 className="type-h2 text-foreground">{plan.name}</h2>
-                <p className="mt-2.5 min-h-[42px] text-[13px] leading-relaxed text-muted">
-                  {plan.tagline}
-                </p>
+          Both periods are columns rather than a toggle. A toggle hides half
+          the information behind a click and makes the yearly saving something
+          you have to go looking for; with six rows there is room to show it. */}
+      <section id="join" className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
+        <Reveal>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[780px] border-collapse text-left">
+              <caption className="sr-only">
+                LAWFIC membership tiers, monthly and yearly, with the amount debited
+                including GST
+              </caption>
+              <thead>
+                <tr className="border-b-2 border-border-3">
+                  <th scope="col" className="type-label pb-3 pr-5 text-muted">
+                    Membership
+                  </th>
+                  <th scope="col" className="type-label pb-3 pr-5 text-muted">
+                    Off all
+                  </th>
+                  <th scope="col" className="type-label pb-3 pr-5 text-muted">
+                    Included each month
+                  </th>
+                  <th scope="col" className="type-label whitespace-nowrap pb-3 pr-5 text-right text-muted">
+                    Monthly
+                  </th>
+                  <th scope="col" className="type-label whitespace-nowrap pb-3 pr-5 text-right text-muted">
+                    Yearly
+                  </th>
+                  <th scope="col" className="type-label whitespace-nowrap pb-3 text-muted">
+                    Autopay
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {paidPlans().map((plan) => {
+                  const member = membershipFor(plan.id);
+                  const monthly = priceFor(plan.monthlyPaise, "monthly");
+                  const annual = priceFor(plan.monthlyPaise, "annual");
+                  const yearlyAutopay = autopayable(plan.monthlyPaise, "annual");
+                  const included = member?.includedMonthly ?? [];
 
-                {/* THE FEE, THE TAX AND THE TOTAL — three numbers that add up.
-                    The large figure stays the professional fee, because that is
-                    the part LAWFIC sets and the part being compared against
-                    other firms. GST is shown underneath as its own line, the
-                    same way a government fee is shown on a service page: a
-                    statutory amount on this site is never folded into ours.
-                    The annual line is there because paying yearly is cheaper
-                    and a customer should not have to find that out later. */}
-                <div className="mt-6 border-y border-border py-5">
-                  {plan.monthlyPaise === null ? (
-                    <>
-                      <p className="type-data text-[36px] text-primary">₹0</p>
-                      <p className="type-label mt-2.5">{plan.priceNote}</p>
-                    </>
-                  ) : (
-                    (() => {
-                      const monthly = priceFor(plan.monthlyPaise, "monthly");
-                      const annual = priceFor(plan.monthlyPaise, "annual");
-                      return (
-                        <>
-                          <p className="type-data text-[36px] text-foreground">
-                            {formatPaise(monthly.feePaise)}
-                          </p>
-                          <p className="type-label mt-2.5">{plan.priceNote}</p>
-                          <p className="mt-3 text-[12px] leading-relaxed text-muted">
-                            + {formatPaise(monthly.gstPaise)} GST ={" "}
-                            <span className="type-data text-foreground">
-                              {formatPaise(monthly.totalPaise)}
-                            </span>{" "}
-                            debited each month
-                          </p>
-                          <p className="mt-2 text-[12px] leading-relaxed text-subtle">
-                            Or {formatPaise(annual.totalPaise)} a year —{" "}
-                            {ANNUAL_MONTHS_CHARGED} months instead of 12, saving{" "}
-                            {formatPaise(annual.savingPaise)}
-                          </p>
-                        </>
-                      );
-                    })()
-                  )}
-                </div>
+                  return (
+                    <tr
+                      key={plan.id}
+                      className={`border-b border-border align-top ${
+                        plan.featured ? "bg-primary-light/40" : ""
+                      }`}
+                    >
+                      <th scope="row" className="py-4 pr-5 font-normal">
+                        <span className="block text-[14.5px] font-semibold text-foreground">
+                          {plan.name}
+                          {plan.featured && (
+                            <span className="type-data ml-2 text-[10px] text-primary">
+                              POPULAR
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-1 block max-w-[26ch] text-[12px] leading-relaxed text-muted">
+                          {plan.tagline}
+                        </span>
+                      </th>
 
-                <p className="mt-5 text-[13px] leading-relaxed text-muted">{plan.bestFor}</p>
+                      <td className="type-data py-4 pr-5 text-[15px] text-foreground">
+                        {member?.discountPercent}%
+                      </td>
 
-                <ul className="mt-6 flex flex-col gap-3">
-                  {plan.includes.map((f) => (
-                    <li key={f} className="flex gap-3 text-[13px] leading-relaxed text-muted">
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0" aria-hidden>
-                        <path d="m3.5 8.4 3 3 6-6.6" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                      <td className="py-4 pr-5 text-[12.5px] leading-relaxed text-muted">
+                        {included.length > 0 ? (
+                          included.map((i) => i.label).join(" · ")
+                        ) : (
+                          /* The perks, rather than a dash. An empty cell on a
+                             pricing table reads as an omission, and these
+                             tiers do buy something — it is just not a filing. */
+                          <span className="text-subtle">
+                            {member?.perks?.join(" · ") ?? "—"}
+                          </span>
+                        )}
+                      </td>
 
-                {plan.excludes && (
-                  <ul className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-                    {plan.excludes.map((f) => (
-                      <li key={f} className="flex gap-3 text-[12px] leading-relaxed text-subtle">
-                        <span className="mt-2 h-px w-3 shrink-0 bg-border" aria-hidden />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      {/* The fee is the large figure and the debited total sits
+                          under it: the total is what leaves the account, the
+                          fee is what gets compared against another firm. */}
+                      <td className="whitespace-nowrap py-4 pr-5 text-right">
+                        <span className="type-data block text-[15px] text-foreground">
+                          {formatPaise(monthly.feePaise)}
+                        </span>
+                        <span className="type-data mt-0.5 block text-[11px] text-muted">
+                          {formatPaise(monthly.totalPaise)} debited
+                        </span>
+                      </td>
 
-                <Link
-                  href={plan.cta.href}
-                  className={`mt-7 block rounded-full px-6 py-3 text-center text-[13px] font-medium transition-colors ${
-                    plan.featured
-                      ? "bg-primary text-white hover:bg-primary-hover"
-                      : "border border-border text-foreground hover:border-primary"
-                  }`}
-                >
-                  {plan.cta.label}
-                </Link>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+                      <td className="whitespace-nowrap py-4 pr-5 text-right">
+                        <span className="type-data block text-[15px] text-foreground">
+                          {formatPaise(annual.feePaise)}
+                        </span>
+                        <span className="type-data mt-0.5 block text-[11px] text-muted">
+                          {formatPaise(annual.totalPaise)} debited
+                        </span>
+                        <span className="mt-1 block text-[11px] text-success">
+                          saves {formatPaise(annual.savingPaise)}
+                        </span>
+                      </td>
+
+                      {/* THE COLUMN THAT EXISTS BECAUSE OF THE RBI CEILING.
+                          Monthly can be mandated on every tier. Yearly cannot:
+                          ten months of fee plus GST has to land under ₹15,000
+                          and the top two do not. Saying so here means the
+                          customer chooses knowing it, instead of finding out
+                          at their bank's screen. */}
+                      <td className="py-4 text-[12px] leading-relaxed">
+                        <span className="block text-foreground">Monthly ✓</span>
+                        <span
+                          className={
+                            yearlyAutopay ? "block text-foreground" : "block text-muted"
+                          }
+                        >
+                          Yearly {yearlyAutopay ? "✓" : "— one payment"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.05}>
+          <p className="mt-5 max-w-3xl text-[12.5px] leading-relaxed text-subtle">
+            Fees shown are LAWFIC&rsquo;s professional fee. GST at{" "}
+            {Math.round(GST_RATE * 100)}% is added and appears on every invoice; the
+            &ldquo;debited&rdquo; figure is what leaves your account. Government fees are
+            never inside a membership price — they are passed through at cost on their
+            own line. A yearly membership charges {ANNUAL_MONTHS_CHARGED} months
+            instead of 12.
+          </p>
+          <p className="mt-3 max-w-3xl text-[12.5px] leading-relaxed text-subtle">
+            Autopay runs on UPI Autopay or your card under the RBI&rsquo;s e-mandate
+            rules, which cap an unattended recurring debit at ₹15,000. Every monthly
+            membership is comfortably under that. The yearly price on{" "}
+            {annualNeedsAfa()
+              .map((id) => paidPlans().find((p) => p.id === id)?.name)
+              .filter(Boolean)
+              .join(" and ")}{" "}
+            is over it, so those two are paid once a year with your approval rather than
+            by standing instruction. Either way nothing is taken without you
+            authorising it first.
+          </p>
+        </Reveal>
+
+        {/* The free tier is not a row. It has no price, no discount and no
+            allowance, so three of six columns would be dashes — and it is the
+            honest default rather than the cheapest option, which a table
+            sorted by price cannot say. */}
+        <Reveal delay={0.08}>
+          <div className="mt-10 border border-border bg-surface p-7">
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <h2 className="type-h2 text-foreground">{freePlan.name}</h2>
+              <p className="type-data text-[24px] text-primary">₹0</p>
+            </div>
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted">
+              {freePlan.tagline} {freePlan.bestFor}
+            </p>
+            <Link
+              href={freePlan.cta.href}
+              className="mt-5 inline-block rounded-full border border-border px-6 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-primary"
+            >
+              {freePlan.cta.label}
+            </Link>
+          </div>
+        </Reveal>
 
         <Reveal delay={0.1}>
           <div className="mt-6">

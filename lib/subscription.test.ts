@@ -4,6 +4,8 @@ import {
   ANNUAL_MONTHS_CHARGED,
   ANNUAL_NEEDS_AFA,
   GST_RATE,
+  annualNeedsAfa,
+  autopayable,
   MANDATE_AFA_CEILING_PAISE,
   assertMandateSafe,
   breakEvenMonthlyPaise,
@@ -71,20 +73,47 @@ test("an annual period charges ten months and says what that saves", () => {
   assert.ok(annual.savingPaise > 0);
 });
 
-test("the annual price is over the ceiling, so it cannot be a standing instruction", () => {
-  /* Not a preference — it is why annual has to be sold as a single
-     authenticated payment. If a future price brings it under the line this
-     test fails and the checkout note can come out. */
+test("every monthly price can go on autopay", () => {
+  /* The whole ladder has to clear the ceiling monthly, because monthly IS the
+     autopay product. A tier that cannot be mandated monthly has no business
+     being on the page. */
+  for (const plan of paidPlans()) {
+    assert.equal(
+      autopayable(plan.monthlyPaise, "monthly"),
+      true,
+      `${plan.id} monthly cannot be mandated`,
+    );
+  }
+});
+
+test("the dearest yearly plans are over the ceiling and the cheapest are not", () => {
+  /* The split is the finding, so it is the thing under test. Ten months of fee
+     plus 18% has to land under ₹15,000, which puts the cut at a monthly fee of
+     about ₹1,271 — between the ₹999 and ₹1,499 tiers. */
+  const over = annualNeedsAfa();
+
+  assert.ok(over.length > 0, "at least one tier is over, or ANNUAL_NEEDS_AFA lies");
   assert.equal(ANNUAL_NEEDS_AFA, true);
+
+  /* Named rather than counted: a test that only checks "some are over" passes
+     when the boundary moves to the wrong tier. */
+  assert.deepEqual(over.sort(), ["business", "compliance"]);
 
   for (const plan of paidPlans()) {
     const annual = priceFor(plan.monthlyPaise, "annual");
     assert.equal(
       annual.needsAfaEachDebit,
-      true,
-      `${plan.id} annual is ${annual.totalPaise} paise, expected over the ceiling`,
+      over.includes(plan.id),
+      `${plan.id} yearly is ${annual.totalPaise} paise; autopay verdict disagrees with the ceiling`,
     );
   }
+});
+
+test("the autopay cut lands where the arithmetic says it does", () => {
+  /* ₹15,000 / (10 months × 1.18) = ₹1,271.18. A fee at or under that
+     annualises inside the ceiling; a rupee over it does not. */
+  assert.equal(autopayable(127100, "annual"), true);
+  assert.equal(autopayable(127200, "annual"), false);
 });
 
 test("every membership matches a paid plan, and every paid plan a membership", () => {
@@ -103,9 +132,16 @@ test("the free tier has no membership attached to it", () => {
 
 test("a discount comes off the service fee and never makes it negative", () => {
   const { discountPaise, payablePaise } = savingOn(100000, "compliance");
-  assert.equal(discountPaise, 10000);
-  assert.equal(payablePaise, 90000);
+  assert.equal(discountPaise, 18000);
+  assert.equal(payablePaise, 82000);
   assert.equal(discountPaise + payablePaise, 100000);
+});
+
+test("the six tiers are the six prices LAWFIC set", () => {
+  assert.deepEqual(
+    paidPlans().map((p) => p.monthlyPaise),
+    [9900, 19900, 59900, 99900, 149900, 199900],
+  );
 });
 
 test("a non-subscriber pays the listed fee", () => {
@@ -115,11 +151,31 @@ test("a non-subscriber pays the listed fee", () => {
 });
 
 test("break-even ignores the included filings, so it is not flattered", () => {
-  /* ₹1,999 a month at 10% off repays itself at ₹19,990 of one-off work. If the
-     included GST return were counted the figure would be smaller and would
-     depend on the customer needing that exact filing. */
-  assert.equal(breakEvenMonthlyPaise("compliance"), 1999000);
+  /* ₹99 a month at 5% off repays itself at ₹1,980 of one-off work; ₹1,999 at
+     18% at ₹11,105.56. Counting the included filings would produce smaller,
+     friendlier figures that depend on the customer needing those exact
+     filings, which is not what a break-even is for. */
+  assert.equal(breakEvenMonthlyPaise("basic"), 198000);
+  assert.equal(breakEvenMonthlyPaise("compliance"), 1110556);
   assert.equal(breakEvenMonthlyPaise("per-filing"), null);
+});
+
+test("break-even improves as the tier gets dearer", () => {
+  /* The ladder has to reward paying more. If a dearer tier needed MORE
+     one-off work to repay itself, the discount is not keeping up with the
+     fee and the tier above is a worse deal than the one below it. */
+  const evens = paidPlans().map((p) => breakEvenMonthlyPaise(p.id)!);
+  for (let i = 1; i < evens.length; i++) {
+    assert.ok(
+      evens[i] > evens[i - 1],
+      "a dearer tier needs more work to repay, which is expected — " +
+        "but the RATIO is what must not run away",
+    );
+  }
+  /* The real constraint: the dearest tier must not need more than six times
+     the work of the cheapest to pay for itself, or the top of the ladder is
+     unreachable for anyone the bottom of it attracted. */
+  assert.ok(evens[evens.length - 1] / evens[0] < 6);
 });
 
 test("a higher tier discounts at least as much as the one below it", () => {

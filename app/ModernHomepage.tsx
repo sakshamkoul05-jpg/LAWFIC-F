@@ -5,7 +5,7 @@ import CategoryIcon from "@/components/site/CategoryIcon";
 import Reveal from "@/components/ui/Reveal";
 import ProductShot from "@/components/marketing/ProductShot";
 import TrustStrip, { TrustRow } from "@/components/marketing/TrustStrip";
-import { plans } from "@/lib/pricing";
+import { teaserPlans } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 
 /**
@@ -244,7 +244,7 @@ export default function ModernHomepage() {
         deck="Pay per filing and owe nothing until you have seen a quote. Move to a monthly plan when the returns become routine. Government fees are always passed through at cost, on their own line."
       >
         <div className="grid gap-px overflow-hidden rounded-lg border border-border bg-border lg:grid-cols-3">
-          {plans.map((plan, i) => (
+          {teaserPlans.map((plan, i) => (
             <Reveal key={plan.id} delay={i * 0.06}>
               <Link
                 href="/pricing"
