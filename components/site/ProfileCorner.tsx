@@ -94,7 +94,14 @@ export default function ProfileCorner({
 
         {/* Reserved height even before the greeting resolves, so the header
             does not jolt a few milliseconds after it paints. */}
-        <span className="hidden h-[14px] items-center gap-1 whitespace-nowrap text-[11px] leading-none text-muted-foreground lg:flex">
+        {/* WRAPS, RATHER THAN SETTING THE WIDTH OF THIS WHOLE CORNER.
+            `whitespace-nowrap` made "Good night User 😊" one 143px line, and
+            because the corner is a flex column that line decided how wide the
+            corner was — so adding the name to the greeting quietly took
+            forty-eight pixels off the search bar. Capped and allowed to wrap,
+            it says exactly the same thing over two short lines and the corner
+            goes back to being about as wide as the avatar. */}
+        <span className="hidden max-w-[92px] flex-col items-center gap-0.5 text-center text-[11px] leading-tight text-muted-foreground lg:flex">
           {greeting && privacy.showName && (
             <span>
               {/* "Good morning Saksham 😊", or "Good morning User 😊" before

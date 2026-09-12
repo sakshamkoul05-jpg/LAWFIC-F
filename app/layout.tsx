@@ -5,6 +5,8 @@ import ThemeShell from "@/components/theme/ThemeShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import AuthErrorCatcher from "@/components/site/AuthErrorCatcher";
+import { createClient } from "@/lib/supabase/server";
+import { loadSettings } from "@/lib/settings";
 
 /* One UI family carries display and body alike — the way Apple ships SF and
    CRED ships Gilroy. Playfair Display (a high-contrast Didone) and Inter were
@@ -33,7 +35,23 @@ export const metadata: Metadata = {
     "Udyam, GST, PAN and FSSAI registrations handled end to end. Transparent fees, a prepaid wallet, and a jobs feed matched to your profile.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * Settings are read HERE, once, and handed to the shell.
+ *
+ * The running strip and the site-wide notice appear on every page, so the read
+ * belongs at the one place every page passes through. Reading them lower down
+ * would mean one query per page that happened to want them, and the components
+ * that render them are client components which cannot query at all.
+ *
+ * `loadSettings` never throws and never returns a partial object — a missing
+ * table, a failed read or a malformed row all resolve to the values the site
+ * shipped with. So this does not need a try/catch and the layout cannot be
+ * taken down by a settings row.
+ */
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const supabase = await createClient();
+  const settings = await loadSettings(supabase);
+
   return (
     <html
       lang="en"
@@ -53,7 +71,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* A dead email link is thrown at the Site URL, which is the bare
               origin — so the page that has to notice is every page. */}
           <AuthErrorCatcher />
-          <ThemeShell>{children}</ThemeShell>
+          <ThemeShell
+            tickerLines={settings["ticker.lines"]}
+            notice={settings["site.banner_notice"]}
+          >
+            {children}
+          </ThemeShell>
           </LocaleProvider>
         </ThemeProvider>
       </body>

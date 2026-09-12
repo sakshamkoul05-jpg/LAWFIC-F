@@ -74,12 +74,14 @@ export function LanguageMenu() {
             strokeWidth="1.3"
           />
         </svg>
-        {/* The name at 2xl, the two-letter code below it. Spelling out
-            "English" costs about thirty pixels that the search bar wants more
-            than this chip does, and a language control showing EN beside a
-            globe is not ambiguous — the full names are one click away in the
-            menu, and the button keeps its aria-label either way. */}
-        <span className="hidden sm:inline 2xl:hidden">{current.code.toUpperCase()}</span>
+        {/* The name at 2xl, the two-letter code between sm and xl, and the
+            globe alone in between — where the row is most crowded and the
+            search bar is shortest. A globe with a chevron is not ambiguous
+            about what it opens, the full names are one click away inside, and
+            the button keeps its aria-label at every width. */}
+        <span className="hidden sm:inline xl:hidden 2xl:hidden">
+          {current.code.toUpperCase()}
+        </span>
         <span className="hidden 2xl:inline">{current.native}</span>
         <Caret />
       </button>

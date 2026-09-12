@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { ANNOUNCEMENTS as FALLBACK_LINES } from "@/lib/announcements";
 
 /**
  * The running strip above the header — HOM PA INS 1 in the client's blueprint.
@@ -48,7 +49,7 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  */
 
 /** The eleven, exactly as the blueprint lists them, each with its mark. */
-type Claim = { text: string; icon: React.ReactNode };
+type Claim = { text: string; icon: React.ReactNode | null };
 
 /* One viewBox, one stroke weight, one cap style for all eleven. The uniformity
    is the point — these are a set, not eleven separate pictures. */
@@ -167,7 +168,7 @@ const ANNOUNCEMENT_CLAIMS: Claim[] = [
 ];
 
 /** Kept as plain text for anything that only wants the words. */
-export const ANNOUNCEMENTS = ANNOUNCEMENT_CLAIMS.map((c) => c.text);
+export const ANNOUNCEMENTS = FALLBACK_LINES;
 
 function ClaimIcon({ children }: { children: React.ReactNode }) {
   return (
@@ -188,7 +189,28 @@ function ClaimIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Run({ hidden = false }: { hidden?: boolean }) {
+/**
+ * Pair each line of copy with an icon BY POSITION.
+ *
+ * The icons are drawn here and the words come from the back office, so the two
+ * lists have to be married up somehow. Position is the only honest join: the
+ * copy is free text and cannot be matched on, and an id per line would mean a
+ * marketing edit that renames a claim also has to remember not to break an
+ * invisible key.
+ *
+ * A line past the end of the icon list gets no icon rather than an undefined
+ * one. Adding a twelfth claim from the back office is allowed and renders as
+ * text — which is a reasonable outcome, and better than the row collapsing
+ * because a component was handed `undefined` to render.
+ */
+function claimsFor(lines: string[]): Claim[] {
+  return lines.map((text, i) => ({
+    text,
+    icon: ANNOUNCEMENT_CLAIMS[i]?.icon ?? null,
+  }));
+}
+
+function Run({ claims, hidden = false }: { claims: Claim[]; hidden?: boolean }) {
   const { tx } = useLocale();
 
   return (
@@ -197,10 +219,10 @@ function Run({ hidden = false }: { hidden?: boolean }) {
       aria-hidden={hidden || undefined}
       role={hidden ? undefined : "list"}
     >
-      {ANNOUNCEMENT_CLAIMS.map((claim) => (
+      {claims.map((claim) => (
         <li key={claim.text} className="flex items-center whitespace-nowrap">
           <span className="flex items-center gap-2 px-6">
-            <ClaimIcon>{claim.icon}</ClaimIcon>
+            {claim.icon && <ClaimIcon>{claim.icon}</ClaimIcon>}
             {/* 13px against the 11.5 it was. The strip is the first thing on
                 the page and it was small enough to scan past; a point and a
                 half is the difference between decoration and a line someone
@@ -217,8 +239,18 @@ function Run({ hidden = false }: { hidden?: boolean }) {
   );
 }
 
-export default function AnnouncementTicker() {
+/**
+ * `lines` comes from site_settings via the server. It defaults to the eleven
+ * that shipped, so a build with no database — or a malformed setting — still
+ * renders a strip rather than an empty black band.
+ */
+export default function AnnouncementTicker({
+  lines = FALLBACK_LINES,
+}: {
+  lines?: string[];
+} = {}) {
   const { tx } = useLocale();
+  const claims = claimsFor(lines);
 
   return (
     <div
@@ -226,8 +258,8 @@ export default function AnnouncementTicker() {
       aria-label={tx("LAWFIC service highlights")}
     >
       <div className="ticker-track flex w-max">
-        <Run />
-        <Run hidden />
+        <Run claims={claims} />
+        <Run claims={claims} hidden />
       </div>
     </div>
   );

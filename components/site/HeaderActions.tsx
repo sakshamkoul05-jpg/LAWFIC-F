@@ -119,7 +119,7 @@ export default function HeaderActions({ className = "" }: { className?: string }
 
   return (
     <div
-      className={`shrink-0 grid-flow-col auto-cols-[34px] items-stretch 2xl:auto-cols-[58px] ${className}`}
+      className={`shrink-0 grid-flow-col auto-cols-[30px] items-stretch 2xl:auto-cols-[58px] ${className}`}
     >
       {ACTIONS.slice(0, 2).map((a) => (
         <ActionLink key={a.label} action={a} />

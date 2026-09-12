@@ -27,7 +27,22 @@ import Footer from "@/components/site/Footer";
  * someone ends up demoing the customer site and landing on a list of every
  * customer. It renders bare and brings its own chrome; see app/admin/layout.tsx.
  */
-export default function ThemeShell({ children }: { children: React.ReactNode }) {
+/**
+ * `tickerLines` and `notice` come from site_settings, read once in the root
+ * layout and passed down. This component is `"use client"` — it reads the path
+ * to decide whether the back office chrome applies — so it cannot read the
+ * database itself, and fetching from here would put a round trip in front of
+ * the first thing on every page.
+ */
+export default function ThemeShell({
+  children,
+  tickerLines,
+  notice = "",
+}: {
+  children: React.ReactNode;
+  tickerLines?: string[];
+  notice?: string;
+}) {
   const pathname = usePathname();
   const isBackOffice = pathname === "/admin" || pathname.startsWith("/admin/");
 
@@ -40,8 +55,22 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
   return (
     <ProfileProvider>
       <div className="flex min-h-screen flex-col bg-background">
+        {/* THE NOTICE SITS ABOVE EVERYTHING, INCLUDING THE STRIP.
+            It is for the things that change what a visitor should do today —
+            an outage, a closure, a deadline — so it outranks the standing
+            claims below it. Empty renders nothing at all rather than an empty
+            band. */}
+        {notice.trim() && (
+          <p
+            role="status"
+            className="bg-primary px-4 py-2 text-center text-[12.5px] font-medium text-background"
+          >
+            {notice}
+          </p>
+        )}
+
         {/* Above the logo, as the blueprint places it. */}
-        <AnnouncementTicker />
+        <AnnouncementTicker lines={tickerLines} />
         <SiteHeader />
         <ClassicCategoryTabs />
         <main className="flex-1">{children}</main>

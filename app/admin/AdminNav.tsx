@@ -22,6 +22,7 @@ const LINKS = [
   { href: "/admin/customers", label: "Customers", exact: false },
   { href: "/admin/dashboard", label: "Dashboard", exact: false },
   { href: "/admin/content", label: "Content", exact: false },
+  { href: "/admin/settings", label: "Settings", exact: false },
 ];
 
 export default function AdminNav() {
