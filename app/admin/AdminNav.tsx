@@ -4,16 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Two destinations, and which one you are on.
+ * Four destinations, in the order the day uses them.
  *
- * Orders answers "what needs doing", Customers answers "who is this". They are
- * the same data pivoted two ways, and an agent moves between them constantly,
- * so they sit side by side rather than one being buried inside the other.
+ * Orders answers "what needs doing" and stays first, because that is what an
+ * agent opens the back office to do. Customers answers "who is this" — the
+ * same data pivoted, so it sits next to it. Dashboard answers "how are we
+ * doing", which is an owner's question rather than an agent's and therefore
+ * does not get the front slot. Content is the home page itself.
+ *
+ * Orders keeps /admin rather than being moved under a path of its own. The
+ * daily queue should be what the bare URL opens, and a dashboard at the root
+ * would put a screen of totals in front of the work every single time.
  */
 
 const LINKS = [
   { href: "/admin", label: "Orders", exact: true },
   { href: "/admin/customers", label: "Customers", exact: false },
+  { href: "/admin/dashboard", label: "Dashboard", exact: false },
+  { href: "/admin/content", label: "Content", exact: false },
 ];
 
 export default function AdminNav() {

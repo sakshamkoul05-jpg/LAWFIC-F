@@ -4,6 +4,7 @@ import Link from "next/link";
 import { categories, liveServices, totalServices } from "@/lib/catalogue";
 import { services } from "@/lib/services";
 import { teaserPlans } from "@/lib/pricing";
+import type { Banner } from "@/lib/promotional";
 import { formatPaise } from "@/lib/money";
 import CategoryIcon from "@/components/site/CategoryIcon";
 import ClassicPromotionalBanners from "./ClassicPromotionalBanners";
@@ -14,7 +15,7 @@ import ServiceByCategory from "./ServiceByCategory";
 import { usePreferencesValue } from "@/components/account/usePreferences";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
-export default function ClassicHomePage() {
+export default function ClassicHomePage({ banners }: { banners?: Banner[] }) {
   /* The dashboard preference decides which of these the reader sees. Defaults
      are all-on, and the value is read after mount, so nothing flickers off for
      someone who has never opened the setting. */
@@ -28,7 +29,7 @@ export default function ClassicHomePage() {
           trending, and the nine categories. They sit directly under the
           banners because that order is the blueprint's, not ours — the hero
           and the rest of the page follow. */}
-      {sections.promotions && <ClassicPromotionalBanners />}
+      {sections.promotions && <ClassicPromotionalBanners banners={banners} />}
       {sections.why && <WhyChooseLawfic />}
       {sections.trending && <TrendingInLawfic />}
       {sections.categories && <ServiceByCategory />}

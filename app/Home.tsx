@@ -4,6 +4,7 @@ import ClassicHomePage from "@/components/classic/ClassicHomePage";
 import PersonalizedHero from "@/components/classic/PersonalizedHero";
 import TrackRecommendations from "@/components/classic/TrackRecommendations";
 import { useProfile } from "@/components/profile/ProfileProvider";
+import type { Banner } from "@/lib/promotional";
 
 /**
  * The home page always renders the Classic layout. When the reader is signed
@@ -14,14 +15,14 @@ import { useProfile } from "@/components/profile/ProfileProvider";
  * separately, so the page made three identical round trips before it could
  * decide what to show.
  */
-export default function Home() {
+export default function Home({ banners }: { banners?: Banner[] }) {
   const { profile, personalised } = useProfile();
 
   return (
     <>
       {personalised && profile && <PersonalizedHero profile={profile} />}
       <TrackRecommendations />
-      <ClassicHomePage />
+      <ClassicHomePage banners={banners} />
     </>
   );
 }

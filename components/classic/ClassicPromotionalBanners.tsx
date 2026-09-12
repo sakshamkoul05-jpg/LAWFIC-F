@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
-import { promotionalBanners, TONES } from "@/lib/promotional";
+import { promotionalBanners, TONES, type Banner } from "@/lib/promotional";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const DWELL_MS = 6500;
@@ -29,14 +29,29 @@ const DWELL_MS = 6500;
  *   - every slide is a real link, and the dots are real buttons, so this is
  *     operable by keyboard and legible to a screen reader.
  */
-export default function ClassicPromotionalBanners() {
+/**
+ * `banners` comes from the database via the server, because the back office
+ * runs this carousel now. It defaults to the compiled list so a caller that
+ * does not have the rows — or a build with no database — still renders eleven
+ * banners instead of an empty band where the hero should be.
+ *
+ * Threaded as a PROP rather than fetched on mount, deliberately. This is the
+ * first thing on the page; a fetch here means the hero is blank for as long as
+ * the round trip takes, on every visit, which is the one place on the site
+ * that can least afford it.
+ */
+export default function ClassicPromotionalBanners({
+  banners = promotionalBanners,
+}: {
+  banners?: Banner[];
+} = {}) {
   const { tx } = useLocale();
   const reduced = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const count = promotionalBanners.length;
+  const count = banners.length;
 
   /* Scroll the track under our own control.
      `scrollTo({ behavior: "smooth" })` cannot be relied on inside a
@@ -187,7 +202,7 @@ export default function ClassicPromotionalBanners() {
         onScroll={onScroll}
         className="classic-tabs-nav flex snap-x snap-mandatory overflow-x-auto"
       >
-        {promotionalBanners.map((banner, i) => {
+        {banners.map((banner, i) => {
           const tone = TONES[banner.tone];
           return (
             <div
@@ -343,7 +358,7 @@ export default function ClassicPromotionalBanners() {
           indicator says how long is left rather than only where you are. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-6 pb-5 sm:px-10 sm:pb-7">
-          {promotionalBanners.map((banner, i) => (
+          {banners.map((banner, i) => (
             <button
               key={banner.id}
               type="button"
