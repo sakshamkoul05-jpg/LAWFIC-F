@@ -79,9 +79,7 @@ export function LanguageMenu() {
             search bar is shortest. A globe with a chevron is not ambiguous
             about what it opens, the full names are one click away inside, and
             the button keeps its aria-label at every width. */}
-        <span className="hidden sm:inline xl:hidden 2xl:hidden">
-          {current.code.toUpperCase()}
-        </span>
+        <span className="hidden sm:inline lg:hidden">{current.code.toUpperCase()}</span>
         <span className="hidden 2xl:inline">{current.native}</span>
         <Caret />
       </button>

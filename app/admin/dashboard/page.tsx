@@ -3,6 +3,14 @@ import Link from "next/link";
 import { formatPaise } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { membershipFor, paidPlans, priceFor } from "@/lib/subscription";
+import {
+  revenueByDay,
+  revenueByMonth,
+  spendByCustomer,
+  totals as ledgerTotals,
+  type LedgerRow,
+} from "@/lib/analytics";
+import RevenueChart from "@/components/admin/RevenueChart";
 import { AdminGate } from "../AdminGate";
 
 export const metadata: Metadata = {
@@ -41,7 +49,7 @@ export const dynamic = "force-dynamic";
  * start when it does.
  */
 
-type LedgerRow = { user_id: string; balance_after_paise: number; direction: string; amount_paise: number };
+type BalanceRow = { user_id: string; balance_after_paise: number; direction: string; amount_paise: number; created_at: string };
 type SubRow = { plan_id: string; billing_period: string; status: string };
 
 export default async function AdminDashboardPage() {
@@ -61,7 +69,7 @@ export default async function AdminDashboardPage() {
     supabase.from("service_orders").select("status, created_at"),
     supabase
       .from("wallet_entries")
-      .select("user_id, balance_after_paise, direction, amount_paise")
+      .select("user_id, balance_after_paise, direction, amount_paise, created_at")
       .order("seq", { ascending: false }),
     supabase.from("subscriptions").select("plan_id, billing_period, status"),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -69,7 +77,7 @@ export default async function AdminDashboardPage() {
   ]);
 
   const orders = (ordersRes.data ?? []) as { status: string; created_at: string }[];
-  const ledger = (ledgerRes.data ?? []) as LedgerRow[];
+  const ledger = (ledgerRes.data ?? []) as BalanceRow[];
   const subs = (subsRes.data ?? []) as SubRow[];
   const promos = (promosRes.data ?? []) as { is_live: boolean }[];
 
@@ -87,11 +95,33 @@ export default async function AdminDashboardPage() {
     floatPaise += row.balance_after_paise;
   }
 
-  /* Debits are what customers have actually spent with LAWFIC. Credits are
-     money moving in, which is not revenue until it is spent. */
-  const spentPaise = ledger
-    .filter((r) => r.direction === "debit")
-    .reduce((n, r) => n + r.amount_paise, 0);
+  /* The ledger, as the analytics functions want it. Every figure below comes
+     off this one read — daily, monthly, per customer and the headline totals —
+     rather than four queries asking the database the same question four ways. */
+  const entries: LedgerRow[] = ledger.map((r) => ({
+    user_id: r.user_id,
+    direction: r.direction === "credit" ? "credit" : "debit",
+    amount_paise: r.amount_paise,
+    created_at: r.created_at,
+  }));
+
+  const money = ledgerTotals(entries);
+  const daily = revenueByDay(entries, 30);
+  const monthly = revenueByMonth(entries, 12);
+  const topCustomers = spendByCustomer(entries, 8);
+
+  /* Names for the customer list. A missing profile is not an error — it just
+     shows the shortened id, which is still enough to find the account. */
+  const topIds = topCustomers.map((c) => c.userId);
+  const { data: namesData } = topIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", topIds)
+    : { data: [] };
+  const names = new Map(
+    ((namesData ?? []) as { id: string; full_name: string | null }[]).map((p) => [
+      p.id,
+      p.full_name,
+    ]),
+  );
 
   const activeSubs = subs.filter((s) => s.status === "active" || s.status === "cancelling");
   const pastDue = subs.filter((s) => s.status === "past_due").length;
@@ -141,11 +171,23 @@ export default async function AdminDashboardPage() {
 
       <section className="mt-12">
         <h2 className="type-label text-muted">Money</h2>
-        <dl className="mt-4 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+        <dl className="mt-4 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+          <Stat label="Today" value={formatPaise(money.today)} note="Sales since midnight, India time." />
+          <Stat label="This month" value={formatPaise(money.month)} note="Sales this calendar month." />
           <Stat
-            label="Spent with LAWFIC"
-            value={formatPaise(spentPaise)}
+            label="All time"
+            value={formatPaise(money.allTime)}
             note="Every wallet debit since launch — work customers have paid for."
+          />
+          <Stat
+            label="Average order"
+            value={formatPaise(money.averageOrder)}
+            note={`Across ${money.orders} paid order${money.orders === 1 ? "" : "s"}.`}
+          />
+          <Stat
+            label="Membership fees / month"
+            value={formatPaise(mrrPaise)}
+            note="Active memberships, normalised to a month. Fee only — GST is not ours."
           />
           <Stat
             label="Customer money held"
@@ -153,12 +195,96 @@ export default async function AdminDashboardPage() {
             note="Wallet balances. This is a liability, not revenue: it is owed back as services."
             liability
           />
-          <Stat
-            label="Membership fees / month"
-            value={formatPaise(mrrPaise)}
-            note="Active memberships, normalised to a month. Fee only — GST is not ours."
-          />
         </dl>
+      </section>
+
+      {/* DAILY FIRST, THEN MONTHLY.
+          Thirty days answers "how is trade right now", which is the question
+          somebody opening a dashboard on a Tuesday actually has. Twelve months
+          answers "is the business growing", which is a question you sit down
+          for. */}
+      <section className="mt-12 grid gap-6">
+        <RevenueChart
+          buckets={daily}
+          heading="Revenue, last 30 days"
+          note="Sales per day, India time. Empty days are drawn."
+        />
+        <RevenueChart
+          buckets={monthly}
+          heading="Revenue, last 12 months"
+          note="Sales per calendar month, India time."
+        />
+      </section>
+
+      <section className="mt-12">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="type-label text-muted">Customers by spend</h2>
+          <p className="text-[12px] text-subtle">
+            What they have SPENT, not what they hold — a large unused balance is
+            a liability, not a big customer.
+          </p>
+        </div>
+
+        {topCustomers.length === 0 ? (
+          <p className="mt-4 text-[13px] text-muted">
+            Nobody has paid for anything yet. This fills in with the first
+            completed order.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface">
+            <table className="w-full min-w-[520px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="type-label px-5 py-3 text-muted">Customer</th>
+                  <th className="type-label px-5 py-3 text-right text-muted">Spent</th>
+                  <th className="type-label px-5 py-3 text-right text-muted">Orders</th>
+                  <th className="type-label px-5 py-3 text-right text-muted">Last paid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topCustomers.map((c) => {
+                  /* The share bar is drawn against the TOP spender, not against
+                     the total. Against the total, eight customers each on a
+                     twelfth of the business give eight stubs that all look the
+                     same; against the leader the list actually ranks. */
+                  const share = (c.paise / topCustomers[0].paise) * 100;
+                  return (
+                    <tr key={c.userId} className="border-b border-border last:border-b-0">
+                      <td className="px-5 py-3">
+                        <Link
+                          href={`/admin/customers/${c.userId}`}
+                          className="text-[13px] text-foreground transition-colors hover:text-primary"
+                        >
+                          {names.get(c.userId) ?? `${c.userId.slice(0, 8)}…`}
+                        </Link>
+                        <span
+                          aria-hidden
+                          className="mt-1.5 block h-[3px] rounded-full bg-primary/70"
+                          style={{ width: `${Math.max(share, 2)}%` }}
+                        />
+                      </td>
+                      <td className="type-data px-5 py-3 text-right text-[13px] text-foreground">
+                        {formatPaise(c.paise)}
+                      </td>
+                      <td className="type-data px-5 py-3 text-right text-[13px] text-muted">
+                        {c.orders}
+                      </td>
+                      <td className="px-5 py-3 text-right text-[12px] text-muted">
+                        {c.lastAt
+                          ? new Date(c.lastAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className="mt-12">

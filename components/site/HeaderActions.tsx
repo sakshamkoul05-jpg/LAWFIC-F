@@ -119,7 +119,7 @@ export default function HeaderActions({ className = "" }: { className?: string }
 
   return (
     <div
-      className={`shrink-0 grid-flow-col auto-cols-[54px] items-stretch 2xl:auto-cols-[58px] ${className}`}
+      className={`shrink-0 grid-flow-col auto-cols-[50px] items-stretch 2xl:auto-cols-[58px] ${className}`}
     >
       {ACTIONS.slice(0, 2).map((a) => (
         <ActionLink key={a.label} action={a} />
@@ -142,11 +142,12 @@ export default function HeaderActions({ className = "" }: { className?: string }
 
 /* THE COLUMN IS SET BY THE LONGEST LABEL
 
-   "Suggestion" is the longest, and it measures 47px of text plus 4px of cell
-   padding — so 54 is the narrowest a labelled cell goes. That floor was found
-   by measuring rather than guessing, after 48 truncated it to "Suggest…" and a
-   row of equal cells with one word cut off read as a mistake rather than as a
-   constraint.
+   "Suggestion" is the longest, and the cell has to hold it whole: a row of
+   equal cells with one word cut off reads as a mistake rather than as a
+   constraint, which is what 48px at 9px type produced the first time. At 8.5px
+   the word measures about 44, so 50 clears it with the cell's 4px of padding
+   and a little air — and nine cells cost 450 instead of 486. Both numbers were
+   measured against the rendered text, not estimated from the character count.
 
    THE LABEL NO LONGER WAITS FOR ROOM
 
@@ -182,7 +183,7 @@ function Cell({ children, title }: { children: React.ReactNode; title?: string }
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span className="block w-full truncate text-center text-[9px] leading-none 2xl:text-[9.5px]">
+    <span className="block w-full truncate text-center text-[8.5px] leading-none 2xl:text-[9.5px]">
       {children}
     </span>
   );

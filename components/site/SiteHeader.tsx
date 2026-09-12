@@ -85,7 +85,7 @@ export default function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="flex w-full items-center gap-2 px-3 py-2 sm:gap-2.5 sm:px-4 lg:gap-2.5 lg:px-4">
+        <div className="flex w-full flex-wrap items-center gap-2 px-3 py-2 sm:gap-2.5 sm:px-4 lg:gap-2.5 lg:px-4">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -104,7 +104,7 @@ export default function SiteHeader() {
                middle of the circle, which is the part of the mark the eye
                actually pairs it with. Aligning the tops puts two 56px squares
                on the same line. */
-            className="grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
+            className="order-1 grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
           >
             {/* FOUR LINES, FOUR COLOURS.
                 The client's note is about the ICON, not the menu behind it: the
@@ -131,14 +131,14 @@ export default function SiteHeader() {
             </svg>
           </button>
 
-          <Link href="/" aria-label="LAWFIC home" className="shrink-0">
+          <Link href="/" aria-label="LAWFIC home" className="order-2 shrink-0">
             <Wordmark />
           </Link>
 
           {/* Where you are filing, then the language — both to the left of the
               search, as the sheet places them. */}
-          <LocationBox className="hidden xl:block" />
-          <span className="hidden lg:block">
+          <LocationBox className="order-3 hidden xl:block" />
+          <span className="order-4 hidden lg:block">
             <LanguageMenu />
           </span>
 
@@ -157,45 +157,54 @@ export default function SiteHeader() {
               on fixed items and leave 430 for the search; it now leaves about
               620, and past 1600 the search is the widest thing on the page by
               a distance, which is the shape being asked for. */}
-          <HeaderSearch className="hidden min-w-[200px] flex-1 md:block" />
-
+          {/* `xl:grid`, not `xl:flex`: the component lays its cells out on a
+              grid with equal columns, and a `flex` here silently overrode that
+              and let every cell collapse to its own content — which is exactly
+              the ragged row this was meant to fix. */}
+          <HeaderActions className="order-6 hidden xl:grid" />
 
           {/* Compact, and no longer pinned to the far edge with `ml-auto`.
               Signed out this used to be a "Sign in" pill a hundred and forty
               pixels wide, held against the right rail; the search wanted that
               width more than a second call to action did. */}
-          <div className="ml-auto flex shrink-0 items-center xl:ml-0">
+          <div className="order-7 ml-auto flex shrink-0 items-center xl:ml-0">
             {mounted ? (
               <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
               <span className="h-11 w-14" aria-hidden />
             )}
           </div>
-        </div>
 
-        {/* THE ACTION STRIP GETS ITS OWN ROW.
+          {/* LAST IN THE MARKUP, FIFTH ON THE SCREEN.
 
-            It used to sit in the main row, which is where the blueprint draws
-            it — and for seven icons without labels that worked. It stopped
-            working at nine icons WITH labels: nine labelled cells is 486px, and
-            with the mark, the location box, the language chip and the account
-            corner also on that row there were about 360 pixels left for the
-            search. The three things being asked for — a long search bar, every
-            icon kept, a word under each one — do not fit on one line at 1440,
-            and no amount of trimming closes a gap that size.
+              The row wraps, and a flex row wraps whatever comes last in SOURCE
+              order — so with the search sitting in the middle it was the icons
+              that dropped to a second line, which is the one thing that had to
+              not happen. Ordering it LAST makes it the thing that wraps.
+              Ordering it fifth instead, while still last in the markup, was the
+              same bug wearing a different hat: a full-width item in the middle
+              of the order breaks the line before it as well as after, and the
+              icons ended up on a third row.
 
-            On its own row all three happen at once: the search takes the middle
-            of the row above and runs to about 850px, every label is back at
-            every width, and nothing was dropped to pay for it.
+              WHAT EACH WIDTH GETS
 
-            `xl:grid`, not `xl:flex`: the component lays its cells out on a grid
-            with equal columns, and a `flex` here silently overrode that and let
-            every cell collapse to its own content — the ragged row this was
-            meant to fix in the first place. */}
-        <div className="hidden border-t border-border/60 md:block">
-          <div className="flex w-full items-center justify-end px-3 sm:px-4 lg:px-4">
-            <HeaderActions className="grid" />
-          </div>
+              Below 2xl it is `order-8` AND `w-full`, so it sorts after
+              everything else and then takes a line of its own, running the
+              entire width of the header — about 1400px at 1440, which is
+              longer than it could ever be while sharing. The icons do not move:
+              they stay on the main row beside the mark, exactly where they
+              were.
+
+              At 2xl and up everything fits on one line with room to spare, so
+              it goes back to `flex-1` between the language chip and the icons
+              and takes whatever is left — around 880px at 1920.
+
+              The alternative was keeping one row at every width, which caps the
+              bar near 520px at 1440 and only gets there by squeezing the
+              location box, the language chip and the labels until the row is
+              cramped. That is the thing worth avoiding, so the layout does not
+              try. */}
+          <HeaderSearch className="order-8 hidden w-full md:block 2xl:order-5 2xl:w-auto 2xl:min-w-[320px] 2xl:flex-1" />
         </div>
 
         {/* On a narrow screen the search moves under the row rather than off it */}
