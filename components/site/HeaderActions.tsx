@@ -119,7 +119,7 @@ export default function HeaderActions({ className = "" }: { className?: string }
 
   return (
     <div
-      className={`shrink-0 grid-flow-col auto-cols-[30px] items-stretch 2xl:auto-cols-[58px] ${className}`}
+      className={`shrink-0 grid-flow-col auto-cols-[54px] items-stretch 2xl:auto-cols-[58px] ${className}`}
     >
       {ACTIONS.slice(0, 2).map((a) => (
         <ActionLink key={a.label} action={a} />
@@ -140,31 +140,33 @@ export default function HeaderActions({ className = "" }: { className?: string }
   );
 }
 
-/* THE COLUMN IS SET BY THE LONGEST LABEL, AND THE LABEL BY THE SEARCH BAR
+/* THE COLUMN IS SET BY THE LONGEST LABEL
 
-   58px was the width at which "Suggestion" stopped truncating to "Suggest…",
-   and a row of equal cells with one word cut off reads as a mistake rather
-   than as a constraint. But seven cells at 58 is 406px — as much as the search
-   bar itself had — and the search is the control this page is actually
-   navigated with.
+   "Suggestion" is the longest, and it measures 47px of text plus 4px of cell
+   padding — so 54 is the narrowest a labelled cell goes. That floor was found
+   by measuring rather than guessing, after 48 truncated it to "Suggest…" and a
+   row of equal cells with one word cut off read as a mistake rather than as a
+   constraint.
 
-   The floor was measured rather than guessed: "Suggestion" sets it at 47px of
-   text plus 4px of padding, so 54 is the narrowest a labelled cell goes and 48
-   truncated it again. Seven of those is 378px — still the largest single item
-   on the row after the search, and the search only had 505.
+   THE LABEL NO LONGER WAITS FOR ROOM
 
-   WHICH IS WHY THE LABEL WAITS FOR ROOM
+   It used to. While this strip shared the main header row, nine labelled cells
+   and a usable search bar could not both fit — nine at 54 is 486px, and with
+   the mark, the location box, the language chip and the account corner also on
+   that row, about 360 pixels were left for the search. So the words were hidden
+   below 2xl and came back only on a wide monitor.
 
-   The words are wanted and they are kept, but between 1280 and 1535 the row
-   cannot pay for them and the search bar at the same time. So below 2xl each
-   cell is the icon alone at 34px, and the label comes back at 2xl where there
-   is width for both. That is 238px instead of 378, and the 140 goes straight
-   into the search.
+   That was the wrong trade to keep making. The labels exist because half of
+   these icons have no settled pictogram anywhere — there is no glyph that reads
+   as "post an ad" — and an icon nobody can identify is not fixed by being
+   readable only on a large screen.
 
-   Nothing is lost when the text is hidden. Every cell keeps the same word as
-   its accessible name and its tooltip, so a screen reader reads "Suggestion"
-   at every width and a pointer reveals it on hover — the label is invisible,
-   not absent. */
+   The strip has its own row now, so the constraint is gone: every word shows at
+   every width, and the search bar above it got the 486px back.
+
+   The aria-label and the tooltip stay on every cell regardless. They are what
+   kept these usable while the words were hidden, and they cost nothing now that
+   the words are back. */
 
 /** The shell every action shares: fixed column, icon box, one label line. */
 function Cell({ children, title }: { children: React.ReactNode; title?: string }) {
@@ -180,7 +182,7 @@ function Cell({ children, title }: { children: React.ReactNode; title?: string }
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <span className="hidden w-full truncate text-center leading-none 2xl:block 2xl:text-[9.5px]">
+    <span className="block w-full truncate text-center text-[9px] leading-none 2xl:text-[9.5px]">
       {children}
     </span>
   );

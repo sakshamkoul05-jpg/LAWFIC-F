@@ -159,11 +159,6 @@ export default function SiteHeader() {
               a distance, which is the shape being asked for. */}
           <HeaderSearch className="hidden min-w-[200px] flex-1 md:block" />
 
-          {/* `xl:grid`, not `xl:flex`: the component lays its cells out on a grid
-              with equal columns, and a `flex` here silently overrode that and
-              let every cell collapse to its own content — which is exactly the
-              ragged row this was meant to fix. */}
-          <HeaderActions className="hidden xl:grid" />
 
           {/* Compact, and no longer pinned to the far edge with `ml-auto`.
               Signed out this used to be a "Sign in" pill a hundred and forty
@@ -175,6 +170,31 @@ export default function SiteHeader() {
             ) : (
               <span className="h-11 w-14" aria-hidden />
             )}
+          </div>
+        </div>
+
+        {/* THE ACTION STRIP GETS ITS OWN ROW.
+
+            It used to sit in the main row, which is where the blueprint draws
+            it — and for seven icons without labels that worked. It stopped
+            working at nine icons WITH labels: nine labelled cells is 486px, and
+            with the mark, the location box, the language chip and the account
+            corner also on that row there were about 360 pixels left for the
+            search. The three things being asked for — a long search bar, every
+            icon kept, a word under each one — do not fit on one line at 1440,
+            and no amount of trimming closes a gap that size.
+
+            On its own row all three happen at once: the search takes the middle
+            of the row above and runs to about 850px, every label is back at
+            every width, and nothing was dropped to pay for it.
+
+            `xl:grid`, not `xl:flex`: the component lays its cells out on a grid
+            with equal columns, and a `flex` here silently overrode that and let
+            every cell collapse to its own content — the ragged row this was
+            meant to fix in the first place. */}
+        <div className="hidden border-t border-border/60 md:block">
+          <div className="flex w-full items-center justify-end px-3 sm:px-4 lg:px-4">
+            <HeaderActions className="grid" />
           </div>
         </div>
 
