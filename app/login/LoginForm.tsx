@@ -13,15 +13,18 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  * `signInWithOtp` with `shouldCreateUser` creates the account on first use, so
  * a new customer types one address, types six digits, and has an account —
  * there is no separate registration step and no password to invent. It also
- * fixes something the password path cannot: the address is PROVEN. Sign-up by
- * password on this site goes through /api/auth/signup, which marks the account
- * confirmed without any round trip, so today somebody can register another
- * person's email and a customer who mistypes theirs gets an account they can
- * never receive mail at. A code closes both holes, because the code only
- * arrives if the address is real and yours.
+ * fixes something a password sign-up cannot do in one step: the address is
+ * PROVEN before the account is usable.
  *
- * The password form stays. It is the one route that needs no mail at all, and
- * on a site where mail has been the failure point that is worth keeping.
+ * Password sign-up now goes through `supabase.auth.signUp` and waits on a
+ * confirmation email, which closes the same hole a step later. It used to go
+ * through /api/auth/signup and create the account already confirmed — fine
+ * while the mailer was broken, and exactly how somebody registers another
+ * person's address. That route is off.
+ *
+ * The password form stays. Once an account exists, signing in with a password
+ * needs no mail at all, and on a site where mail has been the failure point
+ * that is worth keeping.
  *
  * THIS DEPENDS ON MAIL ACTUALLY LEAVING THE BUILDING
  *
@@ -71,7 +74,7 @@ function readable(message: string): string {
     return "That email already has an account. Sign in instead.";
   }
   if (m.includes("email not confirmed")) {
-    return "This account still needs its email confirmed before you can sign in.";
+    return "Open the confirmation link we emailed you, then sign in. Check the spam folder if it is not there.";
   }
   if (m.includes("password should be")) {
     return "Use at least 8 characters for your password.";
@@ -251,30 +254,40 @@ export default function LoginForm() {
       /* ── Create an account with a password ────────────────── */
       if (mode === "signup") {
         setNotice("");
-        /* Through our own route rather than supabase.auth.signUp, because that
-           call mails a confirmation and this project's mailer fails — it
-           returned 500 and created no user at all. The route marks the account
-           confirmed on creation; see the note there about what that trades
-           away. The code form above does not need any of this, which is why it
-           is the one offered first. */
-        const res = await fetch("/api/auth/signup", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, password }),
+
+        /* SUPABASE'S OWN SIGN-UP, WHICH MEANS A CONFIRMATION EMAIL.
+           This used to POST to /api/auth/signup, which created the account
+           already confirmed — an accepted trade while the mailer was broken,
+           because an unusable sign-up is worse than an unverified one. It also
+           meant nobody proved they owned the address they registered: you
+           could sign up as somebody else, and a customer who mistyped theirs
+           got an account they could never receive mail at.
+
+           Mail works now, so the trade is off. The route refuses with a 410
+           and this calls Supabase directly. */
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: callback("/profile/setup") },
         });
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          setError(body.error ?? "Could not create that account.");
+        if (error) {
+          setError(readable(error.message));
           return;
         }
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          setNotice("Account created. Sign in with your new password.");
+        /* `session` is null when a confirmation is pending, which is the
+           normal path now. Saying "check your email" and switching to the
+           sign-in tab is honest; pushing them to /profile/setup would land
+           them on a page that bounces them back out, signed out. */
+        if (!data.session) {
           setMode("password");
+          setNotice(
+            `Account created. We have sent a confirmation link to ${email} — open it, then sign in.`,
+          );
           return;
         }
+
         router.push("/profile/setup");
         router.refresh();
         return;

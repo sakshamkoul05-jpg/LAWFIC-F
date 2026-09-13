@@ -37,8 +37,21 @@ export const dynamic = "force-dynamic";
  * minted here.
  */
 
-/** Flip to true once custom SMTP is configured, then delete this route. */
-const VERIFICATION_REQUIRED = false;
+/**
+ * FLIPPED ON — SMTP now exists, so this route refuses.
+ *
+ * It was written as an accepted trade while the mailer was broken: an
+ * unusable sign-up is worse than an unverified one. Resend delivers now, so
+ * the trade is off and the route returns 410. The sign-up form calls
+ * `supabase.auth.signUp` directly and Supabase mails the confirmation, which
+ * means an address has to be real and yours before the account works.
+ *
+ * The file stays for one release rather than being deleted with the switch,
+ * because a client cached in somebody's browser will keep POSTing here for a
+ * while and a 410 that says why is kinder than a 404 that does not. Delete it
+ * once the logs are quiet.
+ */
+const VERIFICATION_REQUIRED = true;
 
 const Signup = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
