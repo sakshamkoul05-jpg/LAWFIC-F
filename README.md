@@ -142,36 +142,52 @@ PGlite as superuser, which **bypasses row security** — it can prove the polici
 parse but never that they grant correctly. Only a real round trip through
 PostgREST can, and that is what `doctor` is.
 
-## Email: sign-in codes come from Hostinger
+## Email: sign-in codes go out through Resend
 
-Auth mail is sent by **Supabase**, not by this app, so the mailbox goes in the
-Supabase dashboard and nothing about it belongs in `.env.local`. Authentication
-→ Emails → SMTP Settings:
+Auth mail is sent by **Supabase**, not by this app. That is worth saying first
+because of what follows from it: the Resend API key belongs in the Supabase
+dashboard and **nowhere in this repository** — not in `.env.local`, not in the
+deployment's environment, not in `.env.example`. Nothing here imports it, and
+there is no `RESEND_API_KEY` to add. One copy, in one place, revocable from one
+screen.
+
+Resend speaks SMTP, so it drops straight into the settings Supabase already
+has. Authentication → Emails → SMTP Settings:
 
 | Field | Value |
 | --- | --- |
-| Host | `smtp.hostinger.com` |
+| Host | `smtp.resend.com` |
 | Port | `465` (implicit TLS) — or `587` for STARTTLS |
-| Username | the full business address, e.g. `no-reply@lawfic.in` |
-| Password | that mailbox's own password |
-| Sender email | the same address as the username |
+| Username | `resend` — the literal word, not an address |
+| Password | the Resend API key |
+| Sender email | `no-reply@lawfic.pro` |
 | Sender name | `LAWFIC` |
 
-Two things that are easy to get wrong and both fail the same way — mail that
-silently never arrives:
+The username catches people out: every other SMTP provider wants the mailbox
+address there, and Resend wants the fixed string `resend` with the API key as
+the password.
 
-- **The sender must be the authenticated mailbox.** Hostinger rejects a
-  `From:` it did not issue, so a sender of `hello@lawfic.in` on a mailbox
-  logged in as `no-reply@lawfic.in` bounces.
-- **SPF, DKIM and DMARC have to resolve for the domain.** Hostinger publishes
-  these when the domain's email is hosted there; if the DNS lives elsewhere
-  they have to be copied across, or the codes land in spam rather than failing
-  visibly. Verify before launch, not after a customer says they never got one.
+### The domain has to be verified first
 
-Hostinger business mailboxes are rate-limited per hour and per day — generous
-for sign-in codes at this stage, but they are a mailbox and not a transactional
-sender. If sign-in volume ever outgrows it, the change is these same six fields
-pointed at a transactional provider; no code moves.
+Resend will not send from `@lawfic.pro` until the domain is verified, and until
+then it only delivers to the address that owns the Resend account — which looks
+exactly like a working setup right up to the moment a real customer tries to
+sign in. Add the domain in Resend → Domains and publish the records it shows
+you. There are four:
+
+- **MX** on `send.lawfic.pro` — the bounce path
+- **TXT** on `send.lawfic.pro` — SPF
+- **TXT** on `resend._domainkey.lawfic.pro` — DKIM
+- **TXT** on `_dmarc.lawfic.pro` — DMARC, optional but do it anyway
+
+Copy the values from Resend rather than from anywhere else; the DKIM key is
+generated per domain. If the DNS for lawfic.pro is at Hostinger, they go in
+Hostinger's DNS zone editor.
+
+Do not skip DMARC. Without it, a receiving provider that dislikes something
+about the message has no policy to fall back on, and the usual outcome is the
+code landing in spam rather than bouncing — which is the failure mode you find
+out about from a customer rather than from a log.
 
 ### The template has to carry the code
 
@@ -192,10 +208,22 @@ someone something to type with nowhere to type it.
 
 ### Redirect URLs
 
-Authentication → URL Configuration → Redirect URLs needs `http://localhost:3000/**`
-and the production origin. Supabase falls back to the Site URL for anything not
-on that list, so a missing entry does not error — it drops a successful
-sign-in on the home page, signed out.
+Authentication → URL Configuration. Site URL and Redirect URLs both need to
+know about the new domain:
+
+- `http://localhost:3000/**` (dev)
+- `https://lawfic.pro/**` and `https://www.lawfic.pro/**`
+
+Supabase falls back to the Site URL for anything not on that list, so a missing
+entry does not error — it drops a successful sign-in on the home page, signed
+out.
+
+### Limits
+
+Resend's free tier is 100 emails a day and 3,000 a month, which is a lot of
+sign-ins at this stage and not a lot during a launch week. The sign-in form
+already says so plainly when a send is refused rather than failing quietly, so
+hitting the ceiling is visible; the fix is a paid plan, not a code change.
 
 ## Going live
 
@@ -216,10 +244,14 @@ In order, because two of these have external lead times:
    Razorpay activation requires them. *(Blocks go-live, not development.)*
 5. **Razorpay KYC** — needs the entity, GST registration and current account.
    Swap test keys for live ones. *(3–7 days.)*
-6. **DLT registration** for mobile OTP — entity ID, sender header and templates
+6. **Verify lawfic.pro in Resend** — four DNS records, then sign-in codes
+   reach real customers rather than only the account owner. Until it is
+   verified, email sign-in works for you and silently fails for everybody else.
+   *(Minutes to publish, up to a few hours to propagate.)*
+7. **DLT registration** for mobile OTP — entity ID, sender header and templates
    on a DLT portal, or operators drop the SMS. Email sign-in works throughout
    and stays as the fallback. *(Several days.)*
-7. **Memberships** need the Razorpay Subscriptions product enabled on the
+8. **Memberships** need the Razorpay Subscriptions product enabled on the
    account and an e-mandate method live (UPI Autopay or cards). Until then
    `/api/subscription/checkout` returns 503 and says so; the plan pages, the
    pricing maths and the wallet card all work without it.

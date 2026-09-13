@@ -28,9 +28,13 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  * OTP was in this file once before and was removed because Supabase's built-in
  * sender delivers about two messages an hour and only to addresses on the
  * project team — under which a code form is a sign-in page that cannot sign a
- * customer in. The project now sends through its own Hostinger mailbox, so that
- * constraint is gone; the setup and the two traps in it are in the README under
- * "Email: sign-in codes come from Hostinger".
+ * customer in. Mail now goes out through Resend on lawfic.pro, so that
+ * constraint is gone; the setup and the traps in it are in the README under
+ * "Email: sign-in codes go out through Resend".
+ *
+ * Nothing about Resend appears in this codebase. Supabase sends the mail over
+ * SMTP, so the API key lives in the Supabase dashboard and there is no
+ * environment variable here to leak, log or forget to rotate.
  *
  * The loud failures stay anyway. A refused send still says so in words and
  * still points at the password form, because a mailbox can be rate-limited, a

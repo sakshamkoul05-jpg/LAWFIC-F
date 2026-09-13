@@ -67,7 +67,7 @@ export default function ProductShot() {
             ))}
           </span>
           <span className="mx-auto rounded border border-border bg-surface px-3 py-1 font-mono text-[11px] text-muted">
-            lawfic.in/{tab === "wallet" ? "wallet" : "orders/ORD-26-0114"}
+            lawfic.pro/{tab === "wallet" ? "wallet" : "orders/ORD-26-0114"}
           </span>
         </div>
 
