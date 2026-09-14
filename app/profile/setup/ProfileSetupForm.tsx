@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SetPasswordCard from "@/components/account/SetPasswordCard";
 import {
   EXAM_OPTIONS,
   JOB_OPTIONS,
@@ -23,6 +24,10 @@ export default function ProfileSetupForm() {
   const [skipped, setSkipped] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [savedName, setSavedName] = useState("");
+  /* Whether to offer a password at the end. Read once, on mount, from the
+     account itself — a code sign-up leaves no password behind and would
+     otherwise need a fresh code on every future visit. */
+  const [needsPassword, setNeedsPassword] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -36,6 +41,7 @@ export default function ProfileSetupForm() {
         return;
       }
       setSavedName(data.user.user_metadata?.full_name ?? "");
+      setNeedsPassword(data.user.user_metadata?.has_password !== true);
       setStage("basics");
     });
   }, [router]);
@@ -335,6 +341,13 @@ export default function ProfileSetupForm() {
                   >
                     {skipped}
                   </p>
+                )}
+
+                {/* Only for an account that has no password — which means
+                    somebody who came in by emailed code. Anybody who chose a
+                    password on the way in never sees this. */}
+                {needsPassword && (
+                  <SetPasswordCard onDone={() => setNeedsPassword(false)} />
                 )}
                 <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted">
                   Your home page is now tailored to{" "}

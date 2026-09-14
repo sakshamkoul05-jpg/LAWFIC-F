@@ -299,7 +299,14 @@ export default function LoginForm() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: callback("/profile/setup") },
+          options: {
+            emailRedirectTo: callback("/profile/setup"),
+            /* Chose a password on the way in, so profile setup must not turn
+               round and offer to set one. See the note in
+               /api/profile/password for why this has to be remembered rather
+               than read off the user. */
+            data: { has_password: true },
+          },
         });
 
         if (error) {

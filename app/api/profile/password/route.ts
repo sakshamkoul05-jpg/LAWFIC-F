@@ -28,7 +28,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
+  /**
+   * The flag goes in the SAME call as the password.
+   *
+   * Supabase does not tell a client whether an account has a password —
+   * `user` carries no such field, and the email identity looks identical
+   * whether the account was made by code or by password. So the app has to
+   * remember, and `has_password` in user_metadata is that memory: it is what
+   * decides whether profile setup offers to add one.
+   *
+   * Written together with the password rather than in a second updateUser, so
+   * the two cannot disagree. Split across two calls, a failure between them
+   * leaves an account that HAS a password and is still being asked to set one,
+   * every time, with no way for the customer to make the prompt go away.
+   */
+  const { error } = await supabase.auth.updateUser({
+    password,
+    data: { has_password: true },
+  });
   if (error) {
     console.error("[profile/password] update failed", error.message);
     return NextResponse.json({ error: "password_failed" }, { status: 502 });
