@@ -910,3 +910,118 @@
     animation: none;
   }
 }
+
+/* ============================================================
+   THE DARK BANDS
+   ------------------------------------------------------------
+   The running strip, the section bar and the strips on the home
+   page are one family: a deep navy ground carrying warm light
+   type, with gold reserved for the thing that is current or
+   being offered.
+
+   WHY NAVY AND NOT THE BLACK IT WAS
+
+   The bar was #0B0B0C with #9A803C lettering — dim gold on near
+   black, which measures 5.2:1 and still reads as faint, because
+   contrast maths does not account for a small size and a low
+   luminance pair sitting in a bright page. Navy lifts the ground
+   off pure black so light type has somewhere to sit, and navy
+   with gold is the pairing the client's own reference site uses.
+
+   THESE ARE CONSTANTS, NOT THEME TOKENS
+
+   The bands are dark in light mode and dark mode alike, by
+   instruction. A token that flips with the theme would be the
+   wrong tool; what is wanted is a fixed ground, and writing it
+   as one is more honest than defining a variable that never
+   varies. They live here rather than in the components so the
+   ticker, the tab bar and the home page strips cannot drift
+   apart.
+   ============================================================ */
+
+:root {
+  /* Deepest, for the outermost strip — it frames everything below
+     it, so it has to sit behind the bar rather than beside it. */
+  --band-deep: #060E22;
+  --band: #0B1D4A;
+  /* One step up, for a hovered tab's wash. */
+  --band-lift: #142C66;
+  --band-ink: #F2EEE4;
+  --band-ink-dim: rgba(242, 238, 228, 0.78);
+  --band-gold: #E6C36B;
+  --band-edge: rgba(230, 195, 107, 0.22);
+}
+
+/* ------------------------------------------------------------
+   The section bar's hover.
+
+   Three things move together so it reads as one gesture rather
+   than three effects: the label lifts a hair, a wash fades up
+   behind it, and the rule under it grows from the centre out.
+   All of it is transform and opacity, so it runs on the
+   compositor and cannot judder against the page.
+
+   The rule is drawn for the ACTIVE tab too, already at full
+   width. Same element, same property — so moving the pointer
+   along the bar slides attention between rules that all behave
+   identically, instead of a hover effect and a separate
+   "current" marker competing.
+   ------------------------------------------------------------ */
+
+.tab-link {
+  position: relative;
+  isolation: isolate;
+}
+
+.tab-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, rgba(230, 195, 107, 0.11), rgba(230, 195, 107, 0.03));
+  opacity: 0;
+  transition: opacity 240ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.tab-link:hover::before,
+.tab-link:focus-visible::before {
+  opacity: 1;
+}
+
+.tab-label {
+  display: inline-block;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.25, 1),
+    color 180ms ease;
+}
+
+.tab-link:hover .tab-label,
+.tab-link:focus-visible .tab-label {
+  transform: translateY(-1px);
+}
+
+.tab-rule {
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.tab-link:hover .tab-rule,
+.tab-link:focus-visible .tab-rule,
+.tab-link[data-active="true"] .tab-rule {
+  transform: scaleX(1);
+}
+
+/* Someone who asked the system for no animation gets the state
+   without the movement — the rule and the wash still say which
+   tab is current, they just arrive rather than grow. */
+@media (prefers-reduced-motion: reduce) {
+  .tab-label,
+  .tab-rule,
+  .tab-link::before {
+    transition: none;
+  }
+  .tab-link:hover .tab-label {
+    transform: none;
+  }
+}

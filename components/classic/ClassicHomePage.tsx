@@ -236,41 +236,81 @@ export default function ClassicHomePage({ banners }: { banners?: Banner[] }) {
         </div>
       </section>
 
-      {/* ── Membership CTA ───────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-        <div className="overflow-hidden border border-primary/20 bg-primary-light/50 p-8 text-center">
-          <h3 className="type-h2 text-primary">{tx("Membership Benefits")}</h3>
-          <p className="type-body mx-auto mt-3 max-w-md text-muted">
+      {/* ── Membership CTA ───────────────────────────────────
+          Dark, and the only dark CARD on the page.
+
+          It was a pale gold tint on a pale page — a box you had to look for on
+          a screen made almost entirely of the same warm off-white. This is the
+          one block on the home page asking for money, so it gets the one
+          treatment nothing else here has: the navy ground from the bands
+          above, light type on it, and the button in gold rather than in the
+          brand's mid-tone, which on navy would sink. ───────────── */}
+      {/* pb-12, not py-4. The stats strip below is navy too, and at the old
+          spacing the two dark blocks were separated by a 10px sliver of page —
+          which reads as a seam in one block rather than as a gap between two.
+          They are different things: an offer, then a readout. */}
+      <section className="mx-auto max-w-7xl px-4 pb-12 pt-4 sm:px-6">
+        <div
+          className="overflow-hidden rounded-xl border p-10 text-center"
+          style={{ background: "var(--band)", borderColor: "var(--band-edge)" }}
+        >
+          <h3 className="type-h2" style={{ color: "var(--band-gold)" }}>
+            {tx("Membership Benefits")}
+          </h3>
+          <p
+            className="type-body mx-auto mt-3 max-w-md"
+            style={{ color: "var(--band-ink-dim)" }}
+          >
             {tx("Save 10% on all services with a LAWFIC membership plan")}
           </p>
           <Link
             href="/pricing"
-            className="mt-6 inline-block rounded-full bg-primary px-6 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-hover"
+            /* Gold fill with dark ink on it. The brand mid-gold used for
+               buttons elsewhere is tuned for a light page; on navy it reads as
+               a brown smudge and the white label on it drops below AA. */
+            className="mt-7 inline-block rounded-full px-7 py-3 text-[14px] font-semibold transition-transform duration-200 hover:-translate-y-0.5"
+            style={{ background: "var(--band-gold)", color: "#0B1D4A" }}
           >
             {tx("View Plans")}
           </Link>
         </div>
       </section>
 
-      {/* ── Stats Strip — dashboard readout ───────────────── */}
-      <section className="border-y border-border bg-surface/50">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-6 sm:px-6">
-          <div className="text-center">
-            <p className="type-data text-[28px] text-primary">{totalServices}</p>
-            <p className="type-label mt-1">{tx("Total Services")}</p>
-          </div>
-          <div className="text-center">
-            <p className="type-data text-[28px] text-success">{liveServices.length}</p>
-            <p className="type-label mt-1">{tx("Live Today")}</p>
-          </div>
-          <div className="text-center">
-            <p className="type-data text-[28px] text-foreground">{categories.length}</p>
-            <p className="type-label mt-1">{tx("Categories")}</p>
-          </div>
-          <div className="text-center">
-            <p className="type-data text-[28px] text-foreground">₹0</p>
-            <p className="type-label mt-1">{tx("Hidden Fees")}</p>
-          </div>
+      {/* ── Stats Strip — dashboard readout ───────────────────
+          Full-bleed and dark, so the page has a floor.
+
+          Four figures on a `bg-surface/50` tint was a strip that did not read
+          as a strip: it sat half a shade off the page around it and the
+          numbers, in three different accent colours, argued with each other.
+          On navy they become one readout — same size, same gold, and the
+          labels under them light enough to be read rather than guessed at.
+
+          `text-success` is gone with them. Green for "Live Today" made one of
+          four figures look like a status light, which is a meaning none of the
+          other three carry. ─────────────────────────────────── */}
+      <section
+        className="border-y"
+        style={{ background: "var(--band)", borderColor: "var(--band-edge)" }}
+      >
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-14 gap-y-6 px-4 py-10 sm:px-6">
+          {[
+            { value: totalServices, label: "Total Services" },
+            { value: liveServices.length, label: "Live Today" },
+            { value: categories.length, label: "Categories" },
+            { value: "\u20B90", label: "Hidden Fees" },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <p className="type-data text-[34px]" style={{ color: "var(--band-gold)" }}>
+                {stat.value}
+              </p>
+              <p
+                className="type-label mt-1.5 text-[11.5px]"
+                style={{ color: "var(--band-ink-dim)" }}
+              >
+                {tx(stat.label)}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 

@@ -173,15 +173,25 @@ export const ANNOUNCEMENTS = FALLBACK_LINES;
 function ClaimIcon({ children }: { children: React.ReactNode }) {
   return (
     <svg
-      width="15"
-      height="15"
+      width="19"
+      height="19"
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      /* The stroke comes DOWN as the icon goes up. A 1.5 stroke drawn at 15px
+         is a heavier-looking line than the same 1.5 at 19px, so holding it
+         constant while scaling would have made the row lighter, not bolder —
+         the opposite of the ask. 1.6 at 19px reads as a firmer line than 1.5
+         at 15px did. */
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="shrink-0 text-white/55"
+      /* Gold, not white at 55%. These were deliberately recessive so as not to
+         compete with the words; at this size that reads as washed out. Gold
+         gives each claim a mark with its own colour, which is what makes the
+         row scannable rather than merely readable. */
+      className="shrink-0"
+      style={{ color: "var(--band-gold)" }}
       aria-hidden
     >
       {children}
@@ -221,16 +231,24 @@ function Run({ claims, hidden = false }: { claims: Claim[]; hidden?: boolean }) 
     >
       {claims.map((claim) => (
         <li key={claim.text} className="flex items-center whitespace-nowrap">
-          <span className="flex items-center gap-2 px-6">
+          <span className="flex items-center gap-2.5 px-7">
             {claim.icon && <ClaimIcon>{claim.icon}</ClaimIcon>}
-            {/* 13px against the 11.5 it was. The strip is the first thing on
-                the page and it was small enough to scan past; a point and a
-                half is the difference between decoration and a line someone
-                actually reads. The tracking comes down as the size goes up —
-                letter-spacing that suits 11.5px looks sparse at 13. */}
-            <span className="text-[13px] tracking-[0.08em] text-white/90">{tx(claim.text)}</span>
+            {/* 15px and a 500 weight. The strip is the first thing on the page
+                and at 13px it was still small enough to scan straight past.
+                The tracking comes down again as the size goes up — spacing
+                that suits 13px looks sparse at 15, and a ticker is already
+                wide enough without loosening the letters. */}
+            <span
+              className="text-[15px] font-medium tracking-[0.04em]"
+              style={{ color: "var(--band-ink)" }}
+            >
+              {tx(claim.text)}
+            </span>
           </span>
-          <span aria-hidden className="text-white/25">
+          {/* The separator scales with the row. A dot sized for 13px type
+              disappears between 15px claims, and the gap then reads as a
+              mistake rather than as a division. */}
+          <span aria-hidden className="text-[15px] text-white/30">
             ·
           </span>
         </li>
@@ -253,8 +271,13 @@ export default function AnnouncementTicker({
   const claims = claimsFor(lines);
 
   return (
+    /* 36px tall before, which is a hairline once there is 15px type in it.
+       The deepest of the band colours, because this strip frames everything
+       under it — sitting it on the same navy as the section bar would fuse the
+       two into one slab and lose the bar. */
     <div
-      className="ticker group relative w-full overflow-hidden bg-black py-1.5"
+      className="ticker group relative w-full overflow-hidden border-b py-3"
+      style={{ background: "var(--band-deep)", borderColor: "var(--band-edge)" }}
       aria-label={tx("LAWFIC service highlights")}
     >
       <div className="ticker-track flex w-max">

@@ -12,18 +12,16 @@ import {
 } from "@/lib/nav-tabs";
 
 /**
- * The section bar: the blueprint's first row on a black band in gold, and its
- * second row behind a chevron.
+ * The section bar: the blueprint's fifteen on a dark band, and its other twelve
+ * behind a chevron.
  *
- * WHAT CHANGED AND WHY
+ * WHY FIFTEEN AND NOT TWENTY-SEVEN
  *
  * It used to be all twenty-seven at once, each tab carrying its own accent
- * colour. The client's instruction is black ground, gold text, and the sheet's
- * fifteen showing with its twelve folded away. That is not only a taste call:
- * twenty-seven items in a permanent block is a wall a reader scans rather than
- * reads, and twenty-seven different colours is a toy shelf. One ground and one ink makes the row read as a set,
- * and the current section is then the only thing on the bar with a bright
- * mark on it, which is the whole job of a nav bar.
+ * colour. Twenty-seven items in a permanent block is a wall a reader scans
+ * rather than reads, and twenty-seven colours is a toy shelf. One ground and
+ * one ink makes the row read as a set, and the current section is then the
+ * only lit thing on the bar — which is the whole job of a nav bar.
  *
  * THE CHEVRON
  *
@@ -34,15 +32,33 @@ import {
  * panel that covers the page with no obvious dismissal is the thing people
  * complain about in mega menus.
  *
- * The colours are hard-coded rather than themed. This band is black in both
- * light and dark mode by instruction, so a token that flips with the theme
- * would be the wrong tool: what is wanted is a constant, and writing it as one
- * is more honest than defining a token that never varies.
+ * The band is dark in light mode and dark mode alike, by instruction. The
+ * colours therefore come from the --band-* constants in globals.css rather
+ * than from the theme tokens — see the note above them for why a value that
+ * never varies should not be written as a variable that could.
  */
 
-const BAND = "#0B0B0C";
-const GOLD = "#D0AE55";
-const GOLD_DIM = "#9A803C";
+/**
+ * The bar's colours come from the band tokens in globals.css, so the ticker
+ * above it and the strips further down the page cannot drift away from it.
+ *
+ * WHAT CHANGED, AND WHY IT WAS NOT JUST "TOO DARK"
+ *
+ * It was #9A803C lettering on #0B0B0C — dim gold on near-black. That measures
+ * 5.2:1, which passes AA on paper, and still read as faint, because a contrast
+ * ratio says nothing about a 13.5px label in a fifteen-across grid sitting
+ * under a bright page. Two things were wrong at once and only one of them was
+ * the colour.
+ *
+ * So the scheme is inverted rather than brightened. The resting label is now
+ * warm light on navy (about 8.7:1) and GOLD IS RESERVED for the tab you are
+ * on. Before, everything was gold and the current tab was slightly more gold
+ * than the rest — which is no signal at all. Now the bar reads as a row of
+ * legible labels with exactly one lit.
+ */
+const BAND = "var(--band)";
+const GOLD = "var(--band-gold)";
+const INK = "var(--band-ink-dim)";
 
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
@@ -181,23 +197,25 @@ export default function ClassicCategoryTabs() {
         aria-current={active ? "page" : undefined}
         onMouseEnter={(e) => open(tab, e.currentTarget)}
         onFocus={(e) => open(tab, e.currentTarget)}
-        /* 13.5px in a taller band. At 12px in a 15-across grid the row read
-           as a caption rather than as the site's main navigation, which is what
-           it is — this strip is how someone reaches any of twenty-seven
-           sections. The extra height is what lets the size go up without the
-           labels touching the rule under them. */
-        className="group relative shrink-0 truncate whitespace-nowrap px-3 py-3.5 text-center text-[13.5px] transition-colors lg:min-w-0 lg:px-1.5"
-        style={{ color: active ? GOLD : GOLD_DIM }}
+        /* 15px, and 500 weight. This row is how someone reaches any of
+           twenty-seven sections — it is the site's main navigation, not a
+           caption, and at 13.5px in a fifteen-across grid it was being read as
+           the latter. The weight does as much work as the size: a half-step up
+           in weight buys legibility on a dark ground that another point of
+           size does not. */
+        className="tab-link group flex-none truncate whitespace-nowrap px-3 py-4 text-center text-[15px] font-medium lg:min-w-0 lg:flex-auto lg:px-2"
       >
-        <span className="group-hover:!text-[var(--gold)]" style={{ ["--gold" as string]: GOLD }}>
+        <span
+          className="tab-label group-hover:!text-[var(--band-gold)]"
+          style={{ color: active ? GOLD : INK }}
+        >
           {t(`tab.${tab.id}`, tab.label)}
         </span>
-        {/* The current section is the only lit thing on the bar. */}
+        {/* One rule, drawn for the hovered tab and the current one alike —
+            see the .tab-rule note in globals.css for why they share it. */}
         <span
           aria-hidden
-          className={`absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-opacity duration-200 ${
-            active ? "opacity-100" : "opacity-0 group-hover:opacity-50"
-          }`}
+          className="tab-rule absolute inset-x-2 bottom-0 h-[2.5px] rounded-full"
           style={{ background: GOLD }}
         />
       </Link>
@@ -205,10 +223,23 @@ export default function ClassicCategoryTabs() {
   };
 
   return (
-    <div className="relative" style={{ background: BAND }} onMouseLeave={scheduleClose}>
+    /* The hairline is what stops a dark band from simply running out into the
+       page below it. One line of gold at low alpha, the same edge the second
+       row uses, so the bar has a bottom. */
+    <div
+      className="relative border-b"
+      style={{ background: BAND, borderColor: "var(--band-edge)" }}
+      onMouseLeave={scheduleClose}
+    >
       <nav aria-label="Sections">
         {/* THE FIRST ROW — the sheet's Tab 1 to Tab 15. */}
-        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:grid lg:grid-cols-[repeat(15,minmax(0,1fr))] lg:overflow-visible lg:px-6">
+        {/* Content-sized, not fifteen equal columns.
+            Equal columns capped every cell at the width of 1/15th of the bar
+            and truncated "Instant Help" — and no font size fixes that, because
+            the constraint is the grid rather than the type. Flex gives each
+            label the room its own words need and shares the slack out, so the
+            row still fills the width and nothing is ever cut. */}
+        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:overflow-visible lg:px-6">
           {TABS_VISIBLE.map(renderTab)}
         </div>
 
@@ -227,7 +258,7 @@ export default function ClassicCategoryTabs() {
             aria-expanded={expanded}
             aria-controls="more-sections"
             aria-label={expanded ? "Hide the other sections" : "Show the other sections"}
-            className="grid h-5 w-20 place-items-center rounded-b-lg transition-colors"
+            className="grid h-6 w-24 place-items-center rounded-b-lg transition-colors hover:bg-white/5"
             style={{ color: GOLD }}
           >
             <svg
@@ -249,8 +280,8 @@ export default function ClassicCategoryTabs() {
           hidden={!expanded}
           onMouseEnter={cancelCollapse}
           onMouseLeave={scheduleCollapse}
-          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:grid lg:grid-cols-[repeat(12,minmax(0,1fr))] lg:overflow-visible lg:px-6"
-          style={{ borderColor: "rgba(208,174,85,0.18)" }}
+          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:overflow-visible lg:px-6"
+          style={{ borderColor: "var(--band-edge)" }}
         >
           {TABS_COLLAPSED.map(renderTab)}
         </div>
