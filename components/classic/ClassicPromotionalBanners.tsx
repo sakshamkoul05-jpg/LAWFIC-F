@@ -26,8 +26,10 @@ const DWELL_MS = 6500;
  *     out from under someone who is reading or reaching for the link;
  *   - `prefers-reduced-motion` disables auto-advance entirely and makes the
  *     remaining moves instant — the banners become a plain swipeable row;
- *   - every slide is a real link, and the dots are real buttons, so this is
- *     operable by keyboard and legible to a screen reader.
+ *   - every slide is a real link, and the dots and arrows are real buttons,
+ *     so this is operable by keyboard and legible to a screen reader;
+ *   - the pause button is a decision that outlives the pointer — see the note
+ *     on `stopped` below.
  */
 /**
  * `banners` comes from the database via the server, because the back office
@@ -49,7 +51,15 @@ export default function ClassicPromotionalBanners({
   const reduced = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  /* TWO KINDS OF PAUSE, AND THEY MUST NOT SHARE A FLAG.
+     `paused` is transient — it is on while a pointer is over the band, a
+     finger is down, or something inside has focus, and it clears by itself.
+     `stopped` is a decision somebody made by pressing the button, and the one
+     thing it must survive is the mouse leaving the band. Folding them into one
+     boolean means the pause button un-presses itself the moment you move the
+     pointer away from it, which is exactly when you would. */
   const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
 
   const count = banners.length;
 
@@ -157,10 +167,10 @@ export default function ClassicPromotionalBanners({
   }, [count]);
 
   useEffect(() => {
-    if (reduced || paused) return;
+    if (reduced || paused || stopped) return;
     const t = setInterval(() => goTo(index + 1), DWELL_MS);
     return () => clearInterval(t);
-  }, [index, paused, reduced, goTo]);
+  }, [index, paused, stopped, reduced, goTo]);
 
   /* Keep the current slide aligned when the viewport changes width. */
   useEffect(() => {
@@ -303,7 +313,14 @@ export default function ClassicPromotionalBanners({
                   style={{ background: tone.accent }}
                 />
 
-                <div className="relative mx-auto flex min-h-[300px] max-w-6xl flex-col justify-center gap-5 px-6 py-14 sm:min-h-[360px] sm:px-10 sm:py-20">
+                {/* pb-28 leaves the control bar somewhere to live.
+                    The bars this replaced were 1px tall and let clicks through,
+                    so content could run to the bottom edge. A 44px pill that
+                    takes its own clicks cannot: at 375px it landed on top of
+                    the banner's CTA and ate the taps along its lower edge —
+                    measured, not guessed. The extra room is only at the
+                    bottom, so nothing about the headline moves. */}
+                <div className="relative mx-auto flex min-h-[300px] max-w-6xl flex-col justify-center gap-5 px-6 pb-28 pt-14 sm:min-h-[360px] sm:px-10 sm:pb-32 sm:pt-20">
                   <p
                     className="type-label"
                     style={{ color: tone.accent, textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
@@ -354,34 +371,146 @@ export default function ClassicPromotionalBanners({
         })}
       </div>
 
-      {/* Position + control. The active bar fills over the dwell time, so the
-          indicator says how long is left rather than only where you are. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-6 pb-5 sm:px-10 sm:pb-7">
-          {banners.map((banner, i) => (
-            <button
-              key={banner.id}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`${tx("Show")} ${tx(banner.title)}`}
-              aria-current={i === index}
-              className="pointer-events-auto h-1 flex-1 max-w-[68px] overflow-hidden rounded-full bg-white/20 transition-colors hover:bg-white/35"
-            >
-              <span
-                aria-hidden
-                className="block h-full rounded-full bg-white/85"
-                style={{
-                  width: i === index ? "100%" : "0%",
-                  transition:
-                    i === index && !reduced && !paused
-                      ? `width ${DWELL_MS}ms linear`
-                      : "width 200ms ease",
-                }}
-              />
-            </button>
-          ))}
+      {/*
+        THE CONTROLS — back, dots, forward, pause. Centred, in one pill.
+
+        WHY THEY ARE TOGETHER AND NOT IN THE CORNERS
+
+        Arrows pinned to the left and right edges of a full-bleed band are two
+        controls a metre apart on a desktop screen, and on a phone they sit
+        exactly where a thumb rests while scrolling the page. Collected in the
+        middle they are one object: you look in one place, and everything that
+        changes the slide is there.
+
+        THE ACTIVE DOT IS A PILL THAT FILLS
+
+        The bars this replaces did one thing well — the fill said how long was
+        left, not only where you were. Plain dots throw that away. So the
+        current dot stretches into a short pill and fills across the dwell,
+        which keeps the countdown while the other ten stay dots.
+
+        THE PILL IS OPAQUE ENOUGH TO SURVIVE ANY BANNER
+
+        Eleven banners in eleven tones pass underneath. White controls on a
+        dark translucent ground read on all of them; controls tinted per
+        banner would need eleven judgements and would be wrong on at least
+        one.
+      */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
+        <div
+          className="pointer-events-auto mb-5 flex items-center gap-1 rounded-full bg-black/45 px-2 py-1.5 backdrop-blur-md sm:mb-7"
+          /* Not a <nav>: these are controls for the region, and the region is
+             already labelled as a carousel. */
+        >
+          <ControlButton onClick={() => goTo(index - 1)} label={tx("Previous banner")}>
+            <path d="M11 3.5 6.5 8l4.5 4.5" />
+          </ControlButton>
+
+          <div className="flex items-center gap-1.5 px-1.5">
+            {banners.map((banner, i) => {
+              const current = i === index;
+              return (
+                <button
+                  key={banner.id}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`${tx("Show")} ${tx(banner.title)}`}
+                  aria-current={current}
+                  /* The hit target is 20px tall even though the dot is 7 —
+                     a 7px tap target fails every guideline there is. The
+                     padding is transparent and does the work. */
+                  className="group grid h-5 place-items-center"
+                >
+                  <span
+                    aria-hidden
+                    className={`block h-[7px] overflow-hidden rounded-full transition-all duration-300 ${
+                      current
+                        ? "w-7 bg-white/25"
+                        : "w-[7px] bg-white/40 group-hover:bg-white/70"
+                    }`}
+                  >
+                    {/* The countdown, drawn only on the dot it belongs to. */}
+                    {current && (
+                      <span
+                        className="block h-full rounded-full bg-white"
+                        style={{
+                          width: reduced || paused || stopped ? "100%" : "0%",
+                          transition:
+                            reduced || paused || stopped
+                              ? "width 200ms ease"
+                              : `width ${DWELL_MS}ms linear`,
+                        }}
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <ControlButton onClick={() => goTo(index + 1)} label={tx("Next banner")}>
+            <path d="M5 3.5 9.5 8 5 12.5" />
+          </ControlButton>
+
+          <span aria-hidden className="mx-0.5 h-4 w-px bg-white/20" />
+
+          <ControlButton
+            onClick={() => setStopped((v) => !v)}
+            label={stopped ? tx("Resume the banners") : tx("Pause the banners")}
+            pressed={stopped}
+          >
+            {stopped ? (
+              <path d="M5 3.2v9.6L12.5 8z" fill="currentColor" stroke="none" />
+            ) : (
+              <path d="M6 3.5v9M10 3.5v9" />
+            )}
+          </ControlButton>
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * One shape for every control, so back, forward and pause are the same object
+ * three times rather than three buttons that happen to sit together.
+ *
+ * `aria-pressed` only for the pause toggle — it is the only one of the three
+ * with a state. Back and forward do a thing and are done.
+ */
+function ControlButton({
+  onClick,
+  label,
+  pressed,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  pressed?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      aria-pressed={pressed}
+      className="grid size-8 place-items-center rounded-full text-white/85 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/70"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        {children}
+      </svg>
+    </button>
   );
 }

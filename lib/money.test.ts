@@ -42,6 +42,22 @@ test("a top-up above the ceiling is refused", () => {
   assert.equal(r.ok, false);
 });
 
+test("a single rupee is a valid top-up", () => {
+  /* Pinned to the literal, not to MIN_TOPUP_PAISE. Deriving it from the
+     constant would make this test agree with whatever the constant happens to
+     say, which is no test at all — the point is that the floor is ₹1, and that
+     raising it back is a deliberate act somebody has to come here to do. */
+  const r = checkTopUpAmount(1);
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.paise, 100);
+});
+
+test("zero and below are still refused", () => {
+  for (const bad of [0, -1]) {
+    assert.equal(checkTopUpAmount(bad).ok, false, `${bad} should be refused`);
+  }
+});
+
 test("the minimum itself is accepted", () => {
   const r = checkTopUpAmount(MIN_TOPUP_PAISE / 100);
   assert.equal(r.ok, true);

@@ -373,6 +373,102 @@ if (SITE && /^https?:\/\//.test(SITE)) {
   }
 }
 
+/* ── email authentication ────────────────────────────────────────── */
+
+/**
+ * Why a sign-in code lands in spam.
+ *
+ * Almost never the wording, and almost always these three DNS records. A
+ * mailbox provider that cannot verify who sent a message has one safe place to
+ * put it, and since February 2024 Gmail and Yahoo have treated a missing DMARC
+ * record as a reason on its own.
+ *
+ *   SPF    says which servers may send for the domain.
+ *   DKIM   signs the message so it cannot be altered or forged.
+ *   DMARC  tells a receiver what to do when the first two disagree, and is the
+ *          only one of the three that is checked against the address a human
+ *          actually sees in the From line.
+ *
+ * Two SPF records matter here and they are at different names. Resend sends
+ * with an envelope of `send.<domain>`, so its SPF lives there and that is what
+ * is checked for a sign-in code. Mail a person sends from webmail goes out as
+ * the bare domain, so the apex needs its own. A domain can have SPF on the
+ * subdomain and none at the apex, pass every automated test, and still have
+ * every hand-written message from the company treated as unauthenticated.
+ *
+ * This runs over DNS-over-HTTPS rather than a resolver library so it needs no
+ * dependency, and it never fails the script on a network error.
+ */
+const MAIL_DOMAIN = SITE ? (() => { try { return new URL(SITE).hostname.replace(/^www\./, ""); } catch { return null; } })() : null;
+
+if (MAIL_DOMAIN) {
+  section("Email authentication (why codes go to spam)");
+
+  const txt = async (name) => {
+    const res = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=TXT`,
+      { headers: { accept: "application/dns-json" } },
+    );
+    if (!res.ok) throw new Error(String(res.status));
+    const body = await res.json();
+    return (body.Answer || [])
+      .filter((a) => a.type === 16)
+      .map((a) => a.data.replace(/^"|"$/g, ""));
+  };
+
+  try {
+    const [apex, dmarc, sendSpf, dkim] = await Promise.all([
+      txt(MAIL_DOMAIN),
+      txt(`_dmarc.${MAIL_DOMAIN}`),
+      txt(`send.${MAIL_DOMAIN}`),
+      txt(`resend._domainkey.${MAIL_DOMAIN}`),
+    ]);
+
+    const dmarcRecord = dmarc.find((r) => r.toLowerCase().startsWith("v=dmarc1"));
+    if (!dmarcRecord) {
+      fix(
+        `No DMARC record at _dmarc.${MAIL_DOMAIN}`,
+        `THIS IS THE ONE THAT SENDS CODES TO SPAM. Add a TXT record at "_dmarc" with:  v=DMARC1; p=none; rua=mailto:dmarc@${MAIL_DOMAIN}  — p=none only watches and changes nothing about delivery, which is where to start.`,
+      );
+    } else {
+      const policy = /p=(\w+)/.exec(dmarcRecord)?.[1] ?? "?";
+      pass("DMARC", `p=${policy}`);
+      if (policy === "none") {
+        warn(
+          "DMARC is p=none, which only monitors",
+          "Fine for a few weeks. Once the reports show nothing legitimate failing, move to p=quarantine — receivers trust a domain that enforces its own policy.",
+        );
+      }
+    }
+
+    if (sendSpf.some((r) => r.toLowerCase().startsWith("v=spf1"))) {
+      pass("SPF for sign-in codes", `send.${MAIL_DOMAIN}`);
+    } else {
+      fix(
+        `No SPF at send.${MAIL_DOMAIN}`,
+        "Resend sends with this envelope. Add the SPF record from the Resend dashboard's Domains page.",
+      );
+    }
+
+    if (dkim.some((r) => r.includes("p="))) {
+      pass("DKIM", `resend._domainkey.${MAIL_DOMAIN}`);
+    } else {
+      fix(`No DKIM key at resend._domainkey.${MAIL_DOMAIN}`, "From the Resend dashboard, Domains → your domain.");
+    }
+
+    if (!apex.some((r) => r.toLowerCase().startsWith("v=spf1"))) {
+      warn(
+        `No SPF at ${MAIL_DOMAIN} itself`,
+        `Sign-in codes are unaffected — they authenticate through the send. subdomain. What is unauthenticated is mail a person sends from webmail. Add a TXT record at "@":  v=spf1 include:_spf.mail.hostinger.com ~all`,
+      );
+    } else {
+      pass(`SPF for staff mail`, MAIL_DOMAIN);
+    }
+  } catch {
+    console.log(`  ${c.dim("Could not reach DNS — skipped.")}`);
+  }
+}
+
 /* ── summary ──────────────────────────────────────────────────────────────── */
 
 console.log(

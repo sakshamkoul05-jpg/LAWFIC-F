@@ -225,6 +225,54 @@ sign-ins at this stage and not a lot during a launch week. The sign-in form
 already says so plainly when a send is refused rather than failing quietly, so
 hitting the ceiling is visible; the fix is a paid plan, not a code change.
 
+### When codes land in spam
+
+Almost never the wording of the email. Almost always one of three DNS records,
+and a mailbox provider that cannot verify who sent a message has exactly one
+safe place to put it.
+
+| Record | Where | What it does |
+|---|---|---|
+| SPF | `send.lawfic.pro` | says which servers may send — this is the one sign-in codes are checked against |
+| DKIM | `resend._domainkey.lawfic.pro` | signs the message so it cannot be forged or altered |
+| **DMARC** | `_dmarc.lawfic.pro` | tells a receiver what to do when the other two disagree |
+
+**DMARC is the one that sends codes to spam by being absent.** Since February
+2024 Gmail and Yahoo treat a missing DMARC record as a reason in itself, and it
+is the only one of the three checked against the address a human actually sees
+in the From line. Add a TXT record at `_dmarc`:
+
+```
+v=DMARC1; p=none; rua=mailto:dmarc@lawfic.pro
+```
+
+`p=none` only watches. It changes nothing about how mail is delivered, which is
+exactly why it is where to start — a domain that jumps straight to `p=reject`
+before knowing what sends on its behalf can cut off its own invoices. Leave it
+a few weeks, read the reports, then move to `p=quarantine`.
+
+There is a second, separate hole: **there is no SPF at the apex.** Sign-in codes
+do not care — they authenticate through the `send.` subdomain — but mail a
+person sends from Hostinger webmail goes out as the bare domain and is
+unauthenticated. A domain can pass every automated test and still have every
+hand-written message from the company treated as suspicious. Add a TXT record
+at `@`:
+
+```
+v=spf1 include:_spf.mail.hostinger.com ~all
+```
+
+`npm run doctor` checks all four and says which are missing. Both records go in
+at Hostinger under **Domains → DNS Zone**; add new records rather than editing
+the existing ones, and give DNS an hour before re-testing.
+
+Two things worth knowing so the result is not mistaken for a failure. A domain
+with no sending history has no reputation, so the first days of mail are
+treated cautiously whatever the records say — it settles. And a code already
+sitting in your own spam folder stays there: the fix applies to new mail, so
+test with a fresh address, and marking one "not spam" teaches that mailbox
+faster than anything in DNS.
+
 ## Search engines: what they see, and where it comes from
 
 Everything a crawler or a chat app reads is built from `lib/seo.ts`. The title,

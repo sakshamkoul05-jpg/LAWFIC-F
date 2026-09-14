@@ -4,7 +4,20 @@
  * touches a balance.
  */
 
-export const MIN_TOPUP_PAISE = 10000; // ₹100
+/**
+ * A rupee.
+ *
+ * It was ₹100, which is a policy dressed as a limit: there is no technical
+ * reason a wallet cannot hold ₹7, and somebody topping up the exact price of
+ * one filing should not be rounded up to a hundred for the company's
+ * convenience. Razorpay's own floor is ₹1, so this is now the real one.
+ *
+ * The only argument for a higher floor is the gateway fee, which is a
+ * percentage and therefore costs pennies on a small top-up rather than being
+ * a fixed charge that a small one cannot cover. Worth watching if tiny
+ * top-ups ever become common; not worth blocking anybody over today.
+ */
+export const MIN_TOPUP_PAISE = 100; // ₹1
 export const MAX_TOPUP_PAISE = 10000000; // ₹1,00,000 — a sanity ceiling, not a policy
 
 export function toPaise(rupees: number): number {

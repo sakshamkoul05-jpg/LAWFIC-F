@@ -211,6 +211,10 @@ export default function ClassicCategoryTabs() {
         >
           {t(`tab.${tab.id}`, tab.label)}
         </span>
+        {/* The frame stands up out of the rule on hover. Both are decoration
+            and both are aria-hidden; the state they describe is already on the
+            link as aria-current. See the .tab-frame note in globals.css. */}
+        <span aria-hidden className="tab-frame" />
         {/* One rule, drawn for the hovered tab and the current one alike —
             see the .tab-rule note in globals.css for why they share it. */}
         <span

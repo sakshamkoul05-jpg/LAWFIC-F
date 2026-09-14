@@ -1012,16 +1012,88 @@
   transform: scaleX(1);
 }
 
+/* ------------------------------------------------------------
+   The border, drawn.
+
+   A frame around the label — top and both sides, open at the
+   bottom where the rule already is — that grows UP out of that
+   rule rather than fading in as a rectangle. So the sequence
+   reads as one line: the rule sweeps out from the centre, and
+   the frame stands up off it.
+
+   WHY IT IS OPEN AT THE BOTTOM
+
+   Because the rule IS the bottom. A closed box would draw a
+   second line over the one that is already there, at a
+   different weight and a different gold, and the two would
+   fight. Open at the bottom, the two elements make a single
+   shape.
+
+   WHY scaleY AND NOT height
+
+   `height` is laid out; `transform` is not. Animating height on
+   eleven tabs while a marquee runs above them is the kind of
+   thing that costs frames on a cheap Android phone, and this is
+   pure decoration — it has no business taking layout time.
+
+   The 70ms delay is what makes it a sequence rather than a
+   flash. Leading with the rule and following with the frame is
+   the difference between a gesture and everything happening at
+   once.
+   ------------------------------------------------------------ */
+
+.tab-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--band-gold);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  opacity: 0;
+  transform: scaleY(0.55);
+  transform-origin: bottom;
+  transition:
+    opacity 200ms ease,
+    transform 300ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.tab-link:hover .tab-frame,
+.tab-link:focus-visible .tab-frame {
+  opacity: 0.55;
+  transform: scaleY(1);
+  transition-delay: 70ms;
+}
+
+/* The current tab keeps its frame, quieter. It is already the
+   only gold label on the bar with a full-width rule under it;
+   a frame at hover strength on top of that is three markers for
+   one piece of information. */
+.tab-link[data-active="true"] .tab-frame {
+  opacity: 0.28;
+  transform: scaleY(1);
+}
+
+.tab-link[data-active="true"]:hover .tab-frame {
+  opacity: 0.55;
+}
+
 /* Someone who asked the system for no animation gets the state
    without the movement — the rule and the wash still say which
    tab is current, they just arrive rather than grow. */
 @media (prefers-reduced-motion: reduce) {
   .tab-label,
   .tab-rule,
+  .tab-frame,
   .tab-link::before {
     transition: none;
   }
   .tab-link:hover .tab-label {
     transform: none;
+  }
+  /* The frame still appears — it is a state, and somebody who asked for no
+     animation still needs to see which tab is under the pointer. It just
+     arrives at full height instead of standing up. */
+  .tab-frame {
+    transform: scaleY(1);
   }
 }

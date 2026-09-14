@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { formatPaise, MIN_TOPUP_PAISE } from "@/lib/money";
+import { formatPaise, MAX_TOPUP_PAISE, MIN_TOPUP_PAISE } from "@/lib/money";
 import PhysicalWallet from "@/components/wallet/PhysicalWallet";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
@@ -119,6 +119,10 @@ export default function TopUpForm({
       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40">
         Add money
       </p>
+      <p className="mt-2 text-[12px] leading-relaxed opacity-45">
+        Pick an amount or type your own — anything from {formatPaise(MIN_TOPUP_PAISE)} to{" "}
+        {formatPaise(MAX_TOPUP_PAISE)}.
+      </p>
 
       <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
         {[...PRESETS, 10000].map((p) => {
@@ -149,7 +153,11 @@ export default function TopUpForm({
         <span className="font-mono text-[14px] opacity-40">₹</span>
         <input
           inputMode="numeric"
-          placeholder="Or type your own amount"
+          /* The placeholder carries the range now. The field always accepted a
+             typed amount; what nobody could tell from looking at it was where
+             the limits were, so the only way to discover the floor was to be
+             refused by it. */
+          placeholder="Any amount from ₹1"
           value={custom}
           disabled={busy}
           onChange={(e) => {
