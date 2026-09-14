@@ -6,58 +6,61 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
- * Three journeys arrive at this page, and only one of them is signing in.
+ * TWO WAYS IN. NOT THREE.
  *
- * A RETURNING CUSTOMER USES A PASSWORD
+ * There used to be a third — an emailed code that both created an account and
+ * signed you in. It worked, and it was still the wrong thing to offer, because
+ * a customer standing at this page cannot tell "Email code" and "Create
+ * account" apart. Two of the three tabs did overlapping jobs and the reader had
+ * to understand the difference in order to pick, which is work this page should
+ * be doing for them. One route in, one route back.
  *
- * It is the default tab and the one that happens most, forever. Once an account
- * exists, signing into it needs no mail at all — which matters on a site where
- * mail has been the failure point more than once. A code every time would be a
- * round trip to an inbox as the price of opening your own wallet.
+ *   CREATE ACCOUNT — email, a password, then the code from the email, then the
+ *   profile form. Nobody reaches the site until that form is filled in; the
+ *   gate is in proxy.ts, not here, because a check that lives in the page it
+ *   protects is a check anybody can walk around by typing a different URL.
  *
- * A NEW CUSTOMER GETS A CODE, NOT A PASSWORD FORM
+ *   SIGN IN — email and password. No mail, ever. Once an account exists,
+ *   getting back into it must not depend on an inbox, on a site where mail has
+ *   been the failure point more than once.
  *
- * `signInWithOtp` with `shouldCreateUser` creates the account on first use, so
- * a new customer types one address and one code and is in. Nothing to invent,
- * nothing to remember, and — the part a password sign-up cannot do in one step
- * — the address is PROVEN before the account works. It also signs in an
- * existing address, so nobody who picks the wrong tab is stuck.
+ * WHY THE CODE COMES AFTER THE PASSWORD AND NOT INSTEAD OF IT
  *
- * A FORGOTTEN PASSWORD GETS A LINK
+ * `signUp` creates the account and Supabase holds it unconfirmed until the
+ * address is proven. So the password is chosen in the same breath as the
+ * address, and the code that follows proves the address belongs to whoever
+ * chose it. The alternative — confirm first, set a password later — leaves a
+ * live account with no password on it for as long as the customer takes to
+ * come back, and that is a worse thing to have lying around than an
+ * unconfirmed one.
  *
- * Reached from the sign-in form rather than given a tab of its own: forgetting
- * a password is something that happens to you, not a way of signing in you
- * would choose from a list. The strip stays on screen while you are there, so
- * there is always a way back that is not inside the form.
+ * FORGETTING A PASSWORD IS NOT A THIRD WAY IN
  *
- * The password SIGN-UP mode is kept and unreachable from the tabs. It is one
- * `switchMode("signup")` from being offered again if a code-first sign-up turns
- * out to confuse people, and it costs nothing to leave wired up.
+ * It is something that happens to you, not a route you would pick off a list,
+ * so it is a link inside the sign-in form. The tab strip stays on screen while
+ * you are there with neither tab pressed — hiding it once made the reset view a
+ * room whose only door was a link inside the form, so anything that stopped the
+ * form rendering stopped the reader leaving.
  *
- * THIS DEPENDS ON MAIL ACTUALLY LEAVING THE BUILDING
+ * WHAT THE EMAILS HAVE TO CONTAIN
  *
- * Mail goes out through Resend on lawfic.pro; the setup and the traps in it are
- * in the README under "Email: sign-in codes go out through Resend". Nothing
- * about Resend appears in this codebase — Supabase sends over SMTP, so the API
- * key lives in the Supabase dashboard and there is no environment variable here
- * to leak, log or forget to rotate.
+ * `{{ .Token }}` in the "Confirm signup" template. That is the one a new
+ * customer meets and the one that gets forgotten, because the default template
+ * ships with only a link in it — and a link cannot be typed into the code box.
+ * The link still works as well: it lands on /auth/callback.
  *
- * The loud failures stay anyway. A refused send says so in words and points at
- * the password form, because a domain can fall out of verification and a
- * sign-in page that goes quiet when mail stops is one nobody can report a fault
- * on.
+ * Mail goes out through Resend on lawfic.pro; the setup, and the DNS records
+ * that decide whether any of it reaches an inbox rather than a spam folder, are
+ * in the README. Nothing about Resend appears in this codebase — Supabase sends
+ * over SMTP, so the API key lives in the Supabase dashboard and there is no
+ * environment variable here to leak or forget to rotate.
  *
- * WHAT THE CODE EMAIL HAS TO CONTAIN
- *
- * Supabase sends whatever the template says, and a link cannot be typed into
- * the code box, so `{{ .Token }}` has to be in TWO templates: "Magic link or
- * OTP" for an address that already has an account, and "Confirm signup" for the
- * first time an address is seen. The second is the one that gets forgotten, and
- * it is the one a new customer meets. The link still works either way — it
- * lands on /auth/callback — so whichever they reach for, they get in.
+ * The loud failures stay. A refused send says so in words, because a domain can
+ * fall out of verification and a sign-up page that goes quiet when mail stops
+ * is one nobody can report a fault on.
  */
 
-type Mode = "code" | "password" | "signup" | "forgot";
+type Mode = "password" | "signup" | "forgot";
 
 const ERRORS: Record<string, string> = {
   link_expired: "That link has expired. Sign in again.",
@@ -102,7 +105,7 @@ function readable(message: string): string {
     return "We could not send that email — our mail service is refusing messages right now. Use your password instead, or contact us and we will sort it out.";
   }
   if (m.includes("signups not allowed")) {
-    return "That email has no account yet, and new accounts by code are switched off. Create one with a password instead.";
+    return "New accounts are switched off at the moment. Contact us and we will sort it out.";
   }
   return message;
 }
@@ -115,19 +118,16 @@ export default function LoginForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/wallet";
 
-  /* THE PASSWORD FORM IS WHAT /login OPENS ON.
-     Three journeys arrive here and only one of them is signing in: a returning
-     customer with a password, someone creating an account, and someone who has
-     forgotten a password. The first is the one that happens most, forever, so
-     it gets the default and the other two are a tab and a link away. */
+  /* Signing in is what this page opens on. It is the thing that happens most,
+     forever — an account is created once and signed into for years. */
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [token, setToken] = useState("");
-  /* The code form has two stages behind one mode: ask for the address, then
-     ask for the digits. A separate mode for the second stage would put a tab
-     on the strip that nobody can click into. */
+  /* Creating an account is two stages behind one tab: take the address and a
+     password, then take the code that proves the address. A separate mode for
+     the second stage would put a tab on the strip nobody can click into. */
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -162,13 +162,13 @@ export default function LoginForm() {
 
   const canSubmit =
     !busy &&
-    (mode === "code"
-      ? sent
-        ? tokenOk
-        : emailOk
-      : mode === "forgot"
-        ? emailOk
-        : emailOk && passwordOk && matches);
+    (mode === "forgot"
+      ? emailOk
+      : mode === "signup"
+        ? sent
+          ? tokenOk
+          : emailOk && passwordOk && matches
+        : emailOk && passwordOk);
 
   const switchMode = useCallback((m: Mode) => {
     setMode(m);
@@ -200,24 +200,26 @@ export default function LoginForm() {
     return `${origin}/auth/callback?next=${encodeURIComponent(target)}`;
   };
 
-  async function sendCode(supabase: NonNullable<ReturnType<typeof createClient>>) {
-    const { error } = await supabase.auth.signInWithOtp({
+  /**
+   * Send the confirmation code again.
+   *
+   * `auth.resend` and not `signUp` a second time. Calling signUp again for an
+   * address that already exists is how you get "User already registered"
+   * thrown at somebody whose only crime was that the first email did not
+   * arrive — the single most common reason anyone presses this button.
+   */
+  async function resendCode(supabase: NonNullable<ReturnType<typeof createClient>>) {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
       email,
-      options: {
-        /* This is the sign-up. A first-time address gets an account the moment
-           its owner proves the address is theirs, which is a better order than
-           creating the account first and hoping. */
-        shouldCreateUser: true,
-        emailRedirectTo: callback(next),
-      },
+      options: { emailRedirectTo: callback("/profile/setup") },
     });
     if (error) {
       setError(readable(error.message));
       return;
     }
-    setSent(true);
     setCooldown(RESEND_SECONDS);
-    setNotice(`We sent a code to ${email}. It is good for ten minutes.`);
+    setNotice(`We sent another code to ${email}. Use the newest one — the older code stops working.`);
   }
 
   async function submit(e: React.FormEvent) {
@@ -233,34 +235,6 @@ export default function LoginForm() {
 
     setBusy(true);
     try {
-      /* ── A code to your email ─────────────────────────────── */
-      if (mode === "code") {
-        if (!sent) {
-          setNotice("");
-          await sendCode(supabase);
-          return;
-        }
-
-        const { data, error } = await supabase.auth.verifyOtp({
-          email,
-          token,
-          /* "email" covers both the sign-in code and the one a brand-new
-             address gets; there is no separate signup type to branch on. */
-          type: "email",
-        });
-        if (error) {
-          setError(readable(error.message));
-          return;
-        }
-
-        /* A user created by this verification has no profile yet, and the
-           same test the auth callback uses decides where they land. */
-        const fresh = !data.user?.user_metadata?.onboarded;
-        router.push(fresh ? "/profile/setup" : next);
-        router.refresh();
-        return;
-      }
-
       /* ── Forgot password ──────────────────────────────────── */
       if (mode === "forgot") {
         setNotice("");
@@ -282,29 +256,45 @@ export default function LoginForm() {
         return;
       }
 
-      /* ── Create an account with a password ────────────────── */
+      /* ── Create an account: password first, then prove the address ── */
       if (mode === "signup") {
+        /* Stage two. The account exists and is waiting to be confirmed. */
+        if (sent) {
+          const { error } = await supabase.auth.verifyOtp({
+            email,
+            token,
+            /* "signup" and not "email". They are different token types in
+               Supabase and a confirmation issued by signUp only verifies
+               against this one; passing "email" here fails with a message that
+               reads exactly like a mistyped code. */
+            type: "signup",
+          });
+          if (error) {
+            setError(readable(error.message));
+            return;
+          }
+
+          /* Straight to the form, and the proxy will keep them there until it
+             is filled in. Not `next` — an account with no profile has nothing
+             to show on a wallet page. */
+          router.push("/profile/setup");
+          router.refresh();
+          return;
+        }
+
+        /* Stage one. */
         setNotice("");
-
-        /* SUPABASE'S OWN SIGN-UP, WHICH MEANS A CONFIRMATION EMAIL.
-           This used to POST to /api/auth/signup, which created the account
-           already confirmed — an accepted trade while the mailer was broken,
-           because an unusable sign-up is worse than an unverified one. It also
-           meant nobody proved they owned the address they registered: you
-           could sign up as somebody else, and a customer who mistyped theirs
-           got an account they could never receive mail at.
-
-           Mail works now, so the trade is off. The route refuses with a 410
-           and this calls Supabase directly. */
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            /* Where the LINK in the same email lands, for anyone who clicks it
+               instead of typing the code. Both routes end at the same form. */
             emailRedirectTo: callback("/profile/setup"),
             /* Chose a password on the way in, so profile setup must not turn
                round and offer to set one. See the note in
-               /api/profile/password for why this has to be remembered rather
-               than read off the user. */
+               /api/profile/password for why this is remembered rather than
+               read off the user. */
             data: { has_password: true },
           },
         });
@@ -314,20 +304,19 @@ export default function LoginForm() {
           return;
         }
 
-        /* `session` is null when a confirmation is pending, which is the
-           normal path now. Saying "check your email" and switching to the
-           sign-in tab is honest; pushing them to /profile/setup would land
-           them on a page that bounces them back out, signed out. */
-        if (!data.session) {
-          setMode("password");
-          setNotice(
-            `Account created. We have sent a confirmation link to ${email} — open it, then sign in.`,
-          );
+        /* A session here means confirmations are switched OFF in the Supabase
+           dashboard — the account is live already and there is no code coming,
+           so asking for one would hang the customer on a screen waiting for an
+           email nobody sent. */
+        if (data.session) {
+          router.push("/profile/setup");
+          router.refresh();
           return;
         }
 
-        router.push("/profile/setup");
-        router.refresh();
+        setSent(true);
+        setCooldown(RESEND_SECONDS);
+        setNotice(`We sent a code to ${email}. It is good for ten minutes.`);
         return;
       }
 
@@ -350,16 +339,19 @@ export default function LoginForm() {
 
   const heading: Record<Mode, { label: string; title: string }> = {
     password: { label: "Sign in", title: "Welcome back" },
-    code: { label: "Create account", title: "Start with your email" },
-    signup: { label: "Create account", title: "Create your LAWFIC account" },
+    signup: {
+      label: "Create account",
+      /* The title follows the stage, because "Create your account" over a
+         single code box reads as though the first step did not take. */
+      title: sent ? "Check your email" : "Create your LAWFIC account",
+    },
     forgot: { label: "Reset password", title: "Set a new password" },
   };
 
   const submitLabel = () => {
     if (busy) return "Working…";
-    if (mode === "code") return sent ? "Verify and continue" : "Email me a code";
     if (mode === "forgot") return "Email me a reset link";
-    if (mode === "signup") return "Create account";
+    if (mode === "signup") return sent ? "Verify and continue" : "Create account";
     return "Sign in";
   };
 
@@ -372,22 +364,21 @@ export default function LoginForm() {
         </div>
 
         <div className="p-7">
-          {/* Three tabs, not four. Forgetting a password is something that
-              happens to you, not a way of signing in you would choose from a
-              list, so it is reached from the password form rather than given a
-              permanent seat.
+          {/* Two tabs. There is no third way in — see the note at the top of
+              this file for why the emailed-code route was taken out rather
+              than kept "in case".
 
-              But the strip STAYS ON SCREEN while you are there, with none of
-              the three pressed. Hiding it made the reset view a room with one
-              door, and that door was a link inside the form — so anything that
-              stopped the form rendering stopped the reader leaving. A control
-              that is the only way out of a state should not be inside the part
-              of the page that state is re-rendering. */}
-          <div className="mb-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-border">
+              Resetting a password is reached from the sign-in form, and the
+              strip STAYS ON SCREEN while you are there with neither tab
+              pressed. Hiding it once made the reset view a room whose only
+              door was a link inside the form, so anything that stopped the
+              form rendering stopped the reader leaving. A control that is the
+              only way out of a state must not live inside the part of the page
+              that state re-renders. */}
+          <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border">
             {(
               [
-                ["code", "Email code"],
-                ["password", "Password"],
+                ["password", "Sign in"],
                 ["signup", "Create account"],
               ] as [Mode, string][]
             ).map(([m, label]) => (
@@ -448,10 +439,10 @@ export default function LoginForm() {
                 /* Locked once the code is out. Changing the address here and
                    then typing the digits sent to the old one produces an
                    "invalid token" that looks like the code was wrong. */
-                readOnly={mode === "code" && sent}
+                readOnly={mode === "signup" && sent}
               />
 
-              {mode === "code" && sent && (
+              {mode === "signup" && sent && (
                 <>
                   <label htmlFor="token" className="type-label mt-5 block text-muted">
                     Code from your email
@@ -474,6 +465,13 @@ export default function LoginForm() {
                   />
 
                   <div className="mt-3 flex items-center justify-between text-[12.5px]">
+                    {/* "Start again" and not "Use a different email".
+                        The account already exists at this point, unconfirmed —
+                        going back does not delete it, and offering to change
+                        the address would imply it does. What this actually
+                        does is return to the form, and a second address makes
+                        a second account. Saying "start again" is the honest
+                        description of that. */}
                     <button
                       type="button"
                       onClick={() => {
@@ -484,7 +482,7 @@ export default function LoginForm() {
                       }}
                       className="text-muted transition-colors hover:text-foreground"
                     >
-                      Use a different email
+                      Start again
                     </button>
                     <button
                       type="button"
@@ -495,7 +493,7 @@ export default function LoginForm() {
                         setError("");
                         setBusy(true);
                         try {
-                          await sendCode(supabase);
+                          await resendCode(supabase);
                         } finally {
                           setBusy(false);
                         }
@@ -508,7 +506,7 @@ export default function LoginForm() {
                 </>
               )}
 
-              {(mode === "password" || mode === "signup") && (
+              {(mode === "password" || (mode === "signup" && !sent)) && (
                 <>
                   <label htmlFor="password" className="type-label mt-5 block text-muted">
                     Password
@@ -539,7 +537,7 @@ export default function LoginForm() {
                 </p>
               )}
 
-              {mode === "signup" && (
+              {mode === "signup" && !sent && (
                 <>
                   <label htmlFor="confirm" className="type-label mt-5 block text-muted">
                     Confirm password
@@ -585,11 +583,11 @@ export default function LoginForm() {
                 {submitLabel()}
               </button>
 
-              {mode === "code" && !sent && (
+              {mode === "signup" && !sent && (
                 <p className="mt-4 text-center text-[12px] leading-relaxed text-subtle">
-                  No password to invent. We email you a code, and typing it both
-                  proves the address is yours and creates your account. Already
-                  have one? This signs you straight in.
+                  We will email you a code to confirm the address, then ask for
+                  a few details. After that you sign in with your password —
+                  no code needed again.
                 </p>
               )}
 

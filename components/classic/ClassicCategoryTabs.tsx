@@ -203,7 +203,7 @@ export default function ClassicCategoryTabs() {
            the latter. The weight does as much work as the size: a half-step up
            in weight buys legibility on a dark ground that another point of
            size does not. */
-        className="tab-link group flex-none truncate whitespace-nowrap px-3 py-4 text-center text-[15px] font-medium lg:min-w-0 lg:flex-auto lg:px-2"
+        className="tab-link group shrink-0 grow-0 truncate whitespace-nowrap px-3 py-4 text-center text-[15px] font-medium lg:grow lg:px-2"
       >
         <span
           className="tab-label group-hover:!text-[var(--band-gold)]"
@@ -237,13 +237,20 @@ export default function ClassicCategoryTabs() {
     >
       <nav aria-label="Sections">
         {/* THE FIRST ROW — the sheet's Tab 1 to Tab 15. */}
-        {/* Content-sized, not fifteen equal columns.
-            Equal columns capped every cell at the width of 1/15th of the bar
-            and truncated "Instant Help" — and no font size fixes that, because
-            the constraint is the grid rather than the type. Flex gives each
-            label the room its own words need and shares the slack out, so the
-            row still fills the width and nothing is ever cut. */}
-        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:overflow-visible lg:px-6">
+        {/* Content-sized, and it GROWS but never SHRINKS.
+            Fifteen equal columns capped every cell at 1/15th of the bar and
+            truncated "Instant Help"; no font size fixes that, because the
+            constraint was the grid rather than the type. But `flex-auto` —
+            the first fix — allows shrinking, so between 1024px and about
+            1420px all fifteen squeezed and every one of them truncated. Grow
+            with shrink off is the honest version: each label keeps the room
+            its own words need, spare space is shared out, and when there is
+            not enough the row scrolls rather than cutting anything.
+
+            Which is why overflow-x-auto is no longer lifted at lg. The
+            dropdown is position:fixed and no ancestor here establishes a
+            containing block for it, so a scroll container cannot clip it. */}
+        <div className="classic-tabs-nav flex w-full items-stretch overflow-x-auto px-3 sm:px-5 lg:px-6">
           {TABS_VISIBLE.map(renderTab)}
         </div>
 
@@ -284,7 +291,7 @@ export default function ClassicCategoryTabs() {
           hidden={!expanded}
           onMouseEnter={cancelCollapse}
           onMouseLeave={scheduleCollapse}
-          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:overflow-visible lg:px-6"
+          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:px-6"
           style={{ borderColor: "var(--band-edge)" }}
         >
           {TABS_COLLAPSED.map(renderTab)}

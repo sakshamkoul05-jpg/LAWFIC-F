@@ -19,7 +19,8 @@ export default function LoginPage() {
             One account. Every filing you have ever sent us.
           </h1>
           <p className="type-body mt-7 max-w-md text-muted">
-            Sign in with your email and password. New here? Create an account in one step.
+            Sign in with your email and password. New here? Pick a password, confirm your
+            address with the code we email, and tell us a little about yourself.
             Wallet, order tracking, and a jobs feed matched to your profile.
           </p>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import SetPasswordCard from "@/components/account/SetPasswordCard";
@@ -16,6 +16,22 @@ type Stage = "loading" | "basics" | "interests" | "resume" | "done";
 
 export default function ProfileSetupForm() {
   const router = useRouter();
+  /**
+   * Where they were going when the onboarding gate caught them.
+   *
+   * proxy.ts redirects an un-onboarded account here from whatever it asked
+   * for, carrying the original path. Sending everybody to the home page
+   * afterwards would mean somebody who clicked "Wallet", filled in a form they
+   * did not ask for, and then had to find the wallet again.
+   *
+   * Only same-site paths are honoured. `next` arrives in a URL, and a URL is
+   * something anybody can write — accepting "//evil.example" here would turn
+   * the end of onboarding into an open redirect, which is a real and
+   * frequently-exploited bug, not a theoretical one.
+   */
+  const params = useSearchParams();
+  const rawNext = params.get("next") ?? "";
+  const next = /^\/(?!\/)[^\s]*$/.test(rawNext) ? rawNext : "/";
   const [stage, setStage] = useState<Stage>("loading");
   const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
   const [busy, setBusy] = useState(false);
@@ -403,9 +419,9 @@ export default function ProfileSetupForm() {
 
           {stage === "done" && (
             <FooterActions
-              primary="Take me to my personalised home"
+              primary={next === "/" ? "Take me to my personalised home" : "Continue"}
               onPrimary={() => {
-                router.push("/");
+                router.push(next);
                 router.refresh();
               }}
               /* The last chance to fix something before the page changes.
