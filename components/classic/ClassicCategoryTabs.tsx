@@ -358,8 +358,12 @@ function DropdownPanel({
       >
         {groups.map((group, gi) => (
           <div key={group.name ?? `g${gi}`}>
+            {/* The group heading takes the brand colour rather than grey.
+                It is the only other text in the panel, and gold on it makes
+                the whole menu read as part of the bar it hangs off instead of
+                as a generic dropdown that happens to be attached. */}
             {group.name && (
-              <p className="type-label px-3.5 pb-1 pt-2.5 text-subtle">{tx(group.name)}</p>
+              <p className="type-label sub-group-label px-3.5 pb-1 pt-2.5">{tx(group.name)}</p>
             )}
             {group.items.map((item) => (
               <Link
@@ -367,10 +371,17 @@ function DropdownPanel({
                 href={item.href}
                 role="menuitem"
                 onClick={onNavigate}
-                className="flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                className="sub-item flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted"
               >
                 <span className="truncate">{tx(item.label)}</span>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0 text-subtle" aria-hidden>
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 10 10"
+                  fill="none"
+                  className="sub-item-arrow shrink-0 text-subtle"
+                  aria-hidden
+                >
                   <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>

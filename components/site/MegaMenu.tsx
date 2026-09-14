@@ -62,7 +62,9 @@ function Group({
 
   return (
     <section className="mb-2">
-      <p className="type-label px-1.5 pb-1.5 pt-2 text-subtle">{label}</p>
+      {/* Same reasoning as the dropdown's group headings — see the note in
+          ClassicCategoryTabs. */}
+      <p className="type-label sub-group-label px-1.5 pb-1.5 pt-2">{label}</p>
       <div className="grid gap-0.5">
         {tabs.map((tab) => {
           const open = tab.id === openId;
@@ -72,7 +74,7 @@ function Group({
                 <Link
                   href={tab.href}
                   onClick={onNavigate}
-                  className="min-w-0 flex-1 truncate rounded-lg px-2.5 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+                  className="sub-item min-w-0 flex-1 truncate rounded-lg px-2.5 py-2 text-[13px] text-muted-foreground"
                 >
                   {t(`tab.${tab.id}`, tab.label)}
                 </Link>
@@ -83,7 +85,7 @@ function Group({
                     onClick={() => setOpenId(open ? null : tab.id)}
                     aria-expanded={open}
                     aria-label={`${tx(open ? "Hide" : "Show")} ${tx("services")} — ${t(`tab.${tab.id}`, tab.label)}`}
-                    className="grid w-9 shrink-0 place-items-center rounded-lg text-subtle transition-colors hover:bg-surface-2 hover:text-foreground"
+                    className="sub-item grid w-9 shrink-0 place-items-center rounded-lg text-subtle"
                   >
                     <svg
                       width="11"
@@ -112,7 +114,7 @@ function Group({
                       key={`${item.href}-${item.label}`}
                       href={item.href}
                       onClick={onNavigate}
-                      className="truncate rounded-lg px-2.5 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+                      className="sub-item truncate rounded-lg px-2.5 py-1.5 text-[12.5px] text-muted-foreground"
                     >
                       {tx(item.label)}
                     </Link>
