@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Document",
   description:
     "Every identity card, certificate, agreement and registration we prepare — PAN, Aadhaar, passport, certificates, rent agreements and more.",
+  alternates: { canonical: "/document" },
 };
 
 const groups = [

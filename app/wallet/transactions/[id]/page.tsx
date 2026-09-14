@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatEntry } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Transaction ${id.slice(0, 8)}` };
+  /* One line of one customer's ledger. See the note on PRIVATE_PAGE_ROBOTS. */
+  return { title: `Transaction ${id.slice(0, 8)}`, robots: PRIVATE_PAGE_ROBOTS };
 }
 
 export default async function TransactionPage({ params }: { params: Promise<{ id: string }> }) {

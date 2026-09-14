@@ -4,10 +4,12 @@ import { isRazorpayConfigured } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
 import TopUpForm from "../TopUpForm";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Top up wallet",
   description: "Add money to your LAWFiC wallet by UPI, card or net banking.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export const dynamic = "force-dynamic";

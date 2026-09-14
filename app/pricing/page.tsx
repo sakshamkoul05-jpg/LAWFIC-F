@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: "Pricing",
   description:
     "Pay per filing with no subscription, or a monthly plan for recurring compliance. Government fees are always shown separately from ours.",
+  alternates: { canonical: "/pricing" },
 };
 
 export default function PricingPage() {

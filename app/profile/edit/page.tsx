@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import EditProfileForm from "./EditProfileForm";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Edit your profile",
   description: "Your name, your track, your resume — everything LAWFIC uses to personalise the site.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export default function EditProfilePage() {

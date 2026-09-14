@@ -12,7 +12,11 @@ export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): P
   const { doc } = await params;
   const found = getLegalDoc(doc);
   if (!found) return {};
-  return { title: found.title, description: found.summary };
+  return {
+    title: found.title,
+    description: found.summary,
+    alternates: { canonical: `/legal/${found.slug}` },
+  };
 }
 
 export default async function LegalPage({ params }: PageProps<"/legal/[doc]">) {

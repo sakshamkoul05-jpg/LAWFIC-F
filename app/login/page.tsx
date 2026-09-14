@@ -5,6 +5,7 @@ import LoginForm from "./LoginForm";
 export const metadata: Metadata = {
   title: "Sign in",
   description: "Sign in to LAWFIC, or create an account with your email address.",
+  alternates: { canonical: "/login" },
 };
 
 export default function LoginPage() {

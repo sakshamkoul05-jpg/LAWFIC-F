@@ -10,12 +10,15 @@ import PayButton from "./PayButton";
 import MessageThread from "@/components/orders/MessageThread";
 import type { OrderMessage } from "@/lib/messages";
 import { markRead } from "../message-actions";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps<"/orders/[id]">): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Filing ${id.slice(0, 8)}` };
+  /* One customer's filing. Never indexed — the title alone would publish an
+     order reference, and the page behind it is somebody's paperwork. */
+  return { title: `Filing ${id.slice(0, 8)}`, robots: PRIVATE_PAGE_ROBOTS };
 }
 
 export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "About us",
   description:
     "LAWFIC is a private consultancy handling registrations, licences and compliance for Indian businesses — with fees shown in the open.",
+  alternates: { canonical: "/about" },
 };
 
 const principles = [

@@ -12,6 +12,7 @@ import WalletQuickActions from "@/components/wallet/WalletQuickActions";
 import WalletActivity, { type ActivityRow } from "@/components/wallet/WalletActivity";
 import WalletMenu from "@/components/wallet/WalletMenu";
 import MembershipCard from "@/components/account/MembershipCard";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 /**
  * The wallet home, rebuilt in CRED's visual language.
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
   title: "Wallet",
   description:
     "A prepaid balance for LAWFIC services, with every debit itemised against the order it paid for.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export const dynamic = "force-dynamic";

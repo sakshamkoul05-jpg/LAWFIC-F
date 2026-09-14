@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { comingSoonMetadata } from "@/lib/seo";
 import ComingSoonPage from "@/components/classic/ComingSoonPage";
 
-export const metadata: Metadata = { title: "Instant Help" };
+export const metadata = comingSoonMetadata("Instant Help");
 
 export default function InstantHelpPage() {
   return <ComingSoonPage title="Instant Help" />;

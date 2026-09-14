@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Jobs for you",
   description:
     "Openings matched to your city, your trade and your experience. Free to apply, always.",
+  alternates: { canonical: "/jobs" },
 };
 
 export default function JobsPage() {

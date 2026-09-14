@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Contact & grievances",
   description:
     "How to reach LAWFIC, our support hours, and the grievance officer for complaints under the Consumer Protection (E-Commerce) Rules 2020.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

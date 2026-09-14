@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Saved services",
   description: "Services you have saved to come back to.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 /* See the note in app/cart/page.tsx — same reasoning, same honesty. */

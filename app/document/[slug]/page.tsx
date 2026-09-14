@@ -32,7 +32,15 @@ export async function generateMetadata({
   const { slug } = await params;
   const doc = documents.find((d) => d.slug === slug);
   if (!doc) return {};
-  return { title: doc.label, description: doc.blurb };
+  return {
+    title: doc.label,
+    description: doc.blurb,
+    /* Only the documents WITHOUT a service page have a route here — see
+       generateStaticParams above — so this canonical can never compete with a
+       /services page for the same thing. */
+    alternates: { canonical: `/document/${doc.slug}` },
+    openGraph: { type: "article", title: `${doc.label} · LAWFIC`, description: doc.blurb, url: `/document/${doc.slug}` },
+  };
 }
 
 export default async function DocumentDetailPage({

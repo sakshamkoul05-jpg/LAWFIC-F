@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PreferencesForm from "./PreferencesForm";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Dashboard & privacy",
   description: "Choose what your home page shows and what LAWFIC uses to personalise it.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export default function PreferencesPage() {

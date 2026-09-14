@@ -3,10 +3,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import CustomizePanel from "./CustomizePanel";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Customise wallet",
   description: "Choose the leather, hardware, stitching and nameplate that make the LAWFIC wallet yours.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export const dynamic = "force-dynamic";

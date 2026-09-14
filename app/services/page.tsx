@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Services",
   description:
     "Every registration, licence and filing LAWFIC handles — what each one is, what it costs and how long it takes.",
+  alternates: { canonical: "/services" },
 };
 
 export default function ServicesIndex() {

@@ -5,8 +5,12 @@ import { orderTotalPaise, type ServiceOrder } from "@/lib/orders";
 import { getService } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import { StatusPill } from "@/components/orders/OrderBits";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Your filings" };
+export const metadata: Metadata = {
+  title: "Your filings",
+  robots: PRIVATE_PAGE_ROBOTS,
+};
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {

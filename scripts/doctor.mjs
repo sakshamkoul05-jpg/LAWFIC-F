@@ -94,6 +94,24 @@ for (const key of Object.keys(env)) {
   }
 }
 
+/* NEXT_PUBLIC_SITE_URL fails silently in both of its jobs, which is why it is
+   worth a line here. Unset, sign-in emails carry a link that works only on the
+   machine that asked for it, and the whole site serves noindex with an empty
+   sitemap. Neither shows up as an error anywhere. */
+const SITE = env.NEXT_PUBLIC_SITE_URL ?? "";
+if (!SITE) {
+  warn(
+    "NEXT_PUBLIC_SITE_URL is not set",
+    "Fine locally. In production it means sign-in emails link to localhost, and the site tells search engines not to index it.",
+  );
+} else if (!/^https?:\/\//.test(SITE)) {
+  fix(`NEXT_PUBLIC_SITE_URL is not a URL: ${SITE}`, "Include the scheme, e.g. https://lawfic.pro");
+} else if (SITE.endsWith("/")) {
+  warn(`NEXT_PUBLIC_SITE_URL has a trailing slash: ${SITE}`, "Harmless — the app strips it — but drop it anyway.");
+} else {
+  pass("NEXT_PUBLIC_SITE_URL", SITE);
+}
+
 if (!URL_ || !ANON) {
   console.log(`\n${c.dim("Cannot reach the backend without a URL and anon key.")}\n`);
   process.exit(1);

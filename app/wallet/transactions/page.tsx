@@ -3,10 +3,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { WalletEntry } from "@/lib/wallet-entries";
 import TransactionList from "./TransactionList";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Transactions",
   description: "Your LAWFiC wallet statement — every credit and debit, itemised.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export const dynamic = "force-dynamic";

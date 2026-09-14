@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import ProfileSetupForm from "./ProfileSetupForm";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Complete your profile",
   description: "Tell us what you are preparing for so LAWFIC works around you.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export default function ProfileSetupPage() {

@@ -225,6 +225,93 @@ sign-ins at this stage and not a lot during a launch week. The sign-in form
 already says so plainly when a send is refused rather than failing quietly, so
 hitting the ceiling is visible; the fix is a paid plan, not a code change.
 
+## Search engines: what they see, and where it comes from
+
+Everything a crawler or a chat app reads is built from `lib/seo.ts`. The title,
+the description, the share card, the sitemap, robots.txt and the structured
+data all take their facts from that one file, so a change lands everywhere at
+once instead of in four of the five places.
+
+**One environment variable decides whether any of it works.**
+
+```
+NEXT_PUBLIC_SITE_URL=https://lawfic.pro
+```
+
+Open Graph tags and canonical URLs are only valid as absolute URLs — a relative
+one is discarded without an error by everything that reads them. This variable
+is what they are built from. It is the same variable the sign-in emails already
+use, so setting it fixes both.
+
+Unset, the site falls back to `localhost:3000`, and the fallback is deliberately
+loud: `robots.txt` becomes `Disallow: /`, every page carries `noindex`, and the
+sitemap is empty. A preview deployment cannot accidentally get itself indexed
+and compete with the real site for its own content.
+
+### Making the logo appear in search
+
+There are two different logos, doing two different jobs, and only one of them is
+the favicon.
+
+| Where | File | How it is declared |
+|---|---|---|
+| Beside a blue link in Google | `app/icon.png` (512×512) | Next emits `<link rel="icon">` from the filename |
+| Browser tab | `app/favicon.ico` | already existed; Next serves it automatically |
+| iOS home screen | `app/apple-icon.png` (180×180) | filename convention |
+| Knowledge panel | `public/lawfic-logo-square.png` (600×600) | `logo` in the Organization JSON-LD |
+| WhatsApp, LinkedIn, Slack, X | `app/opengraph-image.tsx` (1200×630) | drawn at build time |
+
+The favicon and the apple icon are the **monogram only**, on the dark ground —
+not the full badge. The badge is a ring, a wordmark, a ribbon and a row of
+stars, and all four collapse into one gold smudge by the time the image is 16px
+across. The stacked bars survive. They were lifted out of the source PNG by
+flood fill rather than by cropping, because the mark's own corners sit further
+from the centre than the ring's inner circle does — every rectangle tight enough
+to miss the ring also cuts the bottom off the mark.
+
+To regenerate them after a logo change, the source is `public/lawfic-logo.png`
+and the recipe is in the commit that added them; `sharp` is already present as a
+Next dependency.
+
+Google decides for itself whether to show either image. What this does is make
+the site eligible, which it was not before — there was nothing on the page
+saying which of its many images was the company's mark.
+
+### What is deliberately kept OUT of the index
+
+- **The 21 "coming soon" placeholders** carry `comingSoonMetadata()`, which sets
+  `noindex, follow`. Twenty-one pages of the same forty words is thin,
+  near-duplicate content, and a site judged on the average of its pages should
+  not offer twenty-one copies of "coming soon". **When one of them gets real
+  content: delete the `comingSoonMetadata` call, write a real description, and
+  add the route to `app/sitemap.ts`.** That is the whole checklist.
+- **Personal pages** — wallet, cart, orders, profile, saved services — set
+  `robots: PRIVATE_PAGE_ROBOTS` in their own metadata.
+- **The back office, `/api` and `/auth`** are blocked in `robots.txt`.
+
+Those last two are handled differently on purpose. `Disallow` in robots.txt
+stops a crawler *fetching* a path; it does not remove it from an index, and a
+page blocked there is a page whose `noindex` is never read — because reading it
+needs the fetch that was just forbidden. So each private area is in exactly one
+of the two places, never both.
+
+None of this is access control. `robots.txt` is a public file that asks
+politely. What protects customer data is RLS and the auth checks on each page.
+
+### After the first deploy
+
+1. Add the property in [Google Search Console](https://search.google.com/search-console)
+   and submit `https://lawfic.pro/sitemap.xml`.
+2. Check the Organization record with the
+   [Rich Results Test](https://search.google.com/test/rich-results) — it is the
+   only way to see what Google actually parsed.
+3. Paste a link into WhatsApp to see the share card.
+4. Fill in `lib/company.ts`. The legal name, address, CIN and support contact
+   are required on the site anyway, and the moment they are set they are added
+   to the Organization record automatically. The `reviewProfiles` list becomes
+   `sameAs`, which is the strongest available signal tying this site to the
+   company — worth adding the social profiles as soon as they exist.
+
 ## Going live
 
 In order, because two of these have external lead times:
@@ -255,6 +342,10 @@ In order, because two of these have external lead times:
    account and an e-mandate method live (UPI Autopay or cards). Until then
    `/api/subscription/checkout` returns 503 and says so; the plan pages, the
    pricing maths and the wallet card all work without it.
+
+Independent of all of the above, and worth doing the day the domain resolves:
+set `NEXT_PUBLIC_SITE_URL`, then submit the sitemap in Search Console. Indexing
+has a lead time nothing in this repo can shorten — see the section above.
 
 Before real money moves, work through the live checklist in the backend repo's
 README — no test suite can prove RLS.

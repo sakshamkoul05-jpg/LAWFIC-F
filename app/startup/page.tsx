@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Startup",
   description:
     "From idea to registered business — MSME/Udyam, incorporation, and the structures behind a new venture.",
+  alternates: { canonical: "/startup" },
 };
 
 const slugs = ["msme-udyam"];

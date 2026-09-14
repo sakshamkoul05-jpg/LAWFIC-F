@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getService, services } from "@/lib/services";
+import { ORG_ID, absolute, breadcrumbJsonLd, graph, metaDescription } from "@/lib/seo";
 import ServiceVisual from "@/components/motion/ServiceVisual";
 import RequestForm from "@/components/site/RequestForm";
 import Reveal from "@/components/ui/Reveal";
@@ -14,7 +15,29 @@ export async function generateMetadata({ params }: PageProps<"/services/[slug]">
   const { slug } = await params;
   const service = getService(slug);
   if (!service) return {};
-  return { title: service.name, description: service.tagline };
+
+  /**
+   * These are the pages that answer a real search. Somebody types "udyam
+   * registration" months before they type "LAWFIC", so the service pages —
+   * not the home page — are where the description has to earn the click.
+   *
+   * The tagline leads because it always fits; the summary's opening sentence
+   * follows only when the pair still fits whole. See metaDescription.
+   */
+  const description = metaDescription(service.tagline, service.summary);
+
+  return {
+    title: service.name,
+    description,
+    alternates: { canonical: `/services/${service.slug}` },
+    openGraph: {
+      type: "article",
+      title: `${service.name} · LAWFIC`,
+      description,
+      url: `/services/${service.slug}`,
+    },
+    twitter: { card: "summary_large_image", title: service.name, description },
+  };
 }
 
 export default async function ServicePage({ params }: PageProps<"/services/[slug]">) {
@@ -24,8 +47,48 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
 
   const others = services.filter((s) => s.slug !== slug);
 
+  /**
+   * What this page is, for a machine.
+   *
+   * The Service node names the organization as its provider by @id rather than
+   * restating it — the root layout already published that node, and two
+   * different descriptions of the same company on one page is exactly the kind
+   * of contradiction structured data is bad at.
+   *
+   * The BreadcrumbList is the part that visibly changes a search result:
+   * Google replaces the raw URL under the title with "LAWFIC > Services >
+   * Udyam Registration".
+   *
+   * No FAQPage, although `service.faq` is right there. Google restricted FAQ
+   * rich results in August 2023 to government and health sites, so emitting it
+   * on a private consultancy adds weight to every page and changes nothing.
+   */
+  const jsonLd = graph(
+    {
+      "@type": "Service",
+      "@id": absolute(`/services/${service.slug}#service`),
+      name: service.name,
+      description: service.summary,
+      serviceType: service.category,
+      url: absolute(`/services/${service.slug}`),
+      provider: { "@id": ORG_ID },
+      areaServed: { "@type": "Country", name: "India" },
+    },
+    breadcrumbJsonLd([
+      { name: "LAWFIC", path: "/" },
+      { name: "Services", path: "/services" },
+      { name: service.name, path: `/services/${service.slug}` },
+    ]),
+  );
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // Built here from the typed service record; no user input, and
+        // JSON.stringify does the escaping.
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+      />
       {/* ---------- hero with the signature animation ---------- */}
       <section className="relative overflow-hidden border-b border-border bg-surface">
         <div className="mx-auto grid max-w-6xl items-center gap-16 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1fr] lg:py-24">

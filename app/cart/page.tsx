@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Your cart",
   description: "Services you have lined up, before you commit to filing them.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 /* A real page rather than a header icon pointing at a 404.

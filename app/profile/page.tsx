@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatPaise } from "@/lib/money";
 import { ACCOUNT_GROUPS, MONEY_ROWS } from "@/lib/account-sections";
+import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 /**
  * The customer profile — sheet 3 of the client's blueprint.
@@ -30,6 +31,7 @@ export const metadata: Metadata = {
   title: "Your account",
   description:
     "Your profile, your wallet, your saved documents and everything LAWFIC holds for you.",
+  robots: PRIVATE_PAGE_ROBOTS,
 };
 
 export const dynamic = "force-dynamic";
