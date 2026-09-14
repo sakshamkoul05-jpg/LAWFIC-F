@@ -6,53 +6,55 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
- * Four ways in, and they are not four equal options.
+ * Three journeys arrive at this page, and only one of them is signing in.
  *
- * A CODE TO YOUR EMAIL IS THE DEFAULT, AND IT IS ALSO THE SIGN-UP
+ * A RETURNING CUSTOMER USES A PASSWORD
+ *
+ * It is the default tab and the one that happens most, forever. Once an account
+ * exists, signing into it needs no mail at all — which matters on a site where
+ * mail has been the failure point more than once. A code every time would be a
+ * round trip to an inbox as the price of opening your own wallet.
+ *
+ * A NEW CUSTOMER GETS A CODE, NOT A PASSWORD FORM
  *
  * `signInWithOtp` with `shouldCreateUser` creates the account on first use, so
- * a new customer types one address, types six digits, and has an account —
- * there is no separate registration step and no password to invent. It also
- * fixes something a password sign-up cannot do in one step: the address is
- * PROVEN before the account is usable.
+ * a new customer types one address and one code and is in. Nothing to invent,
+ * nothing to remember, and — the part a password sign-up cannot do in one step
+ * — the address is PROVEN before the account works. It also signs in an
+ * existing address, so nobody who picks the wrong tab is stuck.
  *
- * Password sign-up now goes through `supabase.auth.signUp` and waits on a
- * confirmation email, which closes the same hole a step later. It used to go
- * through /api/auth/signup and create the account already confirmed — fine
- * while the mailer was broken, and exactly how somebody registers another
- * person's address. That route is off.
+ * A FORGOTTEN PASSWORD GETS A LINK
  *
- * The password form stays. Once an account exists, signing in with a password
- * needs no mail at all, and on a site where mail has been the failure point
- * that is worth keeping.
+ * Reached from the sign-in form rather than given a tab of its own: forgetting
+ * a password is something that happens to you, not a way of signing in you
+ * would choose from a list. The strip stays on screen while you are there, so
+ * there is always a way back that is not inside the form.
+ *
+ * The password SIGN-UP mode is kept and unreachable from the tabs. It is one
+ * `switchMode("signup")` from being offered again if a code-first sign-up turns
+ * out to confuse people, and it costs nothing to leave wired up.
  *
  * THIS DEPENDS ON MAIL ACTUALLY LEAVING THE BUILDING
  *
- * OTP was in this file once before and was removed because Supabase's built-in
- * sender delivers about two messages an hour and only to addresses on the
- * project team — under which a code form is a sign-in page that cannot sign a
- * customer in. Mail now goes out through Resend on lawfic.pro, so that
- * constraint is gone; the setup and the traps in it are in the README under
- * "Email: sign-in codes go out through Resend".
+ * Mail goes out through Resend on lawfic.pro; the setup and the traps in it are
+ * in the README under "Email: sign-in codes go out through Resend". Nothing
+ * about Resend appears in this codebase — Supabase sends over SMTP, so the API
+ * key lives in the Supabase dashboard and there is no environment variable here
+ * to leak, log or forget to rotate.
  *
- * Nothing about Resend appears in this codebase. Supabase sends the mail over
- * SMTP, so the API key lives in the Supabase dashboard and there is no
- * environment variable here to leak, log or forget to rotate.
- *
- * The loud failures stay anyway. A refused send still says so in words and
- * still points at the password form, because a mailbox can be rate-limited, a
- * DNS record can lapse, and a sign-in page that goes quiet when mail stops is
- * a sign-in page nobody can report a fault on.
+ * The loud failures stay anyway. A refused send says so in words and points at
+ * the password form, because a domain can fall out of verification and a
+ * sign-in page that goes quiet when mail stops is one nobody can report a fault
+ * on.
  *
  * WHAT THE CODE EMAIL HAS TO CONTAIN
  *
  * Supabase sends whatever the template says, and a link cannot be typed into
- * the six boxes below, so `{{ .Token }}` has to be in TWO templates: "Magic
- * link or OTP" for an address that already has an account, and "Confirm
- * signup" for the first time an address is seen. The second is the one that
- * gets forgotten, and it is the one a new customer meets. The link still works
- * either way — it lands on /auth/callback — so whichever they reach for, they
- * get in.
+ * the code box, so `{{ .Token }}` has to be in TWO templates: "Magic link or
+ * OTP" for an address that already has an account, and "Confirm signup" for the
+ * first time an address is seen. The second is the one that gets forgotten, and
+ * it is the one a new customer meets. The link still works either way — it
+ * lands on /auth/callback — so whichever they reach for, they get in.
  */
 
 type Mode = "code" | "password" | "signup" | "forgot";
@@ -83,7 +85,7 @@ function readable(message: string): string {
      covers a wrong digit and a code past its ten minutes alike, and telling
      someone which of those it was would also tell an attacker. */
   if (m.includes("token has expired") || m.includes("invalid token") || m.includes("otp_expired")) {
-    return "That code is wrong or has expired. Ask for a new one.";
+    return "That code is wrong or has expired. Ask for a new one, and use the newest email — an older code stops working as soon as a new one is sent.";
   }
   if (m.includes("for security purposes")) {
     return "That was too quick after the last one. Wait a moment and try again.";
@@ -113,7 +115,12 @@ export default function LoginForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/wallet";
 
-  const [mode, setMode] = useState<Mode>("code");
+  /* THE PASSWORD FORM IS WHAT /login OPENS ON.
+     Three journeys arrive here and only one of them is signing in: a returning
+     customer with a password, someone creating an account, and someone who has
+     forgotten a password. The first is the one that happens most, forever, so
+     it gets the default and the other two are a tab and a link away. */
+  const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -144,7 +151,14 @@ export default function LoginForm() {
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
   const passwordOk = password.length >= 8;
   const matches = mode === "signup" ? password === confirm : true;
-  const tokenOk = /^\d{6}$/.test(token);
+  /* SUPABASE DECIDES HOW LONG THE CODE IS, NOT THIS FORM.
+     The dashboard's OTP length is configurable from 6 to 10 digits, and this
+     project is currently emitting 8 — so a form hardcoded to exactly six
+     refused a code that had just been emailed, with no way for the customer to
+     tell whose fault it was. Accepting the whole legal range means changing
+     that setting never breaks the page again. The range is not open-ended: it
+     is Supabase's own, so a short paste is still caught. */
+  const tokenOk = /^\d{6,10}$/.test(token);
 
   const canSubmit =
     !busy &&
@@ -165,9 +179,26 @@ export default function LoginForm() {
     setSent(false);
   }, []);
 
-  /** Where Supabase should send someone who clicks the link instead. */
-  const callback = (target: string) =>
-    `${window.location.origin}/auth/callback?next=${encodeURIComponent(target)}`;
+  /**
+   * Where Supabase should send someone who clicks the link instead of typing
+   * the code.
+   *
+   * NEXT_PUBLIC_SITE_URL WINS OVER THE BROWSER'S OWN ORIGIN
+   *
+   * This used to be `window.location.origin` alone, which is right in
+   * development and quietly wrong everywhere else: request a code from
+   * localhost and the email that lands in your inbox carries a localhost link,
+   * so opening it on a phone — or on any machine that is not the one that asked
+   * — goes nowhere. The same happens from a preview deployment, which mails a
+   * preview URL that expires.
+   *
+   * With the variable set, every environment mails the real site. Without it,
+   * the origin is still the sensible fallback for local work.
+   */
+  const callback = (target: string) => {
+    const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || window.location.origin;
+    return `${origin}/auth/callback?next=${encodeURIComponent(target)}`;
+  };
 
   async function sendCode(supabase: NonNullable<ReturnType<typeof createClient>>) {
     const { error } = await supabase.auth.signInWithOtp({
@@ -186,7 +217,7 @@ export default function LoginForm() {
     }
     setSent(true);
     setCooldown(RESEND_SECONDS);
-    setNotice(`We sent a six-digit code to ${email}. It is good for ten minutes.`);
+    setNotice(`We sent a code to ${email}. It is good for ten minutes.`);
   }
 
   async function submit(e: React.FormEvent) {
@@ -311,15 +342,15 @@ export default function LoginForm() {
     "mt-2 w-full rounded-lg border border-border-2 bg-background/60 px-3.5 py-2.5 text-[14px] text-foreground outline-none placeholder:text-subtle focus:border-primary/50";
 
   const heading: Record<Mode, { label: string; title: string }> = {
-    code: { label: "Sign in", title: "Sign in with an email code" },
     password: { label: "Sign in", title: "Welcome back" },
+    code: { label: "Create account", title: "Start with your email" },
     signup: { label: "Create account", title: "Create your LAWFIC account" },
     forgot: { label: "Reset password", title: "Set a new password" },
   };
 
   const submitLabel = () => {
     if (busy) return "Working…";
-    if (mode === "code") return sent ? "Verify and sign in" : "Email me a code";
+    if (mode === "code") return sent ? "Verify and continue" : "Email me a code";
     if (mode === "forgot") return "Email me a reset link";
     if (mode === "signup") return "Create account";
     return "Sign in";
@@ -416,7 +447,7 @@ export default function LoginForm() {
               {mode === "code" && sent && (
                 <>
                   <label htmlFor="token" className="type-label mt-5 block text-muted">
-                    Six-digit code
+                    Code from your email
                   </label>
                   <input
                     ref={codeRef}
@@ -426,12 +457,12 @@ export default function LoginForm() {
                        spinner arrows on a thing that is not a quantity. */
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    pattern="\d{6}"
-                    maxLength={6}
+                    pattern="\d{6,10}"
+                    maxLength={10}
                     value={token}
-                    onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     placeholder="000000"
-                    className={`${field} text-center text-[20px] tracking-[0.45em]`}
+                    className={`${field} text-center text-[20px] tracking-[0.3em]`}
                     required
                   />
 
@@ -549,8 +580,9 @@ export default function LoginForm() {
 
               {mode === "code" && !sent && (
                 <p className="mt-4 text-center text-[12px] leading-relaxed text-subtle">
-                  No account needed first — a code both signs you in and creates
-                  your account if this is your first visit.
+                  No password to invent. We email you a code, and typing it both
+                  proves the address is yours and creates your account. Already
+                  have one? This signs you straight in.
                 </p>
               )}
 
