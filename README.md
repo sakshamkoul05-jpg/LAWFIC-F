@@ -248,6 +248,37 @@ loud: `robots.txt` becomes `Disallow: /`, every page carries `noindex`, and the
 sitemap is empty. A preview deployment cannot accidentally get itself indexed
 and compete with the real site for its own content.
 
+### www or bare — pick one, and make BOTH ends agree
+
+`lawfic.pro` and `www.lawfic.pro` are two different sites to a search engine.
+Exactly one of them is the real one, and two separate things have to name the
+same one:
+
+1. **The host** picks a primary domain and 308-redirects the other to it.
+2. **This app** takes `NEXT_PUBLIC_SITE_URL` and writes it into every canonical
+   tag, every `og:url`, every `<loc>` in the sitemap, and the `Sitemap:` line
+   in `robots.txt`.
+
+When those disagree, *nothing breaks*. Every page loads, every link works, and
+the site looks perfect in a browser. What actually happens is invisible from
+here:
+
+- Search Console reports **"Couldn't fetch"** on the sitemap, because the URL
+  submitted redirects to a different hostname.
+- Every URL inside the sitemap is a redirect, so none of them get indexed.
+- Each page carries a canonical pointing at a URL that redirects straight back
+  to the page it was served from.
+
+`npm run doctor` now makes one HTTP request to catch this — it fetches
+`$NEXT_PUBLIC_SITE_URL/sitemap.xml` with redirects turned off and fails if the
+answer is a redirect to another host. It is the only check in that script that
+tests the deployment rather than the backend, and it is there because this
+failure is found weeks later in a report rather than by looking at the site.
+
+**If you change which domain is primary, change `NEXT_PUBLIC_SITE_URL` in the
+same sitting** — and remember the same value is in the Supabase redirect
+allow-list and in the sign-in email links.
+
 ### Making the logo appear in search
 
 There are two different logos, doing two different jobs, and only one of them is
@@ -300,8 +331,12 @@ politely. What protects customer data is RLS and the auth checks on each page.
 
 ### After the first deploy
 
+0. Run `npm run doctor` against the deployed domain first. If it reports a
+   hostname mismatch, fix that BEFORE submitting anything — a sitemap submitted
+   at the wrong hostname comes back "Couldn't fetch" and has to be resubmitted.
 1. Add the property in [Google Search Console](https://search.google.com/search-console)
-   and submit `https://lawfic.pro/sitemap.xml`.
+   for **whichever hostname `NEXT_PUBLIC_SITE_URL` names**, and submit
+   `<that host>/sitemap.xml`.
 2. Check the Organization record with the
    [Rich Results Test](https://search.google.com/test/rich-results) — it is the
    only way to see what Google actually parsed.

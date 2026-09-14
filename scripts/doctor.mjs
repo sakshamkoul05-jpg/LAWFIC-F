@@ -304,6 +304,75 @@ if (env.RAZORPAY_WEBHOOK_SECRET) {
   );
 }
 
+/* ── the canonical hostname ───────────────────────────────────────────────── */
+
+/**
+ * Does the site agree with its host about what it is called?
+ *
+ * WHY THIS CHECK EXISTS
+ *
+ * lawfic.pro and www.lawfic.pro are two different sites as far as a search
+ * engine is concerned, and exactly one of them has to be the real one. The
+ * hosting platform picks a primary domain and redirects the other to it; this
+ * app takes NEXT_PUBLIC_SITE_URL and writes it into every canonical tag, every
+ * og:url, every <loc> in the sitemap and the Sitemap: line in robots.txt.
+ *
+ * If those two disagree, nothing breaks. Every page loads, every link works,
+ * and the damage is invisible from a browser:
+ *
+ *   • Search Console reports "Couldn't fetch" on the sitemap, because the URL
+ *     submitted redirects to a different hostname.
+ *   • Every URL inside the sitemap is a redirect, so none of them get indexed.
+ *   • Each page carries a canonical pointing at a URL that redirects straight
+ *     back to the page — a loop a crawler has to resolve by guessing.
+ *
+ * It is the kind of thing that is found weeks later in a Search Console report
+ * rather than by looking at the site, so it is worth one HTTP request here.
+ *
+ * Only runs when NEXT_PUBLIC_SITE_URL is set, and never fails the script on a
+ * network error — the site being unreachable from this machine is not evidence
+ * of a misconfiguration.
+ */
+if (SITE && /^https?:\/\//.test(SITE)) {
+  section("Canonical hostname");
+
+  try {
+    /* `redirect: "manual"` is the whole point. Following the redirect would
+       return 200 and hide the very thing being looked for. */
+    const res = await fetch(`${SITE}/sitemap.xml`, {
+      redirect: "manual",
+      headers: { "user-agent": "LAWFIC-doctor" },
+    });
+
+    const location = res.headers.get("location");
+
+    if (res.status >= 300 && res.status < 400 && location) {
+      const to = new URL(location, SITE);
+      const from = new URL(SITE);
+
+      if (to.host !== from.host) {
+        fix(
+          `${from.host} redirects to ${to.host}, but NEXT_PUBLIC_SITE_URL says ${from.host}`,
+          `Pick one and make both agree. Either set the primary domain to ${from.host} on the host (so ${to.host} redirects to it), or set NEXT_PUBLIC_SITE_URL=${to.protocol}//${to.host}. Until then the sitemap cannot be fetched and no page is indexed under the name it claims.`
+        );
+      } else {
+        warn(
+          `${SITE}/sitemap.xml redirects to ${to.pathname}`,
+          "Same host, so it is survivable — but a sitemap that redirects is one more thing between Google and the URLs."
+        );
+      }
+    } else if (res.ok) {
+      pass("The site answers on its own canonical hostname", `${new URL(SITE).host}, no redirect`);
+    } else {
+      warn(`${SITE}/sitemap.xml returned ${res.status}`, "Deployed yet?");
+    }
+  } catch {
+    /* Offline, DNS not propagated, or the domain is not live. None of those
+       are configuration faults, so this stays silent about pass or fail. */
+    console.log(`  ${c.dim(`Could not reach ${SITE} — skipped.`)}`);
+  }
+}
+
 /* ── summary ──────────────────────────────────────────────────────────────── */
 
 console.log(
