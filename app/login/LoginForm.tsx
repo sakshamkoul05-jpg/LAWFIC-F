@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { isAlreadyConfirmed, signUpWasDeclinedAsDuplicate } from "@/lib/auth-signals";
 
 /**
  * TWO WAYS IN. NOT THREE.
@@ -215,6 +216,14 @@ export default function LoginForm() {
       options: { emailRedirectTo: callback("/profile/setup") },
     });
     if (error) {
+      /* An address that is ALREADY confirmed has nothing to re-send, and
+         Supabase says so plainly here rather than with a decoy. Pointing at
+         the sign-in form is the useful answer; "resend failed" is not. */
+      if (isAlreadyConfirmed(error.message)) {
+        switchMode("password");
+        setNotice(`${email} is already confirmed. Sign in with your password.`);
+        return;
+      }
       setError(readable(error.message));
       return;
     }
@@ -311,6 +320,39 @@ export default function LoginForm() {
         if (data.session) {
           router.push("/profile/setup");
           router.refresh();
+          return;
+        }
+
+        /**
+         * THE ADDRESS ALREADY HAS AN ACCOUNT, AND SUPABASE WILL NOT SAY SO.
+         *
+         * Signing up with an email that already exists returns 200 with a
+         * plausible-looking user, a `confirmation_sent_at` timestamp, and NO
+         * EMAIL SENT. That is deliberate on their side — an endpoint that
+         * answered "already registered" would let anyone test a list of
+         * addresses against this site and learn who has an account here.
+         *
+         * The one honest signal is `identities: []`. A genuinely new account
+         * comes back with one identity; the decoy comes back with none. The
+         * timestamp is part of the decoy and means nothing, which is exactly
+         * how this shipped broken: the code checked `session`, saw none, and
+         * announced "We sent a code" for an email that was never sent. The
+         * customer then waited for a code that did not exist, tried again, and
+         * got the same lie — with the send counter in the mail provider
+         * showing nothing, because nothing was sent.
+         *
+         * Saying "that email already has an account" here gives away no more
+         * than the sign-in form already does, and is the only thing that gets
+         * somebody unstuck.
+         */
+        if (signUpWasDeclinedAsDuplicate(data.user)) {
+          /* switchMode clears the notice; both calls are in this one handler,
+             so React batches them and the setNotice below is the one that
+             lands. Written in this order deliberately. */
+          switchMode("password");
+          setNotice(
+            `${email} already has an account. Sign in with your password — or use "Forgot your password?" if you do not have it.`,
+          );
           return;
         }
 
