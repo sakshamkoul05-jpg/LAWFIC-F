@@ -59,17 +59,27 @@ export const isCashfreeTestMode = cashfreeMode === "sandbox";
  * prefixed TEST and sometimes plain digits, so inferring from it produces
  * confident wrong answers.
  */
-export const credentialEnvironment: CashfreeMode | null = /^cfsk_[a-z]+_test_/i.test(
-  CLIENT_SECRET,
-)
-  ? "sandbox"
-  : /^cfsk_[a-z]+_prod_/i.test(CLIENT_SECRET)
-    ? "production"
-    : null;
+export function credentialEnvironmentOf(secret: string): CashfreeMode | null {
+  if (/^cfsk_[a-z]+_test_/i.test(secret)) return "sandbox";
+  if (/^cfsk_[a-z]+_prod_/i.test(secret)) return "production";
+  return null;
+}
 
-/** True when the key and the configured mode disagree — every call will 401. */
-export const credentialsMismatch =
-  credentialEnvironment !== null && credentialEnvironment !== cashfreeMode;
+/**
+ * Do the key and the configured mode disagree? Every call will 401 if so.
+ *
+ * A null environment is NOT a mismatch. An unrecognised secret shape is not
+ * evidence of disagreement — it is an absence of evidence — and failing over
+ * one would block a perfectly good deployment whose key format Cashfree
+ * changed.
+ */
+export function credentialsDisagree(secret: string, mode: CashfreeMode): boolean {
+  const env = credentialEnvironmentOf(secret);
+  return env !== null && env !== mode;
+}
+
+export const credentialEnvironment = credentialEnvironmentOf(CLIENT_SECRET);
+export const credentialsMismatch = credentialsDisagree(CLIENT_SECRET, cashfreeMode);
 
 const API =
   cashfreeMode === "production" ? "https://api.cashfree.com/pg" : "https://sandbox.cashfree.com/pg";
