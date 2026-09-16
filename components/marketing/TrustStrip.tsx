@@ -21,7 +21,7 @@ const signals = [
     ),
   },
   {
-    title: "Payments handled by Razorpay",
+    title: "Payments handled by Cashfree",
     body: "An RBI-authorised payment aggregator. We never see your card.",
     icon: (
       <>

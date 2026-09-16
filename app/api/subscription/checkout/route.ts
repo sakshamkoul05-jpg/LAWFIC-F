@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { isRazorpayConfigured } from "@/lib/razorpay";
+import { isCashfreeConfigured } from "@/lib/cashfree";
 import {
   canAutoRenew,
   paidPlans,
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  *
  * It prices the chosen tier, checks the price can legally auto-renew, and
  * hands back what Checkout needs. The `subscriptions` row is written by the
- * payment webhook once Razorpay says the first debit succeeded — because a row
+ * payment webhook once Cashfree says the first debit succeeded — because a row
  * in that table is an assertion that money was taken, and the only thing
  * entitled to make that assertion is the thing that took it. Anything else
  * lets a client grant itself a membership by calling an endpoint twice.
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isRazorpayConfigured) {
+  if (!isCashfreeConfigured) {
     /* The same shape top-ups return when keys are missing: a clear 503 rather
        than a half-built checkout. Said out loud because a silent failure on a
        payment screen is the worst kind. */

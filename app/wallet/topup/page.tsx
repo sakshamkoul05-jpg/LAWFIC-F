@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { isRazorpayConfigured } from "@/lib/razorpay";
+import { isCashfreeConfigured } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
 import TopUpForm from "../TopUpForm";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
@@ -63,7 +63,7 @@ export default async function TopUpPage() {
       <p className="mb-6 text-center text-[14px] leading-relaxed opacity-40">
         Top up with UPI, card or net banking. The money lands in your wallet and pays for filings.
       </p>
-      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isRazorpayConfigured} look={prefs} />
+      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isCashfreeConfigured} look={prefs} />
     </div>
   );
 }

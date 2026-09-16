@@ -22,6 +22,7 @@ export default function TopUpForm({
 }) {
   const {
     amount,
+    needsPhone,
     setAmount,
     custom,
     setCustom,
@@ -51,6 +52,11 @@ export default function TopUpForm({
     setArriving((n) => n + 1);
     setCelebrate(credited);
   }, [phase, credited]);
+
+  /* Only ever shown when the route asks for it. Local rather than in the
+     hook: the hook owns the payment, this is one field on one form. */
+  const [phone, setPhone] = useState("");
+  const phoneOk = /^[6-9]\d{9}$/.test(phone);
 
   const chosen = custom === "" ? amount : Number(custom);
 
@@ -173,10 +179,50 @@ export default function TopUpForm({
         <p className="mt-2 text-[12px]" style={{ color: "var(--wallet-fg-muted)" }}>{check.error}</p>
       )}
 
+      {/* ASKED FOR ONCE, AND ONLY WHEN IT IS MISSING.
+          Cashfree requires a mobile number on every order — it is what the
+          payment receipt and the UPI flows are addressed to. The profile has
+          always had the field and has never required it, so some accounts
+          arrive here without one. The alternative to asking would be inventing
+          a number, which would send a stranger somebody else's receipt.
+          What is typed here is saved to the profile, so this never appears
+          twice for the same person. */}
+      {needsPhone && (
+        <div className="mt-3">
+          <label
+            htmlFor="topup-phone"
+            className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-40"
+          >
+            Mobile number
+          </label>
+          <div
+            className="mt-2 flex items-center gap-2 rounded-xl border px-3.5 focus-within:ring-1 focus-within:ring-primary/40"
+            style={{ borderColor: "var(--wallet-input-border)", background: "var(--wallet-input-bg)" }}
+          >
+            <span className="font-mono text-[14px] opacity-40">+91</span>
+            <input
+              id="topup-phone"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              placeholder="10 digits"
+              value={phone}
+              disabled={busy}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              className="w-full bg-transparent py-3 font-mono text-[14px] outline-none placeholder:opacity-30 tabular-nums"
+              style={{ color: "var(--wallet-input-text)" }}
+            />
+          </div>
+          <p className="mt-2 text-[11.5px] leading-relaxed opacity-45">
+            Our payment provider needs this for the receipt. We save it to your
+            profile so you are only asked once.
+          </p>
+        </div>
+      )}
+
       <button
         type="button"
-        onClick={startTopUp}
-        disabled={!check.ok || busy || !paymentsReady}
+        onClick={() => startTopUp(needsPhone ? phone : undefined)}
+        disabled={!check.ok || busy || !paymentsReady || (needsPhone && !phoneOk)}
         className="mt-5 w-full rounded-full bg-primary py-3.5 text-[13px] font-medium text-background transition-all duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-30"
       >
         {label}

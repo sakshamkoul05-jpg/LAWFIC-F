@@ -6,9 +6,9 @@
  * really is closed-loop, refunds really are same-day credits, we really do not
  * store Aadhaar photocopies — so they are a sound starting point rather than
  * boilerplate. But a compliance company shipping unreviewed terms is not a good
- * look, and Razorpay's activation review reads them.
+ * look, and a payment aggregator's activation review reads them.
  *
- * They exist now because Razorpay will not activate a merchant account until
+ * They exist now because a payment aggregator will not activate a merchant account until
  * Terms, Privacy, Refunds and Contact are live on the domain. Writing them late
  * blocks go-live.
  *
@@ -115,7 +115,7 @@ export const legalDocs: LegalDoc[] = [
         body: [
           "Account details: your mobile number or email address, and a name if you give one. These identify you and let us tell you what is happening with your filings.",
           "Filing details: the information a particular application requires — business name, address, turnover band, the identifiers a form asks for. What we ask for varies by service and is listed on that service's page before you start.",
-          "Payment records: the amount, the time, and the payment reference. Card and bank details are handled entirely by Razorpay, our payment processor. We never see or store them.",
+          "Payment records: the amount, the time, and the payment reference. Card and bank details are handled entirely by Cashfree, our payment processor. We never see or store them.",
           "Usage data: basic technical logs needed to keep the service running and secure.",
         ],
       },
@@ -140,7 +140,7 @@ export const legalDocs: LegalDoc[] = [
         body: [
           "The relevant government portal, when we file your application — that is the point of the exercise, and it is filed in your name.",
           "Our infrastructure providers, who host the service under contract and process data only on our instructions.",
-          "Razorpay, for payments.",
+          "Cashfree Payments, for payments.",
           "Anyone we are legally required to disclose to, on a valid order.",
         ],
       },
@@ -227,7 +227,7 @@ export const legalDocs: LegalDoc[] = [
       {
         heading: "What the wallet is",
         body: [
-          "The LAWFIC wallet is a prepaid balance you can spend on LAWFIC's own services. You top it up by card, UPI or net banking through Razorpay, and the balance is debited when you pay for a filing.",
+          "The LAWFIC wallet is a prepaid balance you can spend on LAWFIC's own services. You top it up by card, UPI or net banking through Cashfree, and the balance is debited when you pay for a filing.",
           "It exists so that you are not re-entering payment details for every filing, and so that refunds can be returned to you immediately rather than through a card reversal.",
         ],
       },
@@ -242,8 +242,8 @@ export const legalDocs: LegalDoc[] = [
       {
         heading: "Topping up",
         body: [
-          "Minimum top-up is ₹100. Payments are processed by Razorpay; we never see your card details.",
-          "Your balance is credited only when we receive a verified confirmation from Razorpay that the payment succeeded. If a payment succeeds but the balance has not moved within a few minutes, contact us — do not pay again.",
+          "Minimum top-up is ₹1. Payments are processed by Cashfree; we never see your card details.",
+          "Your balance is credited only when we receive a verified confirmation from Cashfree that the payment succeeded. If a payment succeeds but the balance has not moved within a few minutes, contact us — do not pay again.",
         ],
       },
       {
@@ -270,7 +270,7 @@ export const legalDocs: LegalDoc[] = [
       {
         heading: "Statements",
         body: [
-          "Every credit and debit is listed in your account with its date, its reason and the order reference it relates to. Top-ups carry the payment reference from Razorpay so they can be matched against your card or bank statement.",
+          "Every credit and debit is listed in your account with its date, its reason and the order reference it relates to. Top-ups carry the payment reference from Cashfree so they can be matched against your card or bank statement.",
         ],
       },
     ],

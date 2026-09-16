@@ -5,7 +5,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
  *
  * There are exactly four legitimate callers:
  *
- *   1. the Razorpay webhook, which arrives with no user session but is
+ *   1. the Cashfree webhook, which arrives with no user session but is
  *      authenticated by an HMAC signature over the raw body, and has to write
  *      a wallet credit — something no client role may ever do;
  *   2. the top-up route, which records a payment_intent after checking the

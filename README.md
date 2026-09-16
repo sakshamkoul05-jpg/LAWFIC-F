@@ -3,10 +3,10 @@
 Registrations, licences and compliance for Indian businesses — a marketing site,
 a signed-in account area, and a closed-loop prepaid wallet.
 
-The database and the Razorpay webhook live in **[LAWFIC-B](https://github.com/sakshamkoul05-jpg/LAWFIC-B)**.
+The database and the Cashfree webhook live in **[LAWFIC-B](https://github.com/sakshamkoul05-jpg/LAWFIC-B)**.
 Run its migrations before this app will do anything past the signed-out state.
 
-**Status: wired, awaiting credentials.** Auth, the wallet ledger and Razorpay
+**Status: wired, awaiting credentials.** Auth, the wallet ledger and Cashfree
 top-ups are implemented and tested. With no keys set the site runs signed-out
 and says so; add the keys and it comes online. See [Going live](#going-live).
 
@@ -24,7 +24,7 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Unit tests — money handling, catalogue and Razorpay config (23) |
+| `npm test` | Unit tests — money handling, catalogue, SEO and Cashfree config |
 | `npm run doctor` | Checks this app is actually wired to a live backend |
 | `npx tsc --noEmit` | Typecheck |
 
@@ -38,7 +38,7 @@ Schema and webhook tests live in the backend repo (`npm test` there — 52 check
 | Styling | Tailwind 4 |
 | Motion | `motion` v13 |
 | Data & auth | Supabase — Postgres, Auth, RLS |
-| Payments | Razorpay (RBI-authorised payment aggregator) |
+| Payments | Cashfree Payments (RBI-authorised payment aggregator) |
 | Validation | Zod 4 |
 | DB tests | PGlite, in-process, no Docker |
 
@@ -51,7 +51,7 @@ Schema and webhook tests live in the backend repo (`npm test` there — 52 check
 | `/wallet` | Balance, top-up and statement. Signed-in only |
 | `/orders` `/orders/[id]` | Your filings, with a status timeline and pay-from-wallet |
 | `/admin` | Back office. Staff only — quote, advance, close and refund |
-| `/api/wallet/topup` | Creates a Razorpay order and records an intent |
+| `/api/wallet/topup` | Creates a Cashfree order and records an intent |
 | `/api/wallet/balance` | The signed-in user's balance, for post-payment polling |
 | `/auth/callback` `/auth/signout` | Session handling |
 
@@ -69,24 +69,38 @@ components/motion/      the four signature service animations
 components/ui/          Reveal — scroll reveal wrapper
 lib/services.ts         service copy: fees, documents, steps, FAQs
 lib/money.ts            paise ↔ rupees, formatting, amount validation
-lib/razorpay.ts         order creation and signature verification
+lib/cashfree.ts         order creation and order lookup (no signing — see below)
 lib/supabase/           client / server / admin clients
 ```
 
 ## How the wallet works
 
 **It is a closed prepaid ledger, not a payment instrument.** Money enters only
-from a verified Razorpay webhook and leaves only as payment for LAWFIC's own
+from a verified Cashfree webhook and leaves only as payment for LAWFIC's own
 services. There is no transfer between users and no withdrawal to a bank. That
 is what keeps it inside the closed-system PPI exemption — a schema permitting
 user-to-user movement would put the business inside RBI authorisation whether
 or not the UI exposed it.
 
-**Top-up.** The user picks an amount → the server creates a Razorpay order and
-records a `payment_intents` row → Checkout runs in the browser → Razorpay POSTs
-the webhook → the handler verifies the HMAC over the **raw** body, and only then
-writes a credit keyed by the Razorpay payment id. The browser polls
-`/api/wallet/balance` and never asserts a balance of its own.
+**Top-up.** The user picks an amount → the server records a `payment_intents`
+row and creates a Cashfree order → checkout opens in a modal on the page →
+Cashfree POSTs the result to the Edge Function, which verifies the HMAC and
+writes a credit keyed by the Cashfree payment id. The browser polls
+`/api/wallet/balance` until the credit appears.
+
+The intent is recorded BEFORE the order exists at the gateway. The other order
+leaves a window in which somebody can pay for an order we have no record of,
+and the only honest response to that is to refuse to credit them.
+
+The browser never decides the balance moved. `checkout()` resolves with a
+result saying the payment succeeded, and that result is produced in the
+customer's browser — the money is confirmed by a signed server-to-server
+webhook. So the page waits to be told, which is also why closing the tab
+mid-payment still credits correctly.
+
+Card and netbanking finish in the modal. UPI intent on a phone and some 3DS
+flows navigate away, and those come back to `/wallet/topup/return` — a page
+that reads the order status to decide what to SAY, and credits nothing.
 
 **The ledger is append-only.** No UPDATE, no DELETE — enforced by triggers *and*
 revoked grants. A correction is a new reversing entry. Each row stores the
@@ -402,18 +416,25 @@ In order, because two of these have external lead times:
 1. **Supabase project** — create it, then from the backend repo run
    `npm run deploy -- --project-ref YOUR-REF`. Add the three keys here and run
    `npm run doctor`. Auth and the wallet come online. *(Same day.)*
-2. **Razorpay test keys** — issued on signup, before KYC. Add them and the whole
-   top-up flow works end to end with test cards. The wallet shows a "Test mode"
-   badge. *(Same day.)*
-3. **Razorpay webhook** — deploy it from the backend repo
-   (`npx supabase functions deploy razorpay-webhook`) and point Razorpay at
-   `https://YOUR-PROJECT-REF.supabase.co/functions/v1/razorpay-webhook`.
+2. **Cashfree sandbox keys** — Dashboard → Developers → API Keys, issued
+   immediately. Add them and the whole top-up flow works end to end with test
+   cards. The wallet shows a "Test mode" badge. *(Same day.)*
+3. **Cashfree webhook** — deploy it from the backend repo
+   (`npx supabase functions deploy cashfree-webhook`), set the secret there
+   (`npx supabase secrets set CASHFREE_CLIENT_SECRET=…` — the SAME client
+   secret; Cashfree has no separate webhook secret), and point Cashfree
+   (Developers → Webhooks) at
+   `https://YOUR-PROJECT-REF.supabase.co/functions/v1/cashfree-webhook`.
+   Subscribe it to PAYMENT_SUCCESS, PAYMENT_FAILED and PAYMENT_USER_DROPPED.
    Without this, payments succeed and balances never move. This step does not
    need this app deployed anywhere.
 4. **Legal pages live on the domain** — Terms, Privacy, Refunds, Wallet Terms.
-   Razorpay activation requires them. *(Blocks go-live, not development.)*
-5. **Razorpay KYC** — needs the entity, GST registration and current account.
-   Swap test keys for live ones. *(3–7 days.)*
+   Cashfree activation requires them. *(Blocks go-live, not development.)*
+5. **Cashfree KYC and production keys** — once the merchant account is
+   verified, swap the sandbox credentials for production ones AND set
+   `CASHFREE_MODE=production`. Both, or the app keeps calling the sandbox with
+   live keys and every card is refused. Register the site domain with Cashfree
+   too — they validate `return_url` against it.
 6. **Verify lawfic.pro in Resend** — four DNS records, then sign-in codes
    reach real customers rather than only the account owner. Until it is
    verified, email sign-in works for you and silently fails for everybody else.
@@ -421,7 +442,7 @@ In order, because two of these have external lead times:
 7. **DLT registration** for mobile OTP — entity ID, sender header and templates
    on a DLT portal, or operators drop the SMS. Email sign-in works throughout
    and stays as the fallback. *(Several days.)*
-8. **Memberships** need the Razorpay Subscriptions product enabled on the
+8. **Memberships** need Cashfree Subscriptions enabled on the
    account and an e-mandate method live (UPI Autopay or cards). Until then
    `/api/subscription/checkout` returns 503 and says so; the plan pages, the
    pricing maths and the wallet card all work without it.

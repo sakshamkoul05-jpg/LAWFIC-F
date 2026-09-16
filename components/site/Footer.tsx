@@ -184,7 +184,7 @@ export default function Footer() {
                 {tx("Secured by TLS")}
               </span>
               <span className="text-[11px] text-muted">
-                {tx("Payments by")} <span className="text-foreground">Razorpay</span>
+                {tx("Payments by")} <span className="text-foreground">Cashfree</span>
               </span>
               <Link href="/legal/wallet-terms" className="text-[11px] text-muted hover:text-foreground transition-colors">
                 {tx("Wallet is closed-loop")}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
-import { isRazorpayConfigured, isRazorpayTestMode } from "@/lib/razorpay";
+import { isCashfreeConfigured, isCashfreeTestMode } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import WalletSection from "@/components/wallet/WalletSection";
@@ -112,7 +112,7 @@ export default async function WalletPage() {
         <WalletAvatar seed={prefs.avatarSeed} size={44} />
       </header>
 
-      {isRazorpayTestMode && (
+      {isCashfreeTestMode && (
         <p className="mb-6 text-center text-[11.5px]" style={{ color: "var(--wallet-fg-muted)" }}>
           Test mode — no real money moves
         </p>
@@ -181,7 +181,7 @@ export default async function WalletPage() {
       >
         Balance is usable only for LAWFIC services. It is not transferable, not
         refundable to a third party, and cannot be withdrawn as cash.
-        {!isRazorpayConfigured && " Payments are not switched on yet."}
+        {!isCashfreeConfigured && " Payments are not switched on yet."}
       </p>
     </div>
   );

@@ -242,33 +242,41 @@ try {
 
 /* ── the webhook ──────────────────────────────────────────────────────────── */
 
-section("Razorpay webhook (Edge Function)");
+section("Cashfree webhook (Edge Function)");
 
-const fnUrl = `${base}/functions/v1/razorpay-webhook`;
+const fnUrl = `${base}/functions/v1/cashfree-webhook`;
 try {
-  // A deliberately wrong signature. A correct deployment answers 401 from the
-  // FUNCTION, with its own body — which proves three things at once: deployed,
-  // verify_jwt is off, and the HMAC check runs.
+  /* A deliberately wrong signature. A correct deployment answers 401 from the
+     FUNCTION, with its own body — which proves three things at once: deployed,
+     verify_jwt is off, and the HMAC check runs.
+
+     The timestamp is current, so a 401 here can only be the signature. Sending
+     a stale one would also produce a 401 and the two would be indistinguishable
+     from out here. */
   const res = await fetch(fnUrl, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-razorpay-signature": "deadbeef" },
-    body: JSON.stringify({ event: "payment.captured", payload: {} }),
+    headers: {
+      "content-type": "application/json",
+      "x-webhook-signature": "bm90LWEtcmVhbC1zaWduYXR1cmU=",
+      "x-webhook-timestamp": String(Math.floor(Date.now() / 1000)),
+    },
+    body: JSON.stringify({ type: "PAYMENT_SUCCESS_WEBHOOK", data: {} }),
   });
   const text = await res.text();
 
   if (res.status === 404) {
-    fix("Function is not deployed", "From the backend repo:  npx supabase functions deploy razorpay-webhook");
+    fix("Function is not deployed", "From the backend repo:  npx supabase functions deploy cashfree-webhook");
   } else if (res.status === 401 && text.includes("bad_signature")) {
     pass("Deployed, JWT verification off, signature check working");
   } else if (res.status === 401) {
     fix(
       "Rejected at the gateway, not by the function",
-      "verify_jwt is still ON. Razorpay sends no bearer token, so every real\n     webhook would be dropped and no wallet ever credited.\n     Fix: verify_jwt = false in supabase/config.toml, then redeploy."
+      "verify_jwt is still ON. Cashfree sends no bearer token, so every real\n     webhook would be dropped and no wallet ever credited.\n     Fix: verify_jwt = false in supabase/config.toml, then redeploy."
     );
   } else if (text.includes("not_configured")) {
     warn(
-      "Deployed but RAZORPAY_WEBHOOK_SECRET is not set",
-      "It ignores every delivery until then. From the backend repo:\n     npx supabase secrets set RAZORPAY_WEBHOOK_SECRET=your-secret"
+      "Deployed but CASHFREE_CLIENT_SECRET is not set there",
+      "It ignores every delivery until then. From the backend repo:\n     npx supabase secrets set CASHFREE_CLIENT_SECRET=your-secret\n     (Cashfree has no separate webhook secret — it is the same client secret.)"
     );
   } else {
     warn(`Unexpected response ${res.status}`, text.slice(0, 160));
@@ -277,32 +285,54 @@ try {
   fix("Could not reach the function", e.message);
 }
 
-/* ── razorpay keys ────────────────────────────────────────────────────────── */
+/* ── cashfree keys ────────────────────────────────────────────────────────── */
 
-section("Razorpay (frontend keys)");
+section("Cashfree (payment keys)");
 
-const keyId = env.RAZORPAY_KEY_ID ?? "";
-const keySecret = env.RAZORPAY_KEY_SECRET ?? "";
+const cfId = env.CASHFREE_CLIENT_ID ?? "";
+const cfSecret = env.CASHFREE_CLIENT_SECRET ?? "";
+const cfMode = env.CASHFREE_MODE ?? "";
 
-if (!keyId || !keySecret) {
+if (!cfId || !cfSecret) {
   warn(
-    "Razorpay keys are not set",
-    "Top-ups return 503 until they are. Test keys (rzp_test_…) are issued on\n     signup, before KYC — enough to run the whole flow end to end."
+    "Cashfree keys are not set",
+    "Top-ups return 503 until they are. Sandbox credentials are issued\n     immediately in the dashboard — enough to run the whole flow end to end."
   );
-} else if (keyId.startsWith("rzp_test_")) {
-  pass("Test-mode keys", "no real money moves; the wallet shows a Test mode badge");
-} else if (keyId.startsWith("rzp_live_")) {
-  warn("LIVE keys are set", "Real money will move. Make sure that is intended.");
+} else if (cfMode === "production" || (!cfMode && !cfId.toUpperCase().startsWith("TEST"))) {
+  if (cfMode === "production") {
+    warn("LIVE mode is set", "Real money will move. Make sure that is intended.");
+  } else {
+    /* Neither the mode nor the id says which environment this is. The app
+       defaults to sandbox, which is the safe direction, but silently — so it
+       is worth saying out loud rather than discovering when a live card is
+       declined by the sandbox. */
+    warn(
+      `CASHFREE_MODE is not set and the app id does not start with TEST`,
+      "The app assumes sandbox. If these are live credentials, set\n     CASHFREE_MODE=production — otherwise real cards will be refused."
+    );
+  }
 } else {
-  warn(`RAZORPAY_KEY_ID looks unusual: ${keyId.slice(0, 12)}…`);
+  pass("Sandbox credentials", "no real money moves; the wallet shows a Test mode badge");
 }
 
-if (env.RAZORPAY_WEBHOOK_SECRET) {
+/* The client secret signs the webhooks as well as the API calls, so the SAME
+   value has to exist in two places: here for creating orders, and in Supabase
+   secrets for verifying deliveries. Arriving from Razorpay, the instinct is to
+   look for a second webhook-only secret; there isn't one. */
+if (cfSecret) {
+  console.log(
+    `  ${c.dim("Remember: the same secret must also be set in the backend —")}`
+  );
+  console.log(`  ${c.dim("npx supabase secrets set CASHFREE_CLIENT_SECRET=…")}`);
+}
+
+if (env.RAZORPAY_KEY_ID || env.RAZORPAY_KEY_SECRET || env.RAZORPAY_WEBHOOK_SECRET) {
   warn(
-    "RAZORPAY_WEBHOOK_SECRET is in the frontend .env.local",
-    "It belongs only in Supabase secrets — the webhook does not run here any more."
+    "Razorpay keys are still in .env.local",
+    "The integration is gone. Delete them so nobody wires them back up by\n     mistake, and revoke them in the Razorpay dashboard."
   );
 }
+
 
 /* ── the canonical hostname ───────────────────────────────────────────────── */
 

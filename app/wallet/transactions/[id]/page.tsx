@@ -24,7 +24,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
 
   const { data } = await supabase
     .from("wallet_entries")
-    .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+    .select("id, direction, amount_paise, reason, created_at, gateway_payment_id, order_id")
     .eq("id", id)
     .maybeSingle();
   if (!data) notFound();
@@ -35,7 +35,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
     amount_paise: number;
     reason: string;
     created_at: string;
-    razorpay_payment_id: string | null;
+    gateway_payment_id: string | null;
     order_id: string | null;
   };
 
@@ -45,7 +45,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
     ["Reference", entry.id.slice(0, 12) + "…"],
   ];
   if (entry.order_id) rows.push(["Order", entry.order_id.slice(0, 12) + "…"]);
-  if (entry.razorpay_payment_id) rows.push(["Payment", entry.razorpay_payment_id]);
+  if (entry.gateway_payment_id) rows.push(["Payment", entry.gateway_payment_id]);
   rows.push(["Kind", entry.direction === "credit" ? "Wallet top-up or refund" : "Payment for a filing"]);
 
   return (

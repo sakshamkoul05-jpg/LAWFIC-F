@@ -41,7 +41,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("wallet_entries")
-    .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+    .select("id, direction, amount_paise, reason, created_at, gateway_payment_id, order_id")
     .order("seq", { ascending: false })
     /* Well past any real account, and a bound rather than none: an unbounded
        select on a money table is how one customer's download becomes everyone

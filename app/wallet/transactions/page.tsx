@@ -37,7 +37,7 @@ export default async function TransactionsPage() {
 
   const { data: entries } = await supabase
     .from("wallet_entries")
-    .select("id, direction, amount_paise, reason, created_at, razorpay_payment_id, order_id")
+    .select("id, direction, amount_paise, reason, created_at, gateway_payment_id, order_id")
     .order("seq", { ascending: false })
     .limit(50);
 

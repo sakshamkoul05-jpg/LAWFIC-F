@@ -77,7 +77,7 @@ export function statementCsv(rows: WalletEntry[]): string {
         /* Deliberately unquoted: this column has to arrive as a number. */
         amount(r),
         cell(r.reason),
-        cell(r.razorpay_payment_id ?? ""),
+        cell(r.gateway_payment_id ?? ""),
         cell(r.order_id ?? ""),
         cell(r.id),
       ].join(","),

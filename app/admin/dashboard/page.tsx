@@ -291,7 +291,7 @@ export default async function AdminDashboardPage() {
         <h2 className="type-label text-muted">Memberships</h2>
         {activeSubs.length === 0 ? (
           <p className="mt-4 text-[13px] leading-relaxed text-muted">
-            Nobody is subscribed yet. Memberships need Razorpay Subscriptions
+            Nobody is subscribed yet. Memberships need Cashfree Subscriptions
             enabled on the account before anyone can join —{" "}
             <Link href="/pricing" className="text-primary hover:text-primary-hover">
               the tiers are live on the pricing page

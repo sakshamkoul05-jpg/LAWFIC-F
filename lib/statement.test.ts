@@ -16,7 +16,7 @@ const entry = (over: Partial<WalletEntry> = {}): WalletEntry => ({
   amount_paise: 500000,
   reason: "Wallet top-up",
   created_at: "2026-09-01T04:30:00.000Z",
-  razorpay_payment_id: null,
+  gateway_payment_id: null,
   order_id: null,
   ...over,
 });

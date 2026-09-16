@@ -4,6 +4,6 @@ export type WalletEntry = {
   amount_paise: number;
   reason: string;
   created_at: string;
-  razorpay_payment_id: string | null;
+  gateway_payment_id: string | null;
   order_id: string | null;
 };
