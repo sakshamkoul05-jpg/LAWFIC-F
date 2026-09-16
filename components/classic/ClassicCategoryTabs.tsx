@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/i18n/LocaleProvider";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   classicTabs,
   TABS_VISIBLE,
@@ -22,6 +22,35 @@ import {
  * rather than reads, and twenty-seven colours is a toy shelf. One ground and
  * one ink makes the row read as a set, and the current section is then the
  * only lit thing on the bar — which is the whole job of a nav bar.
+ *
+ * THE KEYBOARD
+ *
+ * The bar is ONE tab stop, not twenty-seven. A roving tabindex keeps exactly
+ * one tab in the tab order and the arrow keys move between them, which is the
+ * difference between skipping past the navigation in one keystroke and
+ * pressing Tab twenty-seven times to reach the page.
+ *
+ *   ← →        move along the bar, wrapping
+ *   Home End   the first and last section
+ *   ↓          open the section's menu and go into it
+ *   ↑ ↓        move inside the menu
+ *   Esc        close it and come back to the tab you opened it from
+ *   Tab        leave the bar entirely
+ *
+ * FOCUS DOES NOT OPEN THE MENU, AND THAT IS THE FIX
+ *
+ * It used to. Combined with the panel rendering after the whole <nav> in DOM
+ * order, that made every submenu link unreachable: Tab from a tab went to the
+ * NEXT TAB rather than into the open panel, and arriving at that tab fired its
+ * own focus handler, which replaced the panel you were heading for. Two
+ * mechanisms, one outcome — the panel could be seen and never entered. A
+ * WCAG 2.1.1 failure, and invisible to anyone testing with a mouse.
+ *
+ * So focus only moves the roving index now; ↓ opens. `aria-haspopup` and
+ * `aria-expanded` are what tell a screen reader the key is there, which is the
+ * same affordance every menubar uses.
+ *
+ * Hover behaviour is untouched. It worked.
  *
  * THE CHEVRON
  *
@@ -74,15 +103,91 @@ export default function ClassicCategoryTabs() {
 
   const openTab = openId ? classicTabs.find((x) => x.id === openId) : null;
 
+  /* One flat order across both rows, because the arrow keys do not care that
+     twelve of the twenty-seven happen to be behind a chevron. */
+  const ORDERED = useMemo(() => [...TABS_VISIBLE, ...TABS_COLLAPSED], []);
+
+  const tabEls = useRef(new Map<string, HTMLAnchorElement>());
+  /** null means "nobody has arrowed yet" — see rovingId below. */
+  const [roving, setRoving] = useState<string | null>(null);
+  /* Set when a tab in the collapsed row is arrowed to: the row has to un-hide
+     before the element can take focus, so the focus waits a render. */
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+  /* Handed to the panel to say "you were opened by a keypress, take focus".
+     A panel opened by hover must NOT steal it. */
+  const [focusPanel, setFocusPanel] = useState(false);
+
   const isActive = useCallback(
     (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href)),
     [pathname],
   );
 
-  const close = useCallback(() => {
+  /**
+   * Which tab currently holds the tab stop.
+   *
+   * The CURRENT section by default, so Tab lands where you already are rather
+   * than at the far left every time. Once the arrows have been used, that
+   * choice wins until the page changes.
+   */
+  const rovingId =
+    roving ?? ORDERED.find((tb) => isActive(tb.href))?.id ?? ORDERED[0]?.id ?? "";
+
+  /**
+   * `close` MUST keep a stable identity.
+   *
+   * It needs to know which tab to hand focus back to, and the obvious way to
+   * get that — putting `openId` in the dependency array — is a trap that cost
+   * an hour. Two effects below list `close` as a dependency, including
+   * `[pathname, close]`, which closes the menu on navigation. Give `close` a
+   * new identity whenever `openId` changes and that effect re-runs on every
+   * open, closing the panel in the same breath it was opened. The visible
+   * symptom is not "the menu will not open" — it is the menu opening, taking
+   * focus, and vanishing, leaving focus on <body>.
+   *
+   * So the id is read through a ref that mirrors the state during render. The
+   * callback sees the latest value and never changes identity.
+   */
+  const openIdRef = useRef<string | null>(null);
+  openIdRef.current = openId;
+
+  const close = useCallback((returnFocus = false) => {
+    const id = openIdRef.current;
     setOpenId(null);
     setAnchor(null);
+    setFocusPanel(false);
+    /* Escape has to put focus back on the tab it came from. Without this it
+       lands on <body> and the next Tab starts from the top of the document —
+       which is how a menu that closes correctly still loses somebody. */
+    if (returnFocus && id) tabEls.current.get(id)?.focus();
   }, []);
+
+  /* The collapsed row is `hidden` until it is expanded, and a hidden element
+     cannot take focus. So expanding and focusing are two renders, not one. */
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const el = tabEls.current.get(pendingFocus);
+    if (!el) return;
+    el.focus();
+    setPendingFocus(null);
+  }, [pendingFocus, expanded]);
+
+  const focusTabAt = useCallback(
+    (index: number) => {
+      const n = ORDERED.length;
+      if (n === 0) return;
+      const next = ORDERED[((index % n) + n) % n];
+      setRoving(next.id);
+
+      const collapsed = TABS_COLLAPSED.some((tb) => tb.id === next.id);
+      if (collapsed && !expanded) {
+        setExpanded(true);
+        setPendingFocus(next.id);
+        return;
+      }
+      tabEls.current.get(next.id)?.focus();
+    },
+    [ORDERED, expanded],
+  );
 
   /**
    * THE PANEL FOLLOWS THE BAR. IT DOES NOT DISMISS ITSELF.
@@ -139,6 +244,10 @@ export default function ClassicCategoryTabs() {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      /* No focus return here. This is the global handler — it fires for an
+         Escape pressed anywhere on the page, including in a form halfway down
+         it, and yanking focus up to the navigation from there would be worse
+         than leaving it. The panel's own handler does the focus return. */
       close();
       setExpanded(false);
     };
@@ -187,16 +296,68 @@ export default function ClassicCategoryTabs() {
     setOpenId(tab.id);
   };
 
+  const onTabKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>, tab: NavTab, index: number) => {
+    switch (e.key) {
+      case "ArrowRight":
+        e.preventDefault();
+        focusTabAt(index + 1);
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        focusTabAt(index - 1);
+        break;
+      case "Home":
+        e.preventDefault();
+        focusTabAt(0);
+        break;
+      case "End":
+        e.preventDefault();
+        focusTabAt(ORDERED.length - 1);
+        break;
+      case "ArrowDown":
+        /* A tab with no submenu is just a link. Swallowing the key there would
+           stop the page scrolling for no reason. */
+        if (tab.sub.length === 0) return;
+        e.preventDefault();
+        open(tab, e.currentTarget);
+        setFocusPanel(true);
+        break;
+      case "Escape":
+        if (!openId) return;
+        e.preventDefault();
+        close();
+        break;
+      default:
+        break;
+    }
+  };
+
   const renderTab = (tab: NavTab) => {
     const active = isActive(tab.href);
+    const index = ORDERED.findIndex((tb) => tb.id === tab.id);
+    const hasMenu = tab.sub.length > 0;
     return (
       <Link
         key={tab.id}
         href={tab.href}
+        ref={(el) => {
+          if (el) tabEls.current.set(tab.id, el);
+          else tabEls.current.delete(tab.id);
+        }}
         data-active={active}
         aria-current={active ? "page" : undefined}
+        /* What tells a screen reader the down arrow does something. Without
+           these the menu is not merely hard to find, it is unannounced. */
+        aria-haspopup={hasMenu || undefined}
+        aria-expanded={hasMenu ? openId === tab.id : undefined}
+        /* THE ROVING TABINDEX. One tab in the tab order; the arrows do the
+           rest. See the keyboard note at the top of this file. */
+        tabIndex={tab.id === rovingId ? 0 : -1}
+        onKeyDown={(e) => onTabKeyDown(e, tab, index)}
         onMouseEnter={(e) => open(tab, e.currentTarget)}
-        onFocus={(e) => open(tab, e.currentTarget)}
+        /* Focus MOVES the tab stop. It does not open the menu — that was the
+           bug. See the header. */
+        onFocus={() => setRoving(tab.id)}
         /* 15px, and 500 weight. This row is how someone reaches any of
            twenty-seven sections — it is the site's main navigation, not a
            caption, and at 13.5px in a fifteen-across grid it was being read as
@@ -300,31 +461,102 @@ export default function ClassicCategoryTabs() {
 
       {openTab && anchor && openTab.sub.length > 0 && (
         <DropdownPanel
+          /* Keyed by tab, so arrowing along the bar with a menu open mounts a
+             fresh panel rather than reusing one whose item refs point at the
+             previous section's links. */
+          key={openTab.id}
           tab={openTab}
           anchor={anchor}
+          takeFocus={focusPanel}
           onEnter={cancelClose}
           onLeave={scheduleClose}
           onNavigate={close}
+          onClose={close}
         />
       )}
     </div>
   );
 }
 
+/**
+ * The panel, and the half of the keyboard contract that lives inside it.
+ *
+ * Its items are NOT in the tab order — `tabIndex={-1}` throughout, moved
+ * between with the arrows. That is deliberate and it is what makes Tab mean
+ * "leave the navigation" rather than "walk through another six links you did
+ * not ask for". The menu is entered on purpose, with ↓, and left on purpose,
+ * with Escape or Tab.
+ */
 function DropdownPanel({
   tab,
   anchor,
+  takeFocus,
   onEnter,
   onLeave,
   onNavigate,
+  onClose,
 }: {
   tab: NavTab;
   anchor: { left: number; top: number };
+  /** Opened by a keypress rather than by a pointer, so focus belongs here. */
+  takeFocus: boolean;
   onEnter: () => void;
   onLeave: () => void;
   onNavigate: () => void;
+  onClose: (returnFocus?: boolean) => void;
 }) {
   const { t, tx } = useLocale();
+  const itemEls = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  /* A panel opened by hover must not steal focus from whatever the reader was
+     doing — moving a pointer across a nav bar is not a request to be moved. */
+  useEffect(() => {
+    if (!takeFocus) return;
+    itemEls.current.find(Boolean)?.focus();
+  }, [takeFocus]);
+
+  const moveTo = (index: number) => {
+    const items = itemEls.current.filter((el): el is HTMLAnchorElement => Boolean(el));
+    if (items.length === 0) return;
+    items[((index % items.length) + items.length) % items.length].focus();
+  };
+
+  const onItemKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        moveTo(index + 1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        moveTo(index - 1);
+        break;
+      case "Home":
+        e.preventDefault();
+        moveTo(0);
+        break;
+      case "End":
+        e.preventDefault();
+        moveTo(itemEls.current.length - 1);
+        break;
+      case "Escape":
+        e.preventDefault();
+        /* Back to the tab this was opened from. The one key everybody tries. */
+        onClose(true);
+        break;
+      case "Tab":
+        /* NOT prevented. Tab means "I am done with the navigation", so the
+           menu gets out of the way and lets focus carry on into the page. */
+        onClose();
+        break;
+      default:
+        break;
+    }
+  };
+
+  /* A running index across groups, because the arrow keys move through the
+     whole list and have no idea it is divided into "Identity" and "Tax". */
+  let itemIndex = -1;
 
   const WIDTH = 260;
   const left =
@@ -365,11 +597,18 @@ function DropdownPanel({
             {group.name && (
               <p className="type-label sub-group-label px-3.5 pb-1 pt-2.5">{tx(group.name)}</p>
             )}
-            {group.items.map((item) => (
+            {group.items.map((item) => {
+              const i = (itemIndex += 1);
+              return (
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
                 role="menuitem"
+                ref={(el) => {
+                  itemEls.current[i] = el;
+                }}
+                tabIndex={-1}
+                onKeyDown={(e) => onItemKeyDown(e, i)}
                 onClick={onNavigate}
                 className="sub-item flex items-center justify-between gap-3 rounded-lg px-3.5 py-2 text-[12.5px] text-muted"
               >
@@ -385,7 +624,8 @@ function DropdownPanel({
                   <path d="M3 2l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
-            ))}
+              );
+            })}
           </div>
         ))}
 
