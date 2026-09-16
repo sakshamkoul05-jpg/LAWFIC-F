@@ -44,6 +44,16 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
     ["Direction", entry.direction === "credit" ? "Credit" : "Debit"],
     ["Reference", entry.id.slice(0, 12) + "…"],
   ];
+  /* The document the trigger issued for this movement. One query, and a null
+     result is not an error — entries made before invoicing existed have none,
+     and a missing document must not break the page that shows the money. */
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("id, number")
+    .eq("wallet_entry_id", entry.id)
+    .maybeSingle();
+
+  if (invoice) rows.push(["Document", (invoice as { number: string }).number]);
   if (entry.order_id) rows.push(["Order", entry.order_id.slice(0, 12) + "…"]);
   if (entry.gateway_payment_id) rows.push(["Payment", entry.gateway_payment_id]);
   rows.push(["Kind", entry.direction === "credit" ? "Wallet top-up or refund" : "Payment for a filing"]);
@@ -83,6 +93,16 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
             </div>
           ))}
         </dl>
+
+        {invoice && (
+          <Link
+            href={`/wallet/invoices/${(invoice as { id: string }).id}`}
+            className="block border-t px-6 py-4 text-center text-[13px] font-medium transition-opacity hover:opacity-80"
+            style={{ borderColor: "var(--wallet-divider)", color: "var(--brand)" }}
+          >
+            View receipt / invoice →
+          </Link>
+        )}
 
         <Link
           href="/wallet"
