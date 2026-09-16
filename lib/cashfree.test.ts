@@ -23,9 +23,43 @@ test("keys present means configured", () => {
   assert.equal(isCashfreeConfigured, true);
 });
 
-test("a TEST app id is reported as sandbox, so nobody demos live by accident", () => {
+test("sandbox is the default, so nobody demos live by accident", () => {
   assert.equal(cashfreeMode, "sandbox");
   assert.equal(isCashfreeTestMode, true);
+});
+
+test("the KEY says which environment it belongs to, not the variable", () => {
+  /* This is the check whose absence cost a debugging round trip. A production
+     key pair with CASHFREE_MODE=sandbox reported a cheerful "Sandbox
+     credentials" and then 401'd on every order, because the variable was
+     believed instead of the key. The secret is self-describing; trust it. */
+  assert.equal(mod.credentialEnvironment, "sandbox", "cfsk_ma_test_ is a sandbox secret");
+  assert.equal(mod.credentialsMismatch, false, "test key + sandbox mode agree");
+});
+
+test("a production secret under sandbox mode is flagged as a mismatch", async () => {
+  /* Re-imported with a different env. Module state is read at load time, so a
+     fresh query string is the only way to get a second instance. */
+  process.env.CASHFREE_CLIENT_SECRET = "cfsk_ma_prod_abc123_def456";
+  const live = await import("./cashfree.ts?prod");
+  assert.equal(live.credentialEnvironment, "production");
+  assert.equal(live.cashfreeMode, "sandbox");
+  assert.equal(
+    live.credentialsMismatch,
+    true,
+    "a live key aimed at the sandbox API must be caught before it 401s",
+  );
+  process.env.CASHFREE_CLIENT_SECRET = "cfsk_ma_test_secret";
+});
+
+test("an unrecognised secret shape reports null rather than guessing", async () => {
+  process.env.CASHFREE_CLIENT_SECRET = "something-else-entirely";
+  const odd = await import("./cashfree.ts?odd");
+  assert.equal(odd.credentialEnvironment, null);
+  /* Null must NOT read as a mismatch — an unknown shape is not evidence of
+     disagreement, and failing the build over one would be worse than useless. */
+  assert.equal(odd.credentialsMismatch, false);
+  process.env.CASHFREE_CLIENT_SECRET = "cfsk_ma_test_secret";
 });
 
 test("NOTHING resembling a credential is exported", async () => {

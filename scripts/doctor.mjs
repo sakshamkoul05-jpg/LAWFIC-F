@@ -293,26 +293,56 @@ const cfId = env.CASHFREE_CLIENT_ID ?? "";
 const cfSecret = env.CASHFREE_CLIENT_SECRET ?? "";
 const cfMode = env.CASHFREE_MODE ?? "";
 
+/**
+ * Does the SECRET agree with the MODE?
+ *
+ * This check exists because its absence produced a false green. The keys were
+ * a production pair, CASHFREE_MODE said sandbox, and the doctor reported
+ * "Sandbox credentials" — because it believed the variable instead of looking
+ * at the key. Every order creation then failed with a bare 401 and nothing
+ * anywhere said why.
+ *
+ * Cashfree's secrets carry their own environment: `cfsk_ma_test_…` against
+ * `cfsk_ma_prod_…`. That marker is the key telling you what it is, which beats
+ * a variable telling you what somebody meant. When the two disagree the key
+ * wins the argument, because the key is what the API checks.
+ *
+ * The app id is NOT a reliable signal — sandbox ids are sometimes prefixed
+ * TEST and sometimes not — so it is no longer used to infer anything.
+ */
+const secretEnv = /^cfsk_[a-z]+_test_/i.test(cfSecret)
+  ? "sandbox"
+  : /^cfsk_[a-z]+_prod_/i.test(cfSecret)
+    ? "production"
+    : null;
+
+/* What lib/cashfree.ts will actually resolve to, reproduced exactly. */
+const effectiveMode =
+  cfMode === "production" ? "production" : cfMode === "sandbox" ? "sandbox" : "sandbox";
+
 if (!cfId || !cfSecret) {
   warn(
     "Cashfree keys are not set",
     "Top-ups return 503 until they are. Sandbox credentials are issued\n     immediately in the dashboard — enough to run the whole flow end to end."
   );
-} else if (cfMode === "production" || (!cfMode && !cfId.toUpperCase().startsWith("TEST"))) {
-  if (cfMode === "production") {
-    warn("LIVE mode is set", "Real money will move. Make sure that is intended.");
-  } else {
-    /* Neither the mode nor the id says which environment this is. The app
-       defaults to sandbox, which is the safe direction, but silently — so it
-       is worth saying out loud rather than discovering when a live card is
-       declined by the sandbox. */
-    warn(
-      `CASHFREE_MODE is not set and the app id does not start with TEST`,
-      "The app assumes sandbox. If these are live credentials, set\n     CASHFREE_MODE=production — otherwise real cards will be refused."
-    );
-  }
-} else {
+} else if (secretEnv && secretEnv !== effectiveMode) {
+  fix(
+    `The key is ${secretEnv.toUpperCase()} but the app will call ${effectiveMode.toUpperCase()}`,
+    secretEnv === "production"
+      ? `Those are LIVE credentials and CASHFREE_MODE is "${cfMode || "unset, so sandbox"}". The sandbox API refuses them — every top-up fails with a 401.\n     Either use the sandbox key pair from the dashboard (Developers → API Keys, sandbox environment), or set CASHFREE_MODE=production and accept that real money will move.`
+      : `Those are SANDBOX credentials and CASHFREE_MODE=production. The live API refuses them.\n     Set CASHFREE_MODE=sandbox, or swap in the production key pair.`
+  );
+} else if (effectiveMode === "production") {
+  warn("LIVE mode, and the key agrees", "Real money will move. Make sure that is intended.");
+} else if (secretEnv === "sandbox") {
   pass("Sandbox credentials", "no real money moves; the wallet shows a Test mode badge");
+} else {
+  /* An unrecognised secret shape. Say so rather than guessing — a silent
+     assumption here is what produced the false green in the first place. */
+  warn(
+    "Cannot tell which environment these keys belong to",
+    `The secret does not look like cfsk_..._test_ or cfsk_..._prod_. The app will call the ${effectiveMode.toUpperCase()} API.`
+  );
 }
 
 /* The client secret signs the webhooks as well as the API calls, so the SAME

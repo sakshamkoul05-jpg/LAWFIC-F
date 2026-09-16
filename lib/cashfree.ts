@@ -30,25 +30,46 @@ export const isCashfreeConfigured = Boolean(CLIENT_ID && CLIENT_SECRET);
 /**
  * Sandbox or production.
  *
- * Explicit wins, because guessing which environment is taking real money is
- * not a thing to do by string matching. The inference is a fallback only: a
- * Cashfree sandbox app id is conventionally prefixed TEST, and defaulting an
- * UNSET variable to sandbox is the safe direction to be wrong in — a
- * misconfigured deployment that refuses real cards is an annoyance, one that
- * silently takes them is an incident.
+ * ONLY the explicit variable decides, and anything else means sandbox.
+ *
+ * There used to be a fallback that inferred production from an app id not
+ * prefixed TEST. It was removed because the premise is false — sandbox app ids
+ * are sometimes plain digits — and because the direction of the guess was the
+ * dangerous one: a deployment wrongly in sandbox refuses cards, a deployment
+ * wrongly in production takes real money. Defaulting to sandbox is the safe
+ * way to be wrong, and `credentialsMismatch` below catches the case the
+ * inference was reaching for, using the key instead of a guess.
  */
 export type CashfreeMode = "sandbox" | "production";
 
 export const cashfreeMode: CashfreeMode =
-  process.env.CASHFREE_MODE === "production"
-    ? "production"
-    : process.env.CASHFREE_MODE === "sandbox"
-      ? "sandbox"
-      : CLIENT_ID.toUpperCase().startsWith("TEST")
-        ? "sandbox"
-        : "sandbox";
+  process.env.CASHFREE_MODE === "production" ? "production" : "sandbox";
 
 export const isCashfreeTestMode = cashfreeMode === "sandbox";
+
+/**
+ * Which environment the SECRET itself belongs to, or null if it cannot tell.
+ *
+ * Cashfree's secrets are self-describing — `cfsk_ma_test_…` against
+ * `cfsk_ma_prod_…` — and that marker is worth more than CASHFREE_MODE,
+ * because it is what the API will actually check. The variable says what
+ * somebody meant; the key says what it is.
+ *
+ * The app id is deliberately not used for this. Sandbox ids are sometimes
+ * prefixed TEST and sometimes plain digits, so inferring from it produces
+ * confident wrong answers.
+ */
+export const credentialEnvironment: CashfreeMode | null = /^cfsk_[a-z]+_test_/i.test(
+  CLIENT_SECRET,
+)
+  ? "sandbox"
+  : /^cfsk_[a-z]+_prod_/i.test(CLIENT_SECRET)
+    ? "production"
+    : null;
+
+/** True when the key and the configured mode disagree — every call will 401. */
+export const credentialsMismatch =
+  credentialEnvironment !== null && credentialEnvironment !== cashfreeMode;
 
 const API =
   cashfreeMode === "production" ? "https://api.cashfree.com/pg" : "https://sandbox.cashfree.com/pg";
@@ -164,6 +185,18 @@ export async function createTopUpOrder(
          all look identical from the outside otherwise. Truncated because a
          body can be long, and never surfaced to the browser. */
       console.error("[cashfree] order creation failed", res.status, text.slice(0, 400));
+
+      /* A 401 has one overwhelmingly likely cause and the raw body does not
+         name it: "authentication Failed" is what the sandbox says when handed
+         a production key, and vice versa. Saying so here turns a mystifying
+         log line into an instruction. */
+      if (res.status === 401 && credentialsMismatch) {
+        console.error(
+          `[cashfree] the key is ${credentialEnvironment?.toUpperCase()} but CASHFREE_MODE resolves to ${cashfreeMode.toUpperCase()} — ` +
+            "the two must match. Use the key pair for the environment you mean to call.",
+        );
+      }
+
       return { ok: false, error: "cashfree_rejected" };
     }
 
