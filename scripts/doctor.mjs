@@ -529,6 +529,80 @@ if (MAIL_DOMAIN) {
   }
 }
 
+/* ── going live with real money ───────────────────────────────────────────── */
+
+/**
+ * The things that are only a problem once real cards are involved.
+ *
+ * Everything above answers "is it wired up". This section answers a different
+ * question — "should this be taking money from strangers yet" — and the two
+ * have different answers. A sandbox deployment may be perfectly wired and still
+ * have no legal entity behind it, no invoice table, and a domain the gateway
+ * will refuse to redirect to.
+ */
+
+section("Going live (real money)");
+
+if (effectiveMode !== "production") {
+  console.log(`  ${c.dim("Sandbox mode — this section is advisory until CASHFREE_MODE=production.")}`);
+}
+
+/* The database has to be able to issue the documents. Payments without
+   paperwork is the kind of thing that is fine for a week and then is not. */
+try {
+  const res = await fetch(`${URL_}/rest/v1/invoices?select=id&limit=1`, {
+    headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
+  });
+  if (res.status === 404 || res.status === 400) {
+    fix(
+      "The invoices table is not in this database",
+      "Payments would succeed and issue no receipt. Apply the invoice migration:\n     supabase/migrations/20260917090000_invoices.sql and _gst_rate_gate.sql"
+    );
+  } else {
+    pass("Invoice tables present", "every movement of money gets a document");
+  }
+} catch {
+  console.log(`  ${c.dim("Could not check the invoice tables.")}`);
+}
+
+/* GST. The rate defaults to zero and must STAY zero until there is a
+   registration — see the migration for why this is not a formality. */
+try {
+  const res = await fetch(`${URL_}/rest/v1/site_settings?key=eq.gst.rate_bp&select=value`, {
+    headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
+  });
+  const rows = res.ok ? await res.json() : [];
+  const rate = rows.length ? Number(rows[0].value) : null;
+  if (rate === null) {
+    warn("GST rate is not configured", "It defaults to 0, which is correct until you are registered.");
+  } else if (rate === 0) {
+    pass("GST rate is 0", "correct while there is no GSTIN — documents show one honest total");
+  } else {
+    warn(
+      `GST is being charged at ${rate / 100}%`,
+      "Make sure the GSTIN in lib/company.ts is real and current. Charging tax without a registration is an offence under s.122 CGST."
+    );
+  }
+} catch {
+  /* site_settings may not be readable anonymously; not worth failing over. */
+}
+
+if (effectiveMode === "production") {
+  if (!SITE) {
+    fix(
+      "NEXT_PUBLIC_SITE_URL is not set and you are in LIVE mode",
+      "Cashfree validates return_url against the domains registered on the merchant account. Unset, the app builds it from whatever host served the request, and the payment comes back to nowhere."
+    );
+  } else {
+    pass("Return URL host", new URL(SITE).host);
+  }
+
+  warn(
+    "Checks only you can make",
+    "Webhook registered in the PRODUCTION Cashfree dashboard (sandbox and live are separate).\n     Domain whitelisted for return_url. Legal pages reachable. lib/company.ts filled in —\n     the E-Commerce Rules require a legal name, address and a named grievance officer on the site."
+  );
+}
+
 /* ── summary ──────────────────────────────────────────────────────────────── */
 
 console.log(
