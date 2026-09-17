@@ -568,13 +568,24 @@ try {
 /* GST. The rate defaults to zero and must STAY zero until there is a
    registration — see the migration for why this is not a formality. */
 try {
-  const res = await fetch(`${URL_}/rest/v1/site_settings?key=eq.gst.rate_bp&select=value`, {
-    headers: { apikey: ANON, authorization: `Bearer ${ANON}` },
-  });
-  const rows = res.ok ? await res.json() : [];
+  /* The SERVICE role, not the anon key. gst.rate_bp is is_public = false, so an
+     anonymous read returns an empty array — which the first version of this
+     check reported as "not configured" for a setting that was configured. A
+     check that cannot see a thing must say so, not conclude it is absent. */
+  const res = SERVICE
+    ? await fetch(`${URL_}/rest/v1/site_settings?key=eq.gst.rate_bp&select=value`, {
+        headers: { apikey: SERVICE, authorization: `Bearer ${SERVICE}` },
+      })
+    : null;
+  const rows = res && res.ok ? await res.json() : [];
   const rate = rows.length ? Number(rows[0].value) : null;
-  if (rate === null) {
-    warn("GST rate is not configured", "It defaults to 0, which is correct until you are registered.");
+  if (!SERVICE) {
+    console.log(`  ${c.dim("No service role key — cannot read the GST setting.")}`);
+  } else if (rate === null) {
+    warn(
+      "GST rate row is missing",
+      "gst_rate_bp() falls back to 0, so no tax is charged — but add the row so the setting is visible:\n     insert into public.site_settings (key, value, is_public) values ('gst.rate_bp', '0'::jsonb, false);"
+    );
   } else if (rate === 0) {
     pass("GST rate is 0", "correct while there is no GSTIN — documents show one honest total");
   } else {
