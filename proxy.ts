@@ -71,6 +71,31 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  /**
+   * A redirect that keeps the session.
+   *
+   * `getUser()` above may have REFRESHED the access token, in which case
+   * `setAll` has written new cookies onto `response`. `NextResponse.redirect()`
+   * builds a fresh response that knows nothing about them, so redirecting
+   * without copying them throws the refreshed session away — and because
+   * Supabase refresh tokens are single-use, the browser is left holding one
+   * that has already been spent. The next request cannot refresh, and the user
+   * is silently signed out.
+   *
+   * The symptom is the worst kind: signing in works, the app looks fine, and
+   * some later page says "please sign in" for no visible reason. It depends on
+   * whether a refresh happened to fall on a request that redirected, so it is
+   * intermittent and looks like anything but a middleware bug.
+   *
+   * Every redirect in this file goes through here. There is no such thing as a
+   * redirect that may skip it.
+   */
+  const redirectKeepingSession = (url: URL) => {
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
+
   const { pathname } = request.nextUrl;
 
   const isPublicDoor = PUBLIC_WITHIN_PROTECTED.includes(pathname);
@@ -87,7 +112,7 @@ export async function proxy(request: NextRequest) {
     const backOffice = pathname === "/admin" || pathname.startsWith("/admin/");
     url.pathname = backOffice ? "/admin/login" : "/login";
     url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    return redirectKeepingSession(url);
   }
 
   /* Already signed in and standing at the staff door: go through it. */
@@ -95,7 +120,7 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
     url.search = "";
-    return NextResponse.redirect(url);
+    return redirectKeepingSession(url);
   }
 
   /**
@@ -138,7 +163,7 @@ export async function proxy(request: NextRequest) {
     /* Where they were going, so the form can send them on rather than dumping
        everyone on the same page afterwards. */
     url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname)}`;
-    return NextResponse.redirect(url);
+    return redirectKeepingSession(url);
   }
 
   if (user && pathname === "/login") {
@@ -148,7 +173,7 @@ export async function proxy(request: NextRequest) {
        wallet flashes up in between. */
     url.pathname = onboarded ? "/wallet" : "/profile/setup";
     url.search = "";
-    return NextResponse.redirect(url);
+    return redirectKeepingSession(url);
   }
 
   return response;
