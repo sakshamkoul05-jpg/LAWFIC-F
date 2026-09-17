@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { fetchOrderPayments, fetchOrderStatus, isCashfreeConfigured } from "@/lib/cashfree";
+import { isCashfreeConfigured } from "@/lib/cashfree";
+import { reconcilePaidOrder } from "@/lib/reconcile";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { getUser } from "@/lib/supabase/server";
 
@@ -55,62 +56,12 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient()!;
 
-  /* Ours, and this user's. Both conditions: RLS is not in play here because
-     this is the admin client, so the ownership check has to be explicit. */
-  const { data: intent } = await admin
-    .from("payment_intents")
-    .select("order_id, user_id, amount_paise, status")
-    .eq("order_id", body.orderId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const result = await reconcilePaidOrder({ admin, orderId: body.orderId, userId: user.id });
 
-  if (!intent) return NextResponse.json({ error: "unknown_order" }, { status: 404 });
-  if (intent.status === "paid") return NextResponse.json({ ok: true, already: true });
-
-  const status = await fetchOrderStatus(body.orderId);
-  if (!status.ok) return NextResponse.json({ error: "lookup_failed" }, { status: 502 });
-  if (status.status !== "PAID") {
-    /* Not an error. The customer may simply have arrived back before their
-       bank finished, and telling them something failed would be wrong. */
-    return NextResponse.json({ ok: true, credited: false, status: status.status });
+  if (!result.ok) {
+    const status = result.reason === "unknown_order" ? 404 : result.reason === "credit_failed" ? 500 : 502;
+    return NextResponse.json({ error: result.reason }, { status });
   }
 
-  const payments = await fetchOrderPayments(body.orderId);
-  if (!payments.ok) return NextResponse.json({ error: "lookup_failed" }, { status: 502 });
-
-  const success = payments.payments.find((p) => p.status === "SUCCESS");
-  if (!success || !success.cfPaymentId) {
-    console.error("[reconcile] order is PAID with no SUCCESS payment", body.orderId);
-    return NextResponse.json({ ok: true, credited: false, status: "no_payment" });
-  }
-
-  /* Credit what Cashfree says arrived, not what we asked for. They differ only
-     if something has gone wrong, and in that case their number is the one that
-     matches the customer's bank statement. */
-  const paise = success.amountPaise > 0 ? success.amountPaise : intent.amount_paise;
-
-  const { error } = await admin.from("wallet_entries").insert({
-    user_id: intent.user_id,
-    direction: "credit",
-    amount_paise: paise,
-    reason: "Wallet top-up",
-    gateway_payment_id: success.cfPaymentId,
-    // THE SAME KEY THE WEBHOOK USES. See the note above.
-    idempotency_key: `cf:${success.cfPaymentId}`,
-  });
-
-  if (error && error.code !== "23505") {
-    console.error("[reconcile] credit failed", error);
-    return NextResponse.json({ error: "credit_failed" }, { status: 500 });
-  }
-
-  /* 23505 means the webhook got there first — which is a success, not a
-     conflict. Either way the intent is settled. */
-  await admin.from("payment_intents").update({ status: "paid" }).eq("order_id", body.orderId);
-
-  return NextResponse.json({
-    ok: true,
-    credited: !error,
-    alreadyCredited: error?.code === "23505",
-  });
+  return NextResponse.json({ ok: true, credited: result.credited, reason: result.reason });
 }

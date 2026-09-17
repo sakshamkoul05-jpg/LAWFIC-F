@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchOrderStatus } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { reconcilePaidOrder } from "@/lib/reconcile";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -19,18 +21,24 @@ export const dynamic = "force-dynamic";
  * phone leaves the browser entirely, and some 3DS flows navigate away, so
  * Cashfree needs a `return_url` and this is it.
  *
- * WHAT THIS PAGE DOES NOT DO
+ * IT SETTLES THE ORDER, IT DOES NOT DECIDE ANYTHING
  *
- * Credit anything. It reads the order's status to decide what to SAY; the
- * webhook decides what the balance IS. Those are deliberately different jobs
- * with different sources of truth:
+ * This page used to only report — and the first real payment proved that
+ * inadequate: Cashfree had the money, the webhook had not arrived, and the
+ * page announced "your wallet is being credited now" while nothing was
+ * crediting it. Describing a credit that is not happening is worse than
+ * staying quiet.
  *
- *   - if this page credited, a customer could reload it and be credited twice,
- *     or hand the URL to a friend;
- *   - if only this page credited, a customer who closed the tab after paying
- *     would never be credited at all.
+ * It now reconciles. The earlier objection — that a page which credits can be
+ * reloaded or its URL shared — is answered by HOW it credits rather than by
+ * refusing to: reconcilePaidOrder asks Cashfree whether the order was paid,
+ * takes the owner from our own records, and writes with the same idempotency
+ * key the webhook uses. A reload, a shared link, a retry and a late webhook
+ * all collide into the same no-op.
  *
- * So the webhook is the only writer, and this page is a receipt.
+ * The webhook is still the primary path and still the fastest. This is the
+ * second of three chances a payment has to land, the third being the poll on
+ * /wallet/topup.
  *
  * WHOSE ORDER IS IT
  *
@@ -81,14 +89,37 @@ export default async function TopUpReturnPage({
     );
   }
 
+  /**
+   * RECONCILE, DO NOT MERELY REPORT.
+   *
+   * This page used to read the order status and announce "your wallet is being
+   * credited now" — a sentence that was true only if the webhook had arrived.
+   * When it had not, the page cheerfully described a credit that nothing was
+   * performing, which is worse than saying nothing.
+   *
+   * It now settles the order itself. Safe on a GET, a reload or a shared URL
+   * because reconcilePaidOrder is idempotent by construction: it asks Cashfree
+   * whether the order was paid, reads the owner from our own records, and
+   * writes with the same key the webhook uses. See lib/reconcile.ts.
+   */
+  const admin = createAdminClient();
+  const settled = admin
+    ? await reconcilePaidOrder({ admin, orderId, userId: auth.user.id })
+    : null;
+
   const result = await fetchOrderStatus(orderId);
   const status = result.ok ? result.status : null;
 
   if (status === "PAID") {
+    const credited = settled?.ok && (settled.credited || settled.reason === "already");
     return (
       <Shell
         title="Payment received"
-        body="Your wallet is being credited now. It usually lands within a few seconds."
+        body={
+          credited
+            ? "Your wallet has been credited."
+            : "Your wallet is being credited now. It usually lands within a few seconds."
+        }
         cta="Go to my wallet"
       />
     );
