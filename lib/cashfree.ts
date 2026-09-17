@@ -277,6 +277,58 @@ export async function fetchOrderStatus(
   }
 }
 
+export type CashfreePayment = {
+  cfPaymentId: string;
+  status: string;
+  amountPaise: number;
+};
+
+/**
+ * The payments made against an order.
+ *
+ * Needed for reconciliation, and specifically for `cf_payment_id` — which is
+ * half of the idempotency key the webhook uses. Reconciling with a DIFFERENT
+ * key would let a late webhook credit the same payment a second time, so the
+ * two paths must agree on the key, and that means asking Cashfree which
+ * payment actually succeeded rather than inventing an identifier.
+ */
+export async function fetchOrderPayments(
+  orderId: string,
+): Promise<{ ok: true; payments: CashfreePayment[] } | { ok: false; error: string }> {
+  if (!isCashfreeConfigured) return { ok: false, error: "not_configured" };
+
+  try {
+    const res = await fetch(`${API}/orders/${encodeURIComponent(orderId)}/payments`, {
+      method: "GET",
+      headers: headers(),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      console.error("[cashfree] payments lookup failed", res.status, orderId);
+      return { ok: false, error: "lookup_failed" };
+    }
+    const json = (await res.json()) as unknown;
+    const list = Array.isArray(json) ? json : [];
+    return {
+      ok: true,
+      payments: list.map((p) => {
+        const row = p as { cf_payment_id?: unknown; payment_status?: unknown; payment_amount?: unknown };
+        return {
+          /* Number in some API versions, string in others. Normalised, because
+             it becomes half of an idempotency key and a type flip would stop
+             it deduplicating silently. */
+          cfPaymentId: String(row.cf_payment_id ?? ""),
+          status: String(row.payment_status ?? ""),
+          amountPaise: Math.round(Number(row.payment_amount ?? 0) * 100),
+        };
+      }),
+    };
+  } catch (e) {
+    console.error("[cashfree] payments lookup threw", e);
+    return { ok: false, error: "network" };
+  }
+}
+
 /**
  * The id we give an order.
  *

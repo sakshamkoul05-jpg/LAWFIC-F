@@ -11,6 +11,7 @@ import {
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { getUser } from "@/lib/supabase/server";
 import { SITE_URL } from "@/lib/seo";
+import { SUPABASE_URL } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,6 +145,26 @@ export async function POST(request: Request) {
        is stricter still — Cashfree validates the URL against the domains
        registered on the merchant account, so a preview host is simply refused. */
     returnUrl: `${SITE_URL}/wallet/topup/return?order_id={order_id}`,
+    /**
+     * THE ORDER CARRIES ITS OWN CALLBACK.
+     *
+     * Cashfree falls back to the webhook configured in the dashboard when an
+     * order does not name one, and that fallback is how a ₹1 test payment
+     * succeeded, took the money, and credited nothing: the function was
+     * deployed and working, but nothing had told Cashfree where to send the
+     * result for THAT environment.
+     *
+     * A dashboard setting is invisible from the code, is not in version
+     * control, and is configured separately in sandbox and production — so it
+     * is exactly the sort of thing that is right in one place and forgotten in
+     * the other. Naming it per order means the callback travels with the
+     * payment and cannot be out of step with the environment that created it.
+     *
+     * Built from the Supabase URL rather than a separate variable: the webhook
+     * lives next to the database by design, so the database's address is
+     * already the right source for it.
+     */
+    notifyUrl: `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/cashfree-webhook`,
   });
 
   if (!created.ok) {

@@ -113,7 +113,7 @@ export function useTopUp(initialBalancePaise: number, paymentsReady: boolean) {
         if (pollTimer.current) clearInterval(pollTimer.current);
         setPhase("error");
         setMessage(
-          "Your payment went through, but the balance has not updated yet. It usually lands within a minute — refresh this page shortly."
+          "Your payment went through and we are still confirming it. Nothing is lost — the balance updates on its own once the payment provider confirms. Refresh in a minute, and contact us if it has not landed."
         );
       }
     }, 1500);
@@ -196,7 +196,29 @@ export function useTopUp(initialBalancePaise: number, paymentsReady: boolean) {
       }
 
       /* Checkout says it is done. That is the cue to start ASKING the server,
-         not to believe it. */
+         not to believe it.
+
+         Reconcile FIRST, then poll. The webhook is one HTTP call from
+         Cashfree's servers to ours and it can fail — a ₹1 test payment
+         succeeded and credited nothing because of exactly that. Asking the
+         server to go and check with Cashfree makes the credit independent of
+         that call landing, and it is safe to do even when the webhook is about
+         to arrive: both write with the same idempotency key, so whichever is
+         second is a no-op rather than a second credit.
+
+         Deliberately not awaited before polling starts. Reconciliation is a
+         round trip to Cashfree and back; making the customer watch a spinner
+         for it would trade one delay for another when the webhook usually
+         beats it anyway. */
+      void fetch("/api/wallet/reconcile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ orderId: data.orderId }),
+      }).catch(() => {
+        /* The poll is still running and the webhook may still land. A failed
+           reconcile is one of three chances, not the only one. */
+      });
+
       waitForCredit(before);
     } catch {
       setPhase("error");
