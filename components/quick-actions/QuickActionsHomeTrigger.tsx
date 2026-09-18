@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { logoSrc, palette } from "./quickActionsConfig";
 import { useQuickActions } from "./QuickActionsContext";
@@ -42,7 +41,14 @@ export default function QuickActionsHomeTrigger() {
               "radial-gradient(125% 125% at 30% 18%, var(--band-lift,#142C66) 0%, var(--band-deep,#060E22) 68%)",
           }}
         >
-          <Image src={logoSrc} alt="" fill sizes="48px" className="object-contain p-1.5" />
+          <img
+            src={logoSrc}
+            alt=""
+            width={160}
+            height={141}
+            draggable={false}
+            className="block h-full w-full object-contain p-1.5"
+          />
         </span>
 
         <span className="text-left">

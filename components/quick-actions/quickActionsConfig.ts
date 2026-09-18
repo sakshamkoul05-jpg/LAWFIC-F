@@ -231,5 +231,17 @@ export const palette = {
   edge: "var(--band-edge, rgba(230,195,107,0.22))",
 } as const;
 
-/** The ball's face. Lives in /public. */
-export const logoSrc = "/lawfic-logo.png";
+/**
+ * The ball's face. Lives in /public.
+ *
+ * A dedicated 160px trim of lawfic-logo.png (11 KB, versus 210 KB for the
+ * full-size original), because this is a 62px mark repeated on every page.
+ * It is served straight from /public by a plain <img>, NOT through
+ * next/image: the optimizer buys nothing at this size, and its default lazy
+ * loading left the ball blank in production — a position:fixed element never
+ * intersects the scrolling viewport, so the fetch was never started at all.
+ * Regenerate with:
+ *   sharp(src).trim().resize({width:160,height:160,fit:"inside"})
+ *             .png({palette:true,quality:90,effort:10})
+ */
+export const logoSrc = "/lawfic-ball.png";

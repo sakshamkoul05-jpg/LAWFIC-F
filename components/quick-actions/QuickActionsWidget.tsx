@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -190,22 +189,25 @@ export default function QuickActionsWidget() {
                 transition={{ duration: duration * 0.7 }}
                 className="relative block h-full w-full"
               >
-                {/* EAGER, NOT LAZY.
-                    The default lazy loading left this blank: native lazy
-                    loading decides by intersection with the scrolling
-                    viewport, and this sits in a position:fixed element that
-                    never enters it, so the fetch was simply never started —
-                    currentSrc stayed empty and the ball painted bare.
-                    Eager rather than `priority` because it must be there, but
-                    it is a 62px brand mark and has no business preloading
-                    ahead of the page's real content. */}
-                <Image
+                {/* A PLAIN <img>, DELIBERATELY.
+                    This was a next/image and it shipped blank. next/image
+                    lazy-loads by default, and native lazy loading decides
+                    when to fetch from the image's intersection with the
+                    SCROLLING viewport — which a position:fixed element never
+                    enters. The request was never made at all: currentSrc
+                    empty, naturalWidth 0, ball bare.
+                    Marking it eager fixes that, but the optimizer was buying
+                    nothing here anyway: this is an 11 KB asset already cut to
+                    160px for exactly this 62px box. Served straight from
+                    /public, there is no lazy heuristic and no optimizer route
+                    left to decide against us. */}
+                <img
                   src={logoSrc}
                   alt=""
-                  fill
-                  sizes="(max-width: 640px) 56px, 62px"
-                  loading="eager"
-                  className="object-contain p-[7px]"
+                  width={160}
+                  height={141}
+                  draggable={false}
+                  className="block h-full w-full object-contain p-[7px]"
                 />
               </motion.span>
             )}
