@@ -190,12 +190,21 @@ export default function QuickActionsWidget() {
                 transition={{ duration: duration * 0.7 }}
                 className="relative block h-full w-full"
               >
+                {/* EAGER, NOT LAZY.
+                    The default lazy loading left this blank: native lazy
+                    loading decides by intersection with the scrolling
+                    viewport, and this sits in a position:fixed element that
+                    never enters it, so the fetch was simply never started —
+                    currentSrc stayed empty and the ball painted bare.
+                    Eager rather than `priority` because it must be there, but
+                    it is a 62px brand mark and has no business preloading
+                    ahead of the page's real content. */}
                 <Image
                   src={logoSrc}
                   alt=""
                   fill
-                  sizes="62px"
-                  priority={false}
+                  sizes="(max-width: 640px) 56px, 62px"
+                  loading="eager"
                   className="object-contain p-[7px]"
                 />
               </motion.span>
