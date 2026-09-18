@@ -4,6 +4,7 @@ import ClassicHomePage from "@/components/classic/ClassicHomePage";
 import PersonalizedHero from "@/components/classic/PersonalizedHero";
 import TrackRecommendations from "@/components/classic/TrackRecommendations";
 import { useProfile } from "@/components/profile/ProfileProvider";
+import QuickActionsHomeTrigger from "@/components/quick-actions/QuickActionsHomeTrigger";
 import type { Banner } from "@/lib/promotional";
 
 /**
@@ -23,6 +24,10 @@ export default function Home({ banners }: { banners?: Banner[] }) {
       {personalised && profile && <PersonalizedHero profile={profile} />}
       <TrackRecommendations />
       <ClassicHomePage banners={banners} />
+      {/* The client asked for the logo again, low on the home page, opening
+          the same box. It is a trigger, not a second widget — see
+          components/quick-actions/QuickActionsHomeTrigger.tsx. */}
+      <QuickActionsHomeTrigger />
     </>
   );
 }

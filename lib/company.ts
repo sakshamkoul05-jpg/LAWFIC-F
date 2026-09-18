@@ -57,9 +57,13 @@ export const company: CompanyFacts = {
   gstin: null,
   registeredAddress: null,
   officeAddress: null,
-  supportEmail: null,
-  supportPhone: null,
-  whatsapp: null,
+  supportEmail: "royalmember@lawfic.pro",
+  /* Dialable as given: tel: links strip the spaces, and a human reading it
+     off the page gets the country code they need from outside India. */
+  supportPhone: "+91 98825 75996",
+  /* Same line. Digits only with the country code — wa.me rejects a leading
+     plus, spaces, or a number without one. */
+  whatsapp: "919882575996",
   grievanceOfficer: null,
   foundedYear: null,
   // ────────────────────────────────────────────────────────────────────────

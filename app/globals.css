@@ -1209,3 +1209,260 @@
 .sub-group-label {
   color: color-mix(in oklab, var(--color-primary) 82%, transparent);
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   QUICK ACTIONS WIDGET
+   The floating LAWFIC ball, its panel and its rows. Every geometry value is
+   a custom property set inline by QuickActionsWidget.tsx from
+   components/quick-actions/quickActionsConfig.ts — change the numbers there,
+   not here. The colours come from the --band-* tokens above.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Fixed to the corner and only as large as its contents, so it never covers
+   the page. The panel is the first child and the ball the second, which puts
+   the panel above the ball without a line of positioning arithmetic.
+
+   z-index 65 clears the sticky header and all ordinary content while staying
+   below the sign-in dialog (70) and the wallet celebration (120). See the
+   comment in QuickActionsWidget.tsx. */
+.qa-root {
+  position: fixed;
+  right: var(--qa-right);
+  bottom: var(--qa-bottom);
+  z-index: 65;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.qa-panel {
+  width: min(var(--qa-w), calc(100vw - var(--qa-right) * 2));
+  max-width: 100vw;
+}
+
+/* ── The ball ──────────────────────────────────────────────────────────── */
+.qa-ball {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--qa-ball);
+  height: var(--qa-ball);
+  border-radius: 9999px;
+  border: 1px solid var(--qa-edge);
+  background:
+    radial-gradient(125% 125% at 30% 18%, var(--band-lift, #142C66) 0%, var(--band-deep, #060E22) 68%);
+  box-shadow:
+    0 12px 30px -10px rgba(6, 14, 34, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.qa-ball:hover {
+  transform: scale(1.06);
+  border-color: var(--qa-gold);
+  box-shadow:
+    0 18px 40px -12px rgba(6, 14, 34, 0.75),
+    0 0 0 4px rgba(230, 195, 107, 0.12);
+}
+
+/* Keyboard focus is styled at least as loudly as hover — the ball is the only
+   way in, so losing it in the tab order would strand a keyboard visitor. */
+.qa-ball:focus-visible {
+  outline: none;
+  transform: scale(1.06);
+  border-color: var(--qa-gold);
+  box-shadow:
+    0 18px 40px -12px rgba(6, 14, 34, 0.75),
+    0 0 0 3px rgba(230, 195, 107, 0.5);
+}
+
+.qa-ball:active { transform: scale(0.96); }
+
+.qa-face {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* One slow gold ring every eight seconds: enough to be noticed once, not
+   enough to be a bouncing ball. Silent while open, and off entirely for
+   anyone who has asked for less motion. */
+.qa-halo {
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  border: 1px solid var(--qa-gold);
+  opacity: 0;
+  pointer-events: none;
+  animation: qa-halo 8s ease-out infinite;
+}
+
+@keyframes qa-halo {
+  0%, 86% { transform: scale(1); opacity: 0; }
+  90% { opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.qa-ball[data-open] .qa-halo { animation: none; opacity: 0; }
+
+/* ── Tooltip ───────────────────────────────────────────────────────────── */
+.qa-tip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  padding: 6px 11px;
+  border-radius: 9999px;
+  border: 1px solid var(--qa-edge);
+  background: var(--band-deep, #060E22);
+  color: var(--band-ink, #F2EEE4);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.qa-ball:hover .qa-tip,
+.qa-ball:focus-visible .qa-tip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.qa-ball[data-open] .qa-tip { opacity: 0; }
+
+/* On touch there is no hover to end, so a tooltip would simply stay on screen
+   after a tap. The aria-label carries the same words regardless. */
+@media (hover: none) {
+  .qa-tip { display: none; }
+}
+
+/* ── Rows ──────────────────────────────────────────────────────────────── */
+.qa-row { background: transparent; }
+
+.qa-row:hover,
+.qa-row:focus-visible {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.qa-row:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--band-gold, #E6C36B);
+}
+
+.qa-tile {
+  border: 1px solid rgba(230, 195, 107, 0.16);
+  background: rgba(230, 195, 107, 0.1);
+  color: var(--band-gold, #E6C36B);
+}
+
+.qa-row:hover .qa-tile,
+.qa-row:focus-visible .qa-tile {
+  background: var(--band-gold, #E6C36B);
+  border-color: var(--band-gold, #E6C36B);
+  color: var(--band, #0B1D4A);
+}
+
+.qa-chevron { opacity: 0.32; }
+
+.qa-row:hover .qa-chevron,
+.qa-row:focus-visible .qa-chevron {
+  opacity: 0.85;
+  transform: translateX(3px);
+}
+
+.qa-back { background: transparent; }
+
+.qa-back:hover,
+.qa-back:focus-visible {
+  background: rgba(230, 195, 107, 0.16);
+  outline: none;
+}
+
+.qa-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(230, 195, 107, 0.32) transparent;
+}
+
+.qa-scroll::-webkit-scrollbar { width: 6px; }
+.qa-scroll::-webkit-scrollbar-track { background: transparent; }
+.qa-scroll::-webkit-scrollbar-thumb {
+  background: rgba(230, 195, 107, 0.3);
+  border-radius: 3px;
+}
+
+/* ── The home page trigger ─────────────────────────────────────────────── */
+/* Same widget, second doorway. It is a normal in-flow element, not a second
+   floating ball, so it scrolls with the page and cannot collide with the one
+   in the corner. */
+.qa-home-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 22px 12px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--band-edge, rgba(230, 195, 107, 0.22));
+  background:
+    linear-gradient(135deg, var(--band, #0B1D4A) 0%, var(--band-deep, #060E22) 100%);
+  color: var(--band-ink, #F2EEE4);
+  cursor: pointer;
+  box-shadow: 0 16px 40px -18px rgba(6, 14, 34, 0.75);
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.qa-home-trigger:hover,
+.qa-home-trigger:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  border-color: var(--band-gold, #E6C36B);
+  box-shadow:
+    0 22px 48px -20px rgba(6, 14, 34, 0.8),
+    0 0 0 3px rgba(230, 195, 107, 0.16);
+}
+
+.qa-home-trigger:active { transform: translateY(0); }
+
+/* ── Small screens ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .qa-root {
+    right: var(--qa-right-m);
+    bottom: var(--qa-bottom-m);
+    gap: 12px;
+  }
+
+  .qa-ball {
+    width: var(--qa-ball-m);
+    height: var(--qa-ball-m);
+  }
+
+  /* Never wider than the viewport minus both gutters, so the panel cannot
+     introduce a horizontal scrollbar, and never so tall that it becomes the
+     page — the list scrolls inside it instead. */
+  .qa-panel {
+    width: min(var(--qa-w), calc(100vw - var(--qa-right-m) * 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-halo { animation: none; }
+  .qa-ball,
+  .qa-home-trigger,
+  .qa-tip,
+  .qa-row,
+  .qa-tile,
+  .qa-chevron {
+    transition: none;
+  }
+}

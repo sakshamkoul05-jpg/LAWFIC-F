@@ -6,6 +6,8 @@ import AnnouncementTicker from "@/components/site/AnnouncementTicker";
 import SiteHeader from "@/components/site/SiteHeader";
 import ClassicCategoryTabs from "@/components/classic/ClassicCategoryTabs";
 import Footer from "@/components/site/Footer";
+import { QuickActionsProvider } from "@/components/quick-actions/QuickActionsContext";
+import QuickActionsWidget from "@/components/quick-actions/QuickActionsWidget";
 
 /**
  * Client-side shell: the title bar, the 21-section strip, the page, the footer.
@@ -52,30 +54,43 @@ export default function ThemeShell({
     );
   }
 
+  /* THE QUICK ACTIONS WIDGET IS MOUNTED HERE AND ONLY HERE.
+     The client asked for it on every page — "ye pure page pr reflect hoga" —
+     and the home page wants a second doorway into the same panel. Mounting it
+     once at the shell, with the open/closed flag in a context above it, is
+     what stops that second doorway from becoming a second widget: two panels
+     that can both be open, two Escape handlers, two things in one corner.
+     The home page's trigger just flips the shared flag.
+
+     It sits inside the non-admin branch, so the back office does not get it.
+     It is also inside ProfileProvider, because the header greets by name. */
   return (
     <ProfileProvider>
-      <div className="flex min-h-screen flex-col bg-background">
-        {/* THE NOTICE SITS ABOVE EVERYTHING, INCLUDING THE STRIP.
-            It is for the things that change what a visitor should do today —
-            an outage, a closure, a deadline — so it outranks the standing
-            claims below it. Empty renders nothing at all rather than an empty
-            band. */}
-        {notice.trim() && (
-          <p
-            role="status"
-            className="bg-primary px-4 py-2 text-center text-[12.5px] font-medium text-background"
-          >
-            {notice}
-          </p>
-        )}
+      <QuickActionsProvider>
+        <div className="flex min-h-screen flex-col bg-background">
+          {/* THE NOTICE SITS ABOVE EVERYTHING, INCLUDING THE STRIP.
+              It is for the things that change what a visitor should do today —
+              an outage, a closure, a deadline — so it outranks the standing
+              claims below it. Empty renders nothing at all rather than an empty
+              band. */}
+          {notice.trim() && (
+            <p
+              role="status"
+              className="bg-primary px-4 py-2 text-center text-[12.5px] font-medium text-background"
+            >
+              {notice}
+            </p>
+          )}
 
-        {/* Above the logo, as the blueprint places it. */}
-        <AnnouncementTicker lines={tickerLines} />
-        <SiteHeader />
-        <ClassicCategoryTabs />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </div>
+          {/* Above the logo, as the blueprint places it. */}
+          <AnnouncementTicker lines={tickerLines} />
+          <SiteHeader />
+          <ClassicCategoryTabs />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <QuickActionsWidget />
+        </div>
+      </QuickActionsProvider>
     </ProfileProvider>
   );
 }
