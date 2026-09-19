@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { logoSrc, palette } from "./quickActionsConfig";
+import PandaFace from "./PandaFace";
+import { palette } from "./quickActionsConfig";
 import { useQuickActions } from "./QuickActionsContext";
 
 /**
@@ -41,14 +42,7 @@ export default function QuickActionsHomeTrigger() {
               "radial-gradient(125% 125% at 30% 18%, var(--band-lift,#142C66) 0%, var(--band-deep,#060E22) 68%)",
           }}
         >
-          <img
-            src={logoSrc}
-            alt=""
-            width={160}
-            height={141}
-            draggable={false}
-            className="block h-full w-full object-contain p-1.5"
-          />
+          <PandaFace className="block h-full w-full p-1" />
         </span>
 
         <span className="text-left">

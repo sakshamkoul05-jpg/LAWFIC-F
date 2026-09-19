@@ -11,8 +11,9 @@ import {
   useTransform,
 } from "motion/react";
 import { X } from "lucide-react";
+import PandaFace from "./PandaFace";
 import QuickActionsPanel, { type PanelView } from "./QuickActionsPanel";
-import { geometry, logoSrc, palette, tooltip } from "./quickActionsConfig";
+import { geometry, palette, tooltip } from "./quickActionsConfig";
 import { useQuickActions } from "./QuickActionsContext";
 
 /**
@@ -217,26 +218,7 @@ export default function QuickActionsWidget() {
                 transition={{ duration: duration * 0.7 }}
                 className="relative block h-full w-full"
               >
-                {/* A PLAIN <img>, DELIBERATELY.
-                    This was a next/image and it shipped blank. next/image
-                    lazy-loads by default, and native lazy loading decides
-                    when to fetch from the image's intersection with the
-                    SCROLLING viewport — which a position:fixed element never
-                    enters. The request was never made at all: currentSrc
-                    empty, naturalWidth 0, ball bare.
-                    Marking it eager fixes that, but the optimizer was buying
-                    nothing here anyway: this is an 11 KB asset already cut to
-                    160px for exactly this 62px box. Served straight from
-                    /public, there is no lazy heuristic and no optimizer route
-                    left to decide against us. */}
-                <img
-                  src={logoSrc}
-                  alt=""
-                  width={160}
-                  height={141}
-                  draggable={false}
-                  className="block h-full w-full object-contain p-[7px]"
-                />
+                <PandaFace className="block h-full w-full p-[5px]" />
               </motion.span>
             )}
           </AnimatePresence>

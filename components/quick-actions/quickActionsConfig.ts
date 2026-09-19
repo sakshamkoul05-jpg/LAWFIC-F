@@ -248,17 +248,21 @@ export const palette = {
 } as const;
 
 /**
- * The ball's face. Lives in /public.
+ * THE PANDA'S FACE.
  *
- * Original vector artwork (~2 KB), drawn for this widget because the client's
- * reference images could not be licensed — see public/panda-ball.svg. Vector
- * means it is equally crisp at 56px in the ball and at any larger size.
- * It is served straight from /public by a plain <img>, NOT through
- * next/image: the optimizer buys nothing at this size, and its default lazy
- * loading left the ball blank in production — a position:fixed element never
- * intersects the scrolling viewport, so the fetch was never started at all.
- * Regenerate with:
- *   sharp(src).trim().resize({width:160,height:160,fit:"inside"})
- *             .png({palette:true,quality:90,effort:10})
+ * By default the panda is drawn as inline SVG by PandaFace.tsx, so it blinks
+ * with real eyelid motion and costs no extra request.
+ *
+ * TO USE YOUR OWN ARTWORK INSTEAD: save the two frames into /public and name
+ * them here — `open` with the eyes open, `blink` with them closed or winking.
+ * PandaFace cross-fades between the two on the same blink rhythm. Both must be
+ * set; one alone falls back to the drawn panda. Square images with a
+ * transparent or white background work best.
+ *
+ *   open: "/panda-open.png",
+ *   blink: "/panda-blink.png",
  */
-export const logoSrc = "/panda-ball.svg";
+export const pandaFrames: { open: string | null; blink: string | null } = {
+  open: null,
+  blink: null,
+};
