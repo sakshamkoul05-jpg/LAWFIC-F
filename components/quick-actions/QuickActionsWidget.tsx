@@ -2,9 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { X } from "lucide-react";
-import QuickActionsPanel from "./QuickActionsPanel";
+import QuickActionsPanel, { type PanelView } from "./QuickActionsPanel";
 import { geometry, logoSrc, palette, tooltip } from "./quickActionsConfig";
 import { useQuickActions } from "./QuickActionsContext";
 
@@ -37,10 +44,22 @@ export default function QuickActionsWidget() {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
 
-  const [view, setView] = useState<"actions" | "help">("actions");
+  const [view, setView] = useState<PanelView>("actions");
   const ballRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  /* THE BALL'S BACKGROUND MOVES WITH THE PAGE.
+     scrollYProgress is 0 at the top of the document and 1 at the bottom; it
+     turns a conic gold sweep inside the ball and breathes it slightly at the
+     halfway mark, so the ball reads as alive without ever moving position.
+     The spring stops it twitching on a trackpad's high-frequency events, and
+     both values drive `transform` alone — no layout, no repaint of the page.
+     Under prefers-reduced-motion the sweep is pinned and nothing animates. */
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 60, damping: 20, mass: 0.4 });
+  const sweep = useTransform(progress, [0, 1], [0, 540]);
+  const lift = useTransform(progress, [0, 0.5, 1], [1, 1.18, 1]);
 
   const isOpen = ctx?.isOpen ?? false;
   const close = ctx?.close;
@@ -139,6 +158,7 @@ export default function QuickActionsWidget() {
             <QuickActionsPanel
               view={view}
               onOpenHelp={() => setView("help")}
+              onOpenView={setView}
               onBack={() => setView("actions")}
               onNavigate={() => dismiss(false)}
             />
@@ -156,6 +176,14 @@ export default function QuickActionsWidget() {
         data-open={isOpen || undefined}
         className="qa-ball group"
       >
+        {/* The scroll-driven layer. Decorative, so it is hidden from readers;
+            it sits under the face and inside the ball's rounded clip. */}
+        <motion.span
+          aria-hidden
+          className="qa-sheen"
+          style={reduceMotion ? undefined : { rotate: sweep, scale: lift }}
+        />
+
         {/* The attention halo. One slow gold ring every eight seconds, stopped
             while the panel is open and under prefers-reduced-motion — the brief
             asked for presence, not for a bouncing ball. */}

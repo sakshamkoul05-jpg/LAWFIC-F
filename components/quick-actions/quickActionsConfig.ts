@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BotMessageSquare,
   CalendarCheck,
   Headset,
   HelpCircle,
@@ -86,6 +87,12 @@ export type QuickAction = {
   href?: string;
   /** mailto:, tel: and wa.me leave the site, so they must not be routed. */
   external?: boolean;
+  /**
+   * Swaps the panel to another view instead of going anywhere. An action
+   * with this set has no href and is not a link — it is a button, because
+   * it does not navigate and must not offer a middle-click or a new tab.
+   */
+  opensView?: "chat";
 };
 
 const waHref = contact.whatsapp
@@ -94,6 +101,15 @@ const waHref = contact.whatsapp
 const telHref = contact.phone ? `tel:${contact.phone.replace(/\s+/g, "")}` : undefined;
 
 export const quickActions: QuickAction[] = [
+  /* First, at the client's request. It is the only row that opens something
+     inside the panel rather than taking the visitor away from it. */
+  {
+    id: "panda",
+    label: "Chat with Panda AI",
+    hint: "Ask anything, answered instantly",
+    icon: BotMessageSquare,
+    opensView: "chat",
+  },
   {
     id: "consultancy",
     label: "Book free consultancy",
@@ -234,8 +250,9 @@ export const palette = {
 /**
  * The ball's face. Lives in /public.
  *
- * A dedicated 160px trim of lawfic-logo.png (11 KB, versus 210 KB for the
- * full-size original), because this is a 62px mark repeated on every page.
+ * Original vector artwork (~2 KB), drawn for this widget because the client's
+ * reference images could not be licensed — see public/panda-ball.svg. Vector
+ * means it is equally crisp at 56px in the ball and at any larger size.
  * It is served straight from /public by a plain <img>, NOT through
  * next/image: the optimizer buys nothing at this size, and its default lazy
  * loading left the ball blank in production — a position:fixed element never
@@ -244,4 +261,4 @@ export const palette = {
  *   sharp(src).trim().resize({width:160,height:160,fit:"inside"})
  *             .png({palette:true,quality:90,effort:10})
  */
-export const logoSrc = "/lawfic-ball.png";
+export const logoSrc = "/panda-ball.svg";

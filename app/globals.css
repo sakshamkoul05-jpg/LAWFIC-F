@@ -1466,3 +1466,82 @@
     transition: none;
   }
 }
+
+
+/* ── Panda ball: scroll-driven sheen, chat composer ────────────────────────
+   Added with the Panda AI chat. The ball now clips its contents, because the
+   sheen is a layer larger than the ball that rotates inside it. */
+
+.qa-ball { overflow: hidden; }
+
+/* The layer that moves with page scroll. Oversized and centred so that
+   rotating it never exposes a corner, and behind everything else in the ball.
+   transform only — it cannot cause layout, and it is the whole animation. */
+.qa-sheen {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200%;
+  height: 200%;
+  margin: -100% 0 0 -100%;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(230, 195, 107, 0.34) 40deg,
+    transparent 110deg,
+    rgba(90, 140, 255, 0.22) 190deg,
+    transparent 260deg,
+    rgba(230, 195, 107, 0.28) 320deg,
+    transparent 360deg
+  );
+}
+
+/* The panda is cream and needs to sit ON the navy, not be tinted by it, so the
+   face is drawn above the sheen. */
+.qa-face { position: relative; z-index: 1; }
+.qa-halo { z-index: 2; }
+
+/* ── Chat composer ─────────────────────────────────────────────────────── */
+.qa-send {
+  background: var(--band-gold, #E6C36B);
+  color: var(--band, #0B1D4A);
+}
+
+.qa-send:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.qa-send:not(:disabled):hover,
+.qa-send:not(:disabled):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(230, 195, 107, 0.28);
+}
+
+/* Three dots while the first token is still in flight. Deliberately plain —
+   a spinner would imply work the visitor can wait out, and this is a wait of
+   under a second. */
+.qa-typing i {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.35;
+  animation: qa-typing 1.05s ease-in-out infinite;
+}
+
+.qa-typing i:nth-child(2) { animation-delay: 0.14s; }
+.qa-typing i:nth-child(3) { animation-delay: 0.28s; }
+
+@keyframes qa-typing {
+  0%, 60%, 100% { opacity: 0.28; transform: translateY(0); }
+  30% { opacity: 0.9; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qa-typing i { animation: none; opacity: 0.6; }
+  .qa-sheen { display: none; }
+}

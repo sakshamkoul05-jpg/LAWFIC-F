@@ -24,10 +24,13 @@ import { palette } from "./quickActionsConfig";
 export default function QuickActionItem({
   action,
   onNavigate,
+  onOpenView,
 }: {
   action: QuickAction;
   /** Closes the panel once the visitor has committed to going somewhere. */
   onNavigate: () => void;
+  /** For a row that swaps the panel's view instead of navigating. */
+  onOpenView: (view: "chat") => void;
 }) {
   const Icon = action.icon;
 
@@ -60,6 +63,22 @@ export default function QuickActionItem({
       />
     </>
   );
+
+  /* Opens a view in place. A button rather than an anchor because there is
+     no destination: an <a> here would offer a middle-click and a new tab
+     that lead nowhere. */
+  if (action.opensView) {
+    return (
+      <button
+        type="button"
+        onClick={() => onOpenView(action.opensView!)}
+        className={"qa-row flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left outline-none transition-colors duration-200"}
+        style={{ color: palette.ink, minHeight: 44 }}
+      >
+        {body}
+      </button>
+    );
+  }
 
   /* Present, but honest about being unusable. aria-disabled rather than a
      disabled button so the label is still read out — the visitor should learn

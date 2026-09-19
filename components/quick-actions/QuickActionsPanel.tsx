@@ -3,22 +3,25 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, LifeBuoy } from "lucide-react";
 import { useProfile } from "@/components/profile/ProfileProvider";
+import PandaChat from "./PandaChat";
 import QuickActionItem from "./QuickActionItem";
 import { header, helpActions, palette, quickActions } from "./quickActionsConfig";
+
+export type PanelView = "actions" | "help" | "chat";
 
 /**
  * The panel itself: a header, a list, and a footer that swaps the list for the
  * help list without opening a second window.
  *
- * WHY THIS IS NOT A CHATBOT
+ * WHY THE LIST IS STILL THE FRONT DOOR
  *
- * A chatbot promises a conversation and then makes you wait for it. This
- * promises eight destinations and shows all eight at once — the whole value is
- * that the visitor can see, in one glance, that they may call, write, book or
- * pay. Every affordance here is a link. Nothing is typed, nothing is sent,
- * nothing is "thinking".
+ * There is a chatbot behind the first row now, but it is not what opens. A
+ * chat box asks the visitor to compose a question and then wait; the list
+ * shows them, in one glance, that they may call, write, book or pay. Whoever
+ * already knows what they want gets it in one tap, and whoever does not gets
+ * Panda AI at the top. Opening into the chat would have made everyone type.
  *
- * THE HELP VIEW IS THE SAME PANEL
+ * THE OTHER VIEWS ARE THE SAME PANEL
  *
  * It replaces the list in place rather than opening a nested dialog, so the
  * header, the shadow and the corner all stay put and only the content moves.
@@ -27,11 +30,13 @@ import { header, helpActions, palette, quickActions } from "./quickActionsConfig
 export default function QuickActionsPanel({
   view,
   onOpenHelp,
+  onOpenView,
   onBack,
   onNavigate,
 }: {
-  view: "actions" | "help";
+  view: PanelView;
   onOpenHelp: () => void;
+  onOpenView: (view: "chat") => void;
   onBack: () => void;
   onNavigate: () => void;
 }) {
@@ -41,13 +46,21 @@ export default function QuickActionsPanel({
      a signed-out one gets no name line at all rather than somebody else's. */
   const name = profile?.fullName?.trim() || header.signedOutName;
   const isHelp = view === "help";
+  const isChat = view === "chat";
+  const isRoot = view === "actions";
   const items = isHelp ? helpActions : quickActions;
 
   return (
     /* Tall enough that all eight actions fit without scrolling on an ordinary
        desktop — being able to see the whole list at once is the point of the
        panel. Shorter screens scroll the list, never the header or footer. */
-    <div className="flex max-h-[min(86vh,668px)] flex-col overflow-hidden">
+    <div
+      className="flex max-h-[min(86vh,668px)] flex-col overflow-hidden"
+      /* Chat has to be given a height. The action list sizes itself from its
+         rows, but a transcript starts nearly empty and would otherwise open as
+         a sliver that grows as it fills. */
+      style={isChat ? { height: "min(86vh, 668px)" } : undefined}
+    >
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div
         className="relative shrink-0 px-5 pb-4 pt-4"
@@ -68,7 +81,7 @@ export default function QuickActionsPanel({
         />
 
         <div className="relative flex items-start gap-3">
-          {isHelp && (
+          {!isRoot && (
             <button
               type="button"
               onClick={onBack}
@@ -85,10 +98,10 @@ export default function QuickActionsPanel({
               className="text-[10.5px] font-semibold uppercase tracking-[0.18em]"
               style={{ color: palette.gold }}
             >
-              {isHelp ? "Help & support" : header.eyebrow}
+              {isHelp ? "Help & support" : isChat ? "Panda AI" : header.eyebrow}
             </p>
 
-            {!isHelp && name && (
+            {isRoot && name && (
               <p
                 className="mt-1 truncate text-[17px] font-semibold leading-tight"
                 style={{ color: palette.ink }}
@@ -101,13 +114,23 @@ export default function QuickActionsPanel({
               className="mt-1 text-[13px] leading-snug"
               style={{ color: palette.inkDim }}
             >
-              {isHelp ? "Choose how you would like to reach us." : header.question}
+              {isHelp
+                ? "Choose how you would like to reach us."
+                : isChat
+                  ? "Ask me about LAWFIC, or anything else."
+                  : header.question}
             </p>
           </div>
         </div>
       </div>
 
-      {/* ── List ───────────────────────────────────────────────────────── */}
+      {/* ── Body ───────────────────────────────────────────────────────── */}
+      {/* Chat brings its own transcript scroller and composer, so it replaces
+          the list rather than rendering inside it — nesting one scroll area in
+          another is how a message list ends up scrolling the wrong element. */}
+      {isChat ? (
+        <PandaChat onBack={onBack} />
+      ) : (
       <div
         /* Transparent on purpose: the panel wrapper already paints the glass,
            and painting it again here would sit an opaque layer on top of the
@@ -124,14 +147,20 @@ export default function QuickActionsPanel({
             className="flex flex-col gap-0.5"
           >
             {items.map((action) => (
-              <QuickActionItem key={action.id} action={action} onNavigate={onNavigate} />
+              <QuickActionItem
+                key={action.id}
+                action={action}
+                onNavigate={onNavigate}
+                onOpenView={onOpenView}
+              />
             ))}
           </motion.div>
         </AnimatePresence>
       </div>
+      )}
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      {!isHelp && (
+      {isRoot && (
         <div
           className="shrink-0 p-2"
           style={{
