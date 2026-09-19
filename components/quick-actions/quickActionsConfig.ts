@@ -263,6 +263,6 @@ export const palette = {
  *   blink: "/panda-blink.png",
  */
 export const pandaFrames: { open: string | null; blink: string | null } = {
-  open: null,
-  blink: null,
+  open: "/panda-open.png",
+  blink: "/panda-blink.png",
 };
