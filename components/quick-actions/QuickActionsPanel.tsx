@@ -53,13 +53,15 @@ export default function QuickActionsPanel({
   return (
     /* Tall enough that all eight actions fit without scrolling on an ordinary
        desktop — being able to see the whole list at once is the point of the
-       panel. Shorter screens scroll the list, never the header or footer. */
+       panel. Shorter screens, and a ball dragged somewhere with less room
+       above or below it, scroll the list instead; --qa-avail is the space the
+       widget measured on the side the panel opened towards. */
     <div
-      className="flex max-h-[min(86vh,668px)] flex-col overflow-hidden"
+      className="flex max-h-[min(86vh,668px,var(--qa-avail,100vh))] flex-col overflow-hidden"
       /* Chat has to be given a height. The action list sizes itself from its
          rows, but a transcript starts nearly empty and would otherwise open as
          a sliver that grows as it fills. */
-      style={isChat ? { height: "min(86vh, 668px)" } : undefined}
+      style={isChat ? { height: "min(86vh, 668px, var(--qa-avail, 100vh))" } : undefined}
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div

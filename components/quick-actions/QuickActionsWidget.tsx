@@ -5,15 +5,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
+  useMotionValue,
   useReducedMotion,
+  useDragControls,
   useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
 import { X } from "lucide-react";
 import PandaFace from "./PandaFace";
+import PandaOrb from "./PandaOrb";
 import QuickActionsPanel, { type PanelView } from "./QuickActionsPanel";
-import { geometry, palette, tooltip } from "./quickActionsConfig";
+import { dragging, geometry, orb, palette, tooltip } from "./quickActionsConfig";
 import { useQuickActions } from "./QuickActionsContext";
 
 /**
@@ -59,8 +62,30 @@ export default function QuickActionsWidget() {
      Under prefers-reduced-motion the sweep is pinned and nothing animates. */
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 60, damping: 20, mass: 0.4 });
+  /* The orb turns as the page moves. */
   const sweep = useTransform(progress, [0, 1], [0, 540]);
-  const lift = useTransform(progress, [0, 0.5, 1], [1, 1.18, 1]);
+  /* ...and the whole ball drifts a little, so it is not welded to the corner.
+     Small on purpose: this is a hint of life, not a thing that wanders off. */
+  const drift = useTransform(progress, [0, 1], [dragging.scrollDrift, -dragging.scrollDrift]);
+
+  /* WHERE THE VISITOR PUT IT.
+     x/y are an offset from the resting corner, not absolute coordinates, so a
+     ball dragged to the middle of a laptop screen does not end up off-screen
+     on a phone — the offset is re-clamped to the viewport on mount and on
+     resize. Remembered per browser; see restoreDragged below. */
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+  const [dragged, setDragged] = useState(false);
+  const dragControls = useDragControls();
+  const [bounds, setBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
+  /* Which way the panel opens, and how much room it has there. Recomputed on
+     every open, because the ball may have been dragged since the last one. */
+  const [placement, setPlacement] = useState({ flipY: false, flipX: false, avail: 0 });
+  /* Pointer travel since the gesture began. A ball you can drag is also a ball
+     you can nudge by two pixels while meaning to click it, so the click is
+     only honoured when the pointer effectively stayed put. */
+  const movedRef = useRef(0);
+  const originRef = useRef({ x: 0, y: 0 });
 
   const isOpen = ctx?.isOpen ?? false;
   const close = ctx?.close;
@@ -114,16 +139,127 @@ export default function QuickActionsWidget() {
     if (isOpen) panelRef.current?.focus({ preventScroll: true });
   }, [isOpen]);
 
+  /* WHICH SIDE OF THE BALL THE PANEL OPENS ON.
+     While the ball was welded to the bottom-right corner, "above and to the
+     left" was always right. Now that it can be dragged, a ball near the top of
+     the window would open a panel off the top of it — so the side is measured
+     rather than assumed, and the panel is told how much room it actually got
+     so the list can scroll inside instead of overflowing.
+
+     Measured on open and while open, because the window can be resized and the
+     page can scroll under it. */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const measure = () => {
+      const ball = ballRef.current?.getBoundingClientRect();
+      if (!ball) return;
+      const gap = 14;
+      const margin = 12;
+      const above = ball.top - gap - margin;
+      const below = window.innerHeight - ball.bottom - gap - margin;
+      /* Prefer above, as the brief asks. Flip only when below genuinely has
+         more room, so the panel does not jitter between sides. */
+      const flipY = below > above;
+      const flipX = ball.left < geometry.panelWidth - ball.width;
+      setPlacement({ flipY, flipX, avail: Math.max(160, flipY ? below : above) });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure);
+    };
+  }, [isOpen]);
+
+  /* Restore the remembered position, and keep it inside the window when that
+     window changes size. A position saved on a wide monitor is off-screen on a
+     phone, and a ball you cannot reach is worse than one in the wrong place. */
+  useEffect(() => {
+    if (!dragging.enabled || !dragging.storageKey) return;
+
+    const clamp = (x: number, y: number) => {
+      const size = window.innerWidth <= 640 ? geometry.ballSize.mobile : geometry.ballSize.desktop;
+      const right = window.innerWidth <= 640 ? geometry.offsetRight.mobile : geometry.offsetRight.desktop;
+      const bottom = window.innerWidth <= 640 ? geometry.offsetBottom.mobile : geometry.offsetBottom.desktop;
+      const pad = dragging.edgePadding;
+      /* x is negative going left, positive going right, from the rest corner. */
+      const minX = -(window.innerWidth - size - right - pad);
+      const maxX = right - pad;
+      const minY = -(window.innerHeight - size - bottom - pad);
+      const maxY = bottom - pad;
+      return [Math.min(Math.max(x, minX), maxX), Math.min(Math.max(y, minY), maxY)] as const;
+    };
+
+    try {
+      const saved = window.localStorage.getItem(dragging.storageKey);
+      if (saved) {
+        const { x, y } = JSON.parse(saved) as { x: number; y: number };
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          const [cx, cy] = clamp(x, y);
+          dragX.set(cx);
+          dragY.set(cy);
+          setDragged(cx !== 0 || cy !== 0);
+        }
+      }
+    } catch {
+      /* Private mode, blocked storage, or something else wrote nonsense here.
+         The ball simply starts in its corner. */
+    }
+
+    const sync = () => {
+      const [cx, cy] = clamp(dragX.get(), dragY.get());
+      dragX.set(cx);
+      dragY.set(cy);
+      const [minX, minY] = clamp(-1e6, -1e6);
+      const [maxX, maxY] = clamp(1e6, 1e6);
+      setBounds({ left: minX, top: minY, right: maxX, bottom: maxY });
+    };
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, [dragX, dragY]);
+
   if (!ctx) return null;
 
   const duration = reduceMotion ? 0 : 0.24;
 
   return (
-    <div
+    /* The ROOT is what moves, not the ball alone — the panel is anchored to the
+       ball and has to travel with it. Drag is started from the ball only
+       (dragListener={false} + dragControls), so dragging inside the open panel
+       still selects text and scrolls the list. */
+    <motion.div
       ref={rootRef}
       className="qa-root print:hidden"
+      drag={dragging.enabled && !reduceMotion ? true : dragging.enabled}
+      dragListener={false}
+      dragControls={dragControls}
+      dragMomentum={false}
+      dragElastic={0}
+      dragConstraints={bounds}
+      data-dragged={dragged || undefined}
+      data-flip-y={placement.flipY ? "down" : undefined}
+      data-flip-x={placement.flipX ? "left" : undefined}
+      onDragEnd={() => {
+        if (!dragging.storageKey) return;
+        try {
+          window.localStorage.setItem(
+            dragging.storageKey,
+            JSON.stringify({ x: Math.round(dragX.get()), y: Math.round(dragY.get()) }),
+          );
+        } catch {
+          /* Storage blocked. The ball stays where it was dragged for this
+             visit and returns to the corner on the next one. */
+        }
+        setDragged(dragX.get() !== 0 || dragY.get() !== 0);
+      }}
       style={
         {
+          x: dragX,
+          y: dragY,
           "--qa-bottom": `${geometry.offsetBottom.desktop}px`,
           "--qa-bottom-m": `${geometry.offsetBottom.mobile}px`,
           "--qa-right": `${geometry.offsetRight.desktop}px`,
@@ -133,7 +269,12 @@ export default function QuickActionsWidget() {
           "--qa-w": `${geometry.panelWidth}px`,
           "--qa-gold": palette.gold,
           "--qa-edge": palette.edge,
-        } as React.CSSProperties
+          "--qa-orb-core": orb.core,
+          "--qa-orb-deep": orb.deep,
+          "--qa-orb-hot": orb.hot,
+          "--qa-orb-bloom": `${orb.bloom}px`,
+          "--qa-avail": placement.avail ? `${placement.avail}px` : undefined,
+        } as unknown as React.CSSProperties
       }
     >
       <AnimatePresence>
@@ -149,7 +290,7 @@ export default function QuickActionsWidget() {
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              transformOrigin: "bottom right",
+              transformOrigin: `${placement.flipY ? "top" : "bottom"} ${placement.flipX ? "left" : "right"}`,
               background: palette.surface,
               border: `1px solid ${palette.edge}`,
               boxShadow: "0 28px 64px -24px rgba(0,0,0,0.75), 0 2px 8px rgba(0,0,0,0.3)",
@@ -167,28 +308,43 @@ export default function QuickActionsWidget() {
         )}
       </AnimatePresence>
 
+      {/* The scroll drift lives on a wrapper rather than on the ball, so it
+          composes with the ball's own idle float instead of fighting it for
+          the same transform. */}
+      <motion.span
+        className="qa-ball-wrap"
+        style={reduceMotion ? undefined : { y: drift }}
+      >
       <button
         ref={ballRef}
         type="button"
-        onClick={toggle}
+        onPointerDown={(event) => {
+          movedRef.current = 0;
+          originRef.current = { x: event.clientX, y: event.clientY };
+          if (dragging.enabled) dragControls.start(event);
+        }}
+        onPointerMove={(event) => {
+          if (!event.buttons) return;
+          movedRef.current = Math.hypot(
+            event.clientX - originRef.current.x,
+            event.clientY - originRef.current.y,
+          );
+        }}
+        onClick={() => {
+          /* A drag ends in a click event too. Opening the panel because
+             somebody moved the ball would be maddening. */
+          if (movedRef.current > dragging.threshold) return;
+          toggle?.();
+        }}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={isOpen ? "Close quick actions" : tooltip}
         data-open={isOpen || undefined}
         className="qa-ball group"
       >
-        {/* The scroll-driven layer. Decorative, so it is hidden from readers;
-            it sits under the face and inside the ball's rounded clip. */}
-        <motion.span
-          aria-hidden
-          className="qa-sheen"
-          style={reduceMotion ? undefined : { rotate: sweep, scale: lift }}
-        />
-
-        {/* The attention halo. One slow gold ring every eight seconds, stopped
-            while the panel is open and under prefers-reduced-motion — the brief
-            asked for presence, not for a bouncing ball. */}
-        <span aria-hidden className="qa-halo" />
+        {/* The glowing sphere. Original work; see PandaOrb.tsx for why it is
+            not the clip the client sent. */}
+        <PandaOrb spin={reduceMotion ? undefined : sweep} />
 
         <motion.span
           aria-hidden
@@ -230,6 +386,7 @@ export default function QuickActionsWidget() {
           {tooltip}
         </span>
       </button>
-    </div>
+      </motion.span>
+    </motion.div>
   );
 }

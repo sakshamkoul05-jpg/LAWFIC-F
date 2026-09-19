@@ -218,14 +218,34 @@ export const helpActions: QuickAction[] = [
    These feed straight into inline styles, so they are the only numbers to
    touch to move or resize the widget. */
 export const geometry = {
-  /** Distance from the bottom edge, in px. */
+  /** Distance from the bottom edge, in px. Where the ball RESTS before the
+      visitor drags it somewhere else. */
   offsetBottom: { desktop: 24, mobile: 16 },
   /** Distance from the right edge, in px. */
   offsetRight: { desktop: 24, mobile: 16 },
   /** Ball diameter, in px. Never below 44 — that is the minimum touch target. */
-  ballSize: { desktop: 62, mobile: 56 },
+  ballSize: { desktop: 84, mobile: 72 },
   /** Panel width, in px. Mobile falls back to the viewport minus both offsets. */
   panelWidth: 332,
+} as const;
+
+/* ── 6b. MOVING IT ────────────────────────────────────────────────────────
+   The ball can be dragged anywhere on screen and stays where it is put.
+   It remains position:fixed on purpose: the client's brief is that it is
+   reachable from every page wherever you are on it ("hum kahi bhi rahe"), and
+   a ball that scrolled away with the document would be unreachable exactly
+   when somebody wanted it. What DOES respond to scroll is the orb behind the
+   panda, which turns as the page moves, plus a small parallax drift. */
+export const dragging = {
+  enabled: true,
+  /** Pointer travel, in px, past which a gesture counts as a drag, not a tap. */
+  threshold: 5,
+  /** Keeps the ball this far inside the viewport edges while dragging. */
+  edgePadding: 8,
+  /** Where the dragged position is remembered, per browser. Null disables it. */
+  storageKey: "lawfic:panda-position",
+  /** How far the ball drifts as the page scrolls, in px. 0 turns it off. */
+  scrollDrift: 10,
 } as const;
 
 /* ── 7. COLOURS ────────────────────────────────────────────────────────────
@@ -245,6 +265,40 @@ export const palette = {
   inkDim: "var(--band-ink-dim, rgba(242,238,228,0.78))",
   gold: "var(--band-gold, #E6C36B)",
   edge: "var(--band-edge, rgba(230,195,107,0.22))",
+} as const;
+
+/* ── 8. THE ORB ───────────────────────────────────────────────────────────
+   The glowing sphere the panda sits on, drawn by PandaOrb.tsx. The client's
+   reference was a watermarked stock clip of a magenta energy orb; this is an
+   original take on it, so the colours are ours to choose. Swap them for the
+   brand gold (--band-gold) if the violet ever reads as off-brand. */
+export const orb = {
+  /** Hot centre. */
+  core: "#C74BF0",
+  /** Outer body, where it falls into shadow. */
+  deep: "#3A0D6B",
+  /** The rim light and the sparks. */
+  hot: "#FF8AF0",
+  /** How far the bloom spills past the ball, in px. */
+  bloom: 22,
+
+  /* Fixed rather than random: a value from Math.random() differs between the
+     server render and the browser's, which React reports as a hydration
+     mismatch. Hand-picked so no two sparks pulse together. */
+  sparks: [
+    { x: 22, y: 18, r: 2.5, delay: 0.0, duration: 3.4 },
+    { x: 74, y: 12, r: 2.0, delay: 0.7, duration: 4.1 },
+    { x: 88, y: 44, r: 2.8, delay: 1.5, duration: 3.1 },
+    { x: 12, y: 52, r: 2.2, delay: 2.2, duration: 3.8 },
+    { x: 34, y: 78, r: 2.6, delay: 0.4, duration: 4.4 },
+    { x: 66, y: 84, r: 2.0, delay: 1.9, duration: 3.3 },
+    { x: 50, y: 8, r: 2.4, delay: 2.8, duration: 3.9 },
+    { x: 92, y: 70, r: 1.8, delay: 1.1, duration: 4.6 },
+    { x: 8, y: 30, r: 2.1, delay: 3.3, duration: 3.2 },
+    { x: 58, y: 40, r: 1.6, delay: 0.9, duration: 4.8 },
+    { x: 40, y: 60, r: 1.9, delay: 2.5, duration: 3.6 },
+    { x: 80, y: 26, r: 2.3, delay: 1.6, duration: 4.2 },
+  ],
 } as const;
 
 /**
