@@ -1847,18 +1847,24 @@
 }
 
 
-/* The five terms chips in the footer's closing band. */
-.legal-chip {
-  border: 1px solid var(--band-edge, rgba(230, 195, 107, 0.22));
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--band-ink, #F2EEE4);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+/* The five terms links in the footer's closing band. They sit on the
+   blueprint's yellow, so the underline is the affordance rather than a hover
+   background — a tinted panel on that ground reads as a highlighter. */
+.legal-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-thickness 0.15s ease, opacity 0.15s ease;
 }
 
-.legal-chip:hover,
-.legal-chip:focus-visible {
+.legal-link:hover,
+.legal-link:focus-visible {
   outline: none;
-  background: rgba(230, 195, 107, 0.12);
-  border-color: var(--band-gold, #E6C36B);
-  color: var(--band-gold, #E6C36B);
+  text-decoration-thickness: 2px;
+}
+
+.legal-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 3px;
 }
