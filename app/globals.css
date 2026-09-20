@@ -1845,3 +1845,20 @@
 .tab-frame-inner {
   transition: background-color 700ms ease, border-color 700ms ease;
 }
+
+
+/* The five terms chips in the footer's closing band. */
+.legal-chip {
+  border: 1px solid var(--band-edge, rgba(230, 195, 107, 0.22));
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--band-ink, #F2EEE4);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.legal-chip:hover,
+.legal-chip:focus-visible {
+  outline: none;
+  background: rgba(230, 195, 107, 0.12);
+  border-color: var(--band-gold, #E6C36B);
+  color: var(--band-gold, #E6C36B);
+}

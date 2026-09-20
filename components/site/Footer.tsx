@@ -7,6 +7,7 @@ import { legalDocs } from "@/lib/legal";
 import CategoryIcon from "./CategoryIcon";
 import Wordmark from "./Wordmark";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import FooterLegalBand from "./FooterLegalBand";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -210,6 +211,14 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      {/* THE CLOSING BAND, ON EVERY PAGE.
+          It lives inside the footer rather than beside it because the footer
+          is already mounted once in ThemeShell — putting it here means every
+          page of the shopfront gets it with nothing else to remember. See
+          components/site/FooterLegalBand.tsx for why two of its five links
+          are not links. */}
+      <FooterLegalBand />
     </footer>
   );
 }

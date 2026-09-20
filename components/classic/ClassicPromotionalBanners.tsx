@@ -308,6 +308,24 @@ export default function ClassicPromotionalBanners({
                     happens to be pale exactly where the headline sits. */}
                 {banner.photo && (
                   <>
+                    {/* WHERE THE CROP FALLS, AND WHY IT IS NOT CENTRED.
+
+                        The frame is about 2.75:1 on a desktop and the pictures
+                        are 16:9, so object-cover throws away roughly a third of
+                        the image height — measured at 1366px wide: 159 source
+                        pixels off the top and the same off the bottom. Centred,
+                        that lands exactly on the band where heads and headroom
+                        are, and it was slicing the top off people's skulls.
+
+                        Narrow screens crop the OTHER axis: the frame is taller
+                        than the picture there, so the sides go instead — and
+                        every subject is composed on the right, which a centred
+                        crop would cut away.
+
+                        One value answers both, because each axis only bites on
+                        the screen where that axis is the one being cropped.
+                        70% keeps the right-hand subject on a phone; 25% keeps
+                        the faces on a desktop. */}
                     <Image
                       src={banner.photo}
                       alt={banner.photoAlt ? tx(banner.photoAlt) : ""}
@@ -315,6 +333,7 @@ export default function ClassicPromotionalBanners({
                       priority={i === 0}
                       sizes="100vw"
                       className="object-cover"
+                      style={{ objectPosition: "70% 25%" }}
                     />
                     {/* NEUTRAL, NOT TINTED.
                         This used to be a wash in the slide's own tone, which
