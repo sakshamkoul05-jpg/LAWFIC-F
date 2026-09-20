@@ -2,56 +2,56 @@
   {
     "position": 1,
     "photo": "/banners/udyam.webp",
-    "photo_alt": "A stylised Udyam registration certificate with a seal"
+    "photo_alt": "A small-business owner standing in her workshop, arms folded"
   },
   {
     "position": 2,
     "photo": "/banners/gst.webp",
-    "photo_alt": "A stylised tax invoice with the tax line picked out"
+    "photo_alt": "An accountant reviewing printed invoices at a desk"
   },
   {
     "position": 3,
     "photo": "/banners/membership.webp",
-    "photo_alt": "A membership card with a ten per cent roundel"
+    "photo_alt": "A shopkeeper handing a wrapped package to a customer across a counter"
   },
   {
     "position": 4,
     "photo": "/banners/jobs.webp",
-    "photo_alt": "Job listing cards with a location marker"
+    "photo_alt": "A job candidate shaking hands with an interviewer across a desk"
   },
   {
     "position": 5,
     "photo": "/banners/identity.webp",
-    "photo_alt": "An identity card beside a digital signature token"
+    "photo_alt": "A man handing a folder of documents across a service counter"
   },
   {
     "position": 6,
     "photo": "/banners/trademark.webp",
-    "photo_alt": "A shield protecting a trademark symbol, with class chips"
+    "photo_alt": "A designer holding up a printed sheet of logo artwork in a studio"
   },
   {
     "position": 7,
     "photo": "/banners/food.webp",
-    "photo_alt": "A food licence certificate with a leaf mark"
+    "photo_alt": "A chef standing at the pass in a commercial kitchen"
   },
   {
     "position": 8,
     "photo": "/banners/incorporation.webp",
-    "photo_alt": "A certificate of incorporation with a company structure diagram"
+    "photo_alt": "Three co-founders standing together in a new office, one holding a rolled document"
   },
   {
     "position": 9,
     "photo": "/banners/income-tax.webp",
-    "photo_alt": "A tax return form marked as filed"
+    "photo_alt": "A woman leaning back from her laptop at a home desk, her filing finished"
   },
   {
     "position": 10,
     "photo": "/banners/agreement.webp",
-    "photo_alt": "A signed agreement with a stamp"
+    "photo_alt": "A signed agreement beside a stamp"
   },
   {
     "position": 11,
     "photo": "/banners/passport.webp",
-    "photo_alt": "A passport booklet with a boarding pass"
+    "photo_alt": "A family walking through an airport departure hall with luggage"
   }
 ]

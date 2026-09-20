@@ -96,7 +96,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 1,
     photo: "/banners/udyam.webp",
-    photoAlt: "A stylised Udyam registration certificate with a seal",
+    photoAlt: "A small-business owner standing in her workshop, arms folded",
     eyebrow: "Start a business",
     title: "Udyam registration, done properly",
     label:
@@ -108,7 +108,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 2,
     photo: "/banners/gst.webp",
-    photoAlt: "A stylised tax invoice with the tax line picked out",
+    photoAlt: "An accountant reviewing printed invoices at a desk",
     eyebrow: "Tax & filings",
     title: "A GSTIN in your name in 7–10 days",
     label:
@@ -120,7 +120,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 3,
     photo: "/banners/membership.webp",
-    photoAlt: "A membership card with a ten per cent roundel",
+    photoAlt: "A shopkeeper handing a wrapped package to a customer across a counter",
     eyebrow: "Membership",
     title: "Ten percent off every filing",
     label:
@@ -132,7 +132,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 4,
     photo: "/banners/jobs.webp",
-    photoAlt: "Job listing cards with a location marker",
+    photoAlt: "A job candidate shaking hands with an interviewer across a desk",
     eyebrow: "Jobs",
     title: "Openings matched to your city and trade",
     label:
@@ -144,7 +144,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 5,
     photo: "/banners/identity.webp",
-    photoAlt: "An identity card beside a digital signature token",
+    photoAlt: "A man handing a folder of documents across a service counter",
     eyebrow: "Identity",
     title: "PAN, TAN and DSC without the guesswork",
     label:
@@ -156,7 +156,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 6,
     photo: "/banners/trademark.webp",
-    photoAlt: "A shield protecting a trademark symbol, with class chips",
+    photoAlt: "A designer holding up a printed sheet of logo artwork in a studio",
     eyebrow: "Trademark & brand",
     title: "Your name, protected in the right classes",
     label:
@@ -174,7 +174,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 7,
     photo: "/banners/food.webp",
-    photoAlt: "A food licence certificate with a leaf mark",
+    photoAlt: "A chef standing at the pass in a commercial kitchen",
     eyebrow: "Food business",
     title: "The FSSAI licence your kitchen needs",
     label:
@@ -186,7 +186,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 8,
     photo: "/banners/incorporation.webp",
-    photoAlt: "A certificate of incorporation with a company structure diagram",
+    photoAlt: "Three co-founders standing together in a new office, one holding a rolled document",
     eyebrow: "Incorporation",
     title: "A private limited company, filed properly",
     label:
@@ -198,7 +198,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 9,
     photo: "/banners/income-tax.webp",
-    photoAlt: "A tax return form marked as filed",
+    photoAlt: "A woman leaning back from her laptop at a home desk, her filing finished",
     eyebrow: "Income tax",
     title: "Your return, filed by someone who reads it",
     label:
@@ -210,7 +210,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 10,
     photo: "/banners/agreement.webp",
-    photoAlt: "A signed agreement with a stamp",
+    photoAlt: "A signed agreement beside a stamp",
     eyebrow: "Agreements",
     title: "A rent agreement that would hold up",
     label:
@@ -222,7 +222,7 @@ export const promotionalBanners: Banner[] = [
   {
     id: 11,
     photo: "/banners/passport.webp",
-    photoAlt: "A passport booklet with a boarding pass",
+    photoAlt: "A family walking through an airport departure hall with luggage",
     eyebrow: "Travel",
     title: "Passport, without the second appointment",
     label:
