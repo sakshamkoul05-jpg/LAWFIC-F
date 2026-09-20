@@ -244,8 +244,29 @@ export const dragging = {
   edgePadding: 8,
   /** Where the dragged position is remembered, per browser. Null disables it. */
   storageKey: "lawfic:panda-position",
-  /** How far the ball drifts as the page scrolls, in px. 0 turns it off. */
-  scrollDrift: 10,
+  /**
+   * How far the ball travels down the screen as the page is scrolled, in px.
+   *
+   * At the top of the page it sits this far ABOVE its resting corner and walks
+   * down to the corner as the visitor scrolls, so scrolling down moves the
+   * panda down. 0 pins it. Ignored once the visitor has dragged it themselves —
+   * their placement outranks ours, and travel could carry it off-screen.
+   */
+  scrollTravel: 150,
+} as const;
+
+/* ── 6c. THE GREETING ─────────────────────────────────────────────────────
+   The panda says hello when somebody opens the site. Once per visit, not once
+   per page: ThemeShell survives client-side navigation, so a greeting keyed to
+   mount alone would pop on every route change. */
+export const greeting = {
+  enabled: true,
+  text: "Hi, do you need any help?",
+  /** Long enough to be noticed arriving rather than to seem part of the page. */
+  delayMs: 1600,
+  /** How long it stays before withdrawing on its own. */
+  visibleMs: 9000,
+  storageKey: "lawfic:panda-greeted",
 } as const;
 
 /* ── 7. COLOURS ────────────────────────────────────────────────────────────

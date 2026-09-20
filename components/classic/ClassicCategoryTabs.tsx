@@ -85,7 +85,11 @@ import {
  * than the rest — which is no signal at all. Now the bar reads as a row of
  * legible labels with exactly one lit.
  */
-const BAND = "var(--band)";
+/* Falls back to the site's own navy. --bar-bg is set by the home page's
+   carousel to the colour of the flyer on screen, and removed everywhere else,
+   so this strip is navy on every other page without knowing the carousel
+   exists. */
+const BAND = "var(--bar-bg, var(--band))";
 const GOLD = "var(--band-gold)";
 const INK = "var(--band-ink-dim)";
 

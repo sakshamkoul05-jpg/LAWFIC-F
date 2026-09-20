@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
+import { bannerColours } from "@/lib/banner-colours";
 import { promotionalBanners, TONES, type Banner } from "@/lib/promotional";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
@@ -62,6 +63,46 @@ export default function ClassicPromotionalBanners({
   const [stopped, setStopped] = useState(false);
 
   const count = banners.length;
+
+  /* THE NAVIGATION BARS TAKE THEIR COLOUR FROM THE SLIDE ON SCREEN.
+     The client asked for it: a red flyer should give red bars.
+
+     It is published as custom properties on <html> rather than passed down as
+     props, because the two bars that consume it — the header and the section
+     strip — are neither children nor siblings of this carousel, and threading
+     a colour from the middle of the home page up through ThemeShell and back
+     down into both would couple three components to a detail of one.
+
+     The colours are read out of the photographs at build time; see
+     lib/banner-colours.ts and the script that writes it. A photograph with no
+     hue worth borrowing, and any slide with no photograph, clears the
+     properties so the bars fall back to the site's own navy rather than
+     holding the previous slide's colour.
+
+     Cleared on unmount too: the carousel only exists on the home page, and a
+     stale red header on /contact would be this component leaking. */
+  useEffect(() => {
+    const root = document.documentElement;
+    const photo = banners[index]?.photo;
+    const colour = photo ? bannerColours[photo] : null;
+
+    const apply = (key: string, value: string | null) => {
+      if (value) root.style.setProperty(key, value);
+      else root.style.removeProperty(key);
+    };
+
+    apply("--bar-bg", colour?.bar ?? null);
+    apply("--bar-lift", colour?.lift ?? null);
+    apply("--bar-accent", colour?.accent ?? null);
+    apply("--bar-wash", colour?.wash ?? null);
+
+    return () => {
+      apply("--bar-bg", null);
+      apply("--bar-lift", null);
+      apply("--bar-accent", null);
+      apply("--bar-wash", null);
+    };
+  }, [index, banners]);
 
   /* Scroll the track under our own control.
      `scrollTo({ behavior: "smooth" })` cannot be relied on inside a
@@ -240,8 +281,12 @@ export default function ClassicPromotionalBanners({
               <div
                 className="relative overflow-hidden"
                 style={{
+                  /* A photo covers the frame, so what is under it only shows
+                     for the instant before it decodes. Neutral there too: a
+                     toned block flashing its colour and then being replaced by
+                     a photograph of a different colour reads as a glitch. */
                   background: banner.photo
-                    ? `linear-gradient(115deg, ${tone.from} 0%, ${tone.to} 72%)`
+                    ? "#12100E"
                     : `linear-gradient(115deg, color-mix(in oklab, ${tone.from} 66%, ${tone.accent}) 0%, ${tone.from} 46%, ${tone.to} 100%)`,
                 }}
               >
@@ -271,11 +316,26 @@ export default function ClassicPromotionalBanners({
                       sizes="100vw"
                       className="object-cover"
                     />
+                    {/* NEUTRAL, NOT TINTED.
+                        This used to be a wash in the slide's own tone, which
+                        coloured the photograph — a warm office came out plum,
+                        a blue one came out green. The client asked for the
+                        picture to be itself.
+
+                        What is left is black at low opacity over the left
+                        third only, and it is not decoration: white type on an
+                        unknown photograph is unreadable wherever the picture
+                        happens to be pale, and a headline nobody can read is
+                        worse than a slightly darkened corner. It carries no
+                        hue, so the photo's own colour is untouched — which is
+                        also what lets the navigation bars borrow that colour
+                        honestly. */}
                     <div
                       aria-hidden
                       className="absolute inset-0"
                       style={{
-                        background: `linear-gradient(96deg, ${tone.to}F2 0%, ${tone.to}D6 26%, ${tone.from}73 48%, transparent 68%)`,
+                        background:
+                          "linear-gradient(96deg, rgba(0,0,0,0.74) 0%, rgba(0,0,0,0.58) 24%, rgba(0,0,0,0.24) 46%, transparent 66%)",
                       }}
                     />
                   </>
@@ -306,12 +366,16 @@ export default function ClassicPromotionalBanners({
                   </>
                 )}
 
-                {/* A single soft light source, keyed to the slide's accent. */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-24 -top-32 size-[420px] rounded-full opacity-[0.14] blur-3xl"
-                  style={{ background: tone.accent }}
-                />
+                {/* A single soft light source, keyed to the slide's accent.
+                    Colour blocks only: over a photograph it is one more tint,
+                    and the picture is supposed to be untinted. */}
+                {!banner.photo && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -right-24 -top-32 size-[420px] rounded-full opacity-[0.14] blur-3xl"
+                    style={{ background: tone.accent }}
+                  />
+                )}
 
                 {/* pb-28 leaves the control bar somewhere to live.
                     The bars this replaced were 1px tall and let clicks through,

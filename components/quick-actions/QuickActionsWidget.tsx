@@ -14,6 +14,7 @@ import {
 } from "motion/react";
 import { X } from "lucide-react";
 import PandaFace from "./PandaFace";
+import PandaGreeting from "./PandaGreeting";
 import PandaOrb from "./PandaOrb";
 import QuickActionsPanel, { type PanelView } from "./QuickActionsPanel";
 import { dragging, geometry, orb, palette, tooltip } from "./quickActionsConfig";
@@ -64,9 +65,36 @@ export default function QuickActionsWidget() {
   const progress = useSpring(scrollYProgress, { stiffness: 60, damping: 20, mass: 0.4 });
   /* The orb turns as the page moves. */
   const sweep = useTransform(progress, [0, 1], [0, 540]);
-  /* ...and the whole ball drifts a little, so it is not welded to the corner.
-     Small on purpose: this is a hint of life, not a thing that wanders off. */
-  const drift = useTransform(progress, [0, 1], [dragging.scrollDrift, -dragging.scrollDrift]);
+  /* ...and the ball itself walks DOWN the screen as the page is scrolled.
+     Negative at the top means "above the resting corner", zero at the bottom
+     means "in it", so scrolling down moves the panda down — which is the way
+     round it has to be, since the corner is already at the bottom and there is
+     nowhere below it to go.
+
+     HOW FAR IS NOT A CONSTANT. A fixed 150px lifts the ball into the header on
+     a short window — measured at 374x334, where it landed on the logo and the
+     account button. The distance is capped to what is actually free below the
+     header, and on a genuinely short screen it is zero: the ball stays in its
+     corner rather than climbing over the navigation. Read through a ref so the
+     transform always sees the current window without being rebuilt. */
+  const travelRef = useRef<number>(dragging.scrollTravel);
+  const travel = useTransform(progress, (v) => -(1 - v) * travelRef.current);
+
+  useEffect(() => {
+    const measure = () => {
+      const size = window.innerWidth <= 640 ? geometry.ballSize.mobile : geometry.ballSize.desktop;
+      const bottom =
+        window.innerWidth <= 640 ? geometry.offsetBottom.mobile : geometry.offsetBottom.desktop;
+      /* Enough room for the sticky header and the section strip beneath it. */
+      const headroom = 150;
+      const free = window.innerHeight - size - bottom - headroom;
+      travelRef.current =
+        window.innerHeight < 560 ? 0 : Math.max(0, Math.min(dragging.scrollTravel, free));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   /* WHERE THE VISITOR PUT IT.
      x/y are an offset from the resting corner, not absolute coordinates, so a
@@ -313,7 +341,10 @@ export default function QuickActionsWidget() {
           the same transform. */}
       <motion.span
         className="qa-ball-wrap"
-        style={reduceMotion ? undefined : { y: drift }}
+        /* Once the visitor has placed the ball themselves, it stays where they
+           put it: their placement outranks ours, and travel from a dragged
+           position could carry it off the screen. */
+        style={reduceMotion || dragged ? undefined : { y: travel }}
       >
       <button
         ref={ballRef}
@@ -386,6 +417,8 @@ export default function QuickActionsWidget() {
           {tooltip}
         </span>
       </button>
+
+      <PandaGreeting suppressed={isOpen} onAccept={() => ctx.open()} />
       </motion.span>
     </motion.div>
   );

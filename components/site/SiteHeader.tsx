@@ -84,7 +84,14 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+      {/* The background is a variable so the home page's carousel can tint it
+          to the flyer on screen; it is unset everywhere else and falls back to
+          the theme's own surface. The transition is what stops a slide change
+          from being a hard flash across the whole top of the page. */}
+      <header
+        className="sticky top-0 z-50 border-b border-border backdrop-blur-xl transition-colors duration-700"
+        style={{ background: "var(--bar-header, color-mix(in srgb, var(--background) 85%, transparent))" }}
+      >
         <div className="flex w-full flex-wrap items-center gap-2 px-3 py-2 sm:gap-2.5 sm:px-4 lg:gap-2.5 lg:px-4">
           <button
             type="button"

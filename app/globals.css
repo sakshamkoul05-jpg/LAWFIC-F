@@ -1572,7 +1572,10 @@
    page, forever, next to a ticker and a carousel, so nothing may animate a
    colour, a shadow, a gradient stop or a size — those repaint every frame. */
 
-.qa-ball-wrap { display: block; }
+/* Positioned, because the greeting bubble anchors to the BALL. Left static,
+   the bubble resolved against .qa-root instead and its flip side stopped
+   matching where the ball actually was. */
+.qa-ball-wrap { display: block; position: relative; }
 
 /* The ball can be picked up and put somewhere else. grab/grabbing is the
    whole affordance: without it nobody discovers that it moves. */
@@ -1728,4 +1731,117 @@
     animation: none;
   }
   .qa-orb-sparks i { opacity: 0.7; }
+}
+
+
+/* ── The greeting bubble ───────────────────────────────────────────────────
+   "Hi, do you need any help?" beside the panda. Positioned against the ball
+   and flipped by the same data attributes the panel uses, so a ball dragged
+   to the left edge does not speak off the screen. */
+.qa-greeting {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 8px 9px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--qa-edge);
+  background: var(--band, #0B1D4A);
+  box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.75);
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.qa-root[data-flip-x="left"] .qa-greeting {
+  right: auto;
+  left: calc(100% + 12px);
+}
+
+.qa-greeting-text {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--band-ink, #F2EEE4);
+  cursor: pointer;
+}
+
+.qa-greeting-text:hover,
+.qa-greeting-text:focus-visible {
+  outline: none;
+  color: var(--band-gold, #E6C36B);
+}
+
+.qa-greeting-close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  color: var(--band-ink-dim, rgba(242, 238, 228, 0.78));
+  opacity: 0.6;
+}
+
+.qa-greeting-close:hover,
+.qa-greeting-close:focus-visible {
+  outline: none;
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* The tail, drawn as a triangle rather than a rotated square so it does not
+   inherit the bubble's rounded corners. */
+.qa-greeting-tail {
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  margin-top: -6px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 7px solid var(--band, #0B1D4A);
+}
+
+.qa-root[data-flip-x="left"] .qa-greeting-tail {
+  right: auto;
+  left: -7px;
+  border-left: 0;
+  border-right: 7px solid var(--band, #0B1D4A);
+}
+
+/* On a narrow screen the bubble beside an 72px ball would run off the edge. */
+@media (max-width: 460px) {
+  .qa-greeting { display: none; }
+}
+
+
+/* ── Bars that follow the flyer on screen ──────────────────────────────────
+   The home page's carousel publishes --bar-bg (dark), --bar-wash (pale) and
+   --bar-accent for whichever slide is showing, and removes them elsewhere.
+
+   WHICH ONE A BAR TAKES DEPENDS ON THE THEME, and that is not a nicety: the
+   light theme's header carries dark type, so painting it the dark flyer colour
+   would leave its own text unreadable. Light takes the pale wash, dark takes
+   the full colour. The section strip below is dark with light type in BOTH
+   themes, so it always takes the full colour. */
+:root,
+[data-theme="light"] {
+  --bar-header: var(--bar-wash);
+}
+
+[data-theme="dark"] {
+  --bar-header: var(--bar-bg);
+}
+
+/* Without this a slide change is a hard flash across the whole top of the
+   page. 700ms is slower than the eye tracks as a "change" and faster than the
+   carousel's dwell, so one colour has always settled before the next starts. */
+.tab-frame,
+.tab-frame-inner {
+  transition: background-color 700ms ease, border-color 700ms ease;
 }
