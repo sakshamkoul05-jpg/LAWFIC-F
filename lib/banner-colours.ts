@@ -14,13 +14,15 @@
 export type BannerColour = { bar: string; lift: string; accent: string; wash: string };
 
 export const bannerColours: Record<string, BannerColour | null> = {
-  "/banners/branding.jpg": { bar: "#153742", lift: "#215363", accent: "#73C3DE", wash: "#DBEBF0" }, // hue 195deg, 21% of pixels carry colour
-  "/banners/education.jpg": { bar: "#422F15", lift: "#634821", accent: "#DEB173", wash: "#F0E7DB" }, // hue 35deg, 13% of pixels carry colour
-  "/banners/food.jpg": { bar: "#422815", lift: "#633D21", accent: "#DE9F73", wash: "#F0E4DB" }, // hue 25deg, 39% of pixels carry colour
-  "/banners/gst.jpg": { bar: "#152842", lift: "#213D63", accent: "#739FDE", wash: "#DBE4F0" }, // hue 215deg, 21% of pixels carry colour
-  "/banners/identity.jpg": { bar: "#422815", lift: "#633D21", accent: "#DE9F73", wash: "#F0E4DB" }, // hue 25deg, 59% of pixels carry colour
-  "/banners/jobs.jpg": { bar: "#422815", lift: "#633D21", accent: "#DE9F73", wash: "#F0E4DB" }, // hue 25deg, 62% of pixels carry colour
-  "/banners/legal.jpg": { bar: "#422815", lift: "#633D21", accent: "#DE9F73", wash: "#F0E4DB" }, // hue 25deg, 41% of pixels carry colour
-  "/banners/membership.jpg": { bar: "#422F15", lift: "#634821", accent: "#DEB173", wash: "#F0E7DB" }, // hue 35deg, 20% of pixels carry colour
-  "/banners/msme.jpg": { bar: "#423715", lift: "#635321", accent: "#DEC373", wash: "#F0EBDB" }, // hue 45deg, 10% of pixels carry colour
+  "/banners/agreement.png": { bar: "#153742", lift: "#215363", accent: "#73C3DE", wash: "#DBEBF0" }, // hue 195deg, 86% of pixels carry colour
+  "/banners/food.png": { bar: "#154220", lift: "#216332", accent: "#73DE8D", wash: "#DBF0E0" }, // hue 135deg, 83% of pixels carry colour
+  "/banners/gst.png": { bar: "#15423E", lift: "#21635E", accent: "#73DED5", wash: "#DBF0EE" }, // hue 175deg, 80% of pixels carry colour
+  "/banners/identity.png": { bar: "#281542", lift: "#3D2163", accent: "#9F73DE", wash: "#E4DBF0" }, // hue 265deg, 96% of pixels carry colour
+  "/banners/income-tax.png": { bar: "#422015", lift: "#633221", accent: "#DE8D73", wash: "#F0E0DB" }, // hue 15deg, 90% of pixels carry colour
+  "/banners/incorporation.png": { bar: "#152842", lift: "#213D63", accent: "#739FDE", wash: "#DBE4F0" }, // hue 215deg, 85% of pixels carry colour
+  "/banners/jobs.png": { bar: "#152842", lift: "#213D63", accent: "#739FDE", wash: "#DBE4F0" }, // hue 215deg, 88% of pixels carry colour
+  "/banners/membership.png": { bar: "#422F15", lift: "#634821", accent: "#DEB173", wash: "#F0E7DB" }, // hue 35deg, 95% of pixels carry colour
+  "/banners/passport.png": { bar: "#421520", lift: "#632132", accent: "#DE738D", wash: "#F0DBE0" }, // hue 345deg, 96% of pixels carry colour
+  "/banners/trademark.png": { bar: "#421537", lift: "#632153", accent: "#DE73C3", wash: "#F0DBEB" }, // hue 315deg, 93% of pixels carry colour
+  "/banners/udyam.png": { bar: "#152042", lift: "#213263", accent: "#738DDE", wash: "#DBE0F0" }, // hue 225deg, 88% of pixels carry colour
 };

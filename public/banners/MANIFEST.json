@@ -1,0 +1,57 @@
+[
+  {
+    "position": 1,
+    "photo": "/banners/udyam.png",
+    "photo_alt": "A stylised Udyam registration certificate with a seal"
+  },
+  {
+    "position": 2,
+    "photo": "/banners/gst.png",
+    "photo_alt": "A stylised tax invoice with the tax line picked out"
+  },
+  {
+    "position": 3,
+    "photo": "/banners/membership.png",
+    "photo_alt": "A membership card with a ten per cent roundel"
+  },
+  {
+    "position": 4,
+    "photo": "/banners/jobs.png",
+    "photo_alt": "Job listing cards with a location marker"
+  },
+  {
+    "position": 5,
+    "photo": "/banners/identity.png",
+    "photo_alt": "An identity card beside a digital signature token"
+  },
+  {
+    "position": 6,
+    "photo": "/banners/trademark.png",
+    "photo_alt": "A shield protecting a trademark symbol, with class chips"
+  },
+  {
+    "position": 7,
+    "photo": "/banners/food.png",
+    "photo_alt": "A food licence certificate with a leaf mark"
+  },
+  {
+    "position": 8,
+    "photo": "/banners/incorporation.png",
+    "photo_alt": "A certificate of incorporation with a company structure diagram"
+  },
+  {
+    "position": 9,
+    "photo": "/banners/income-tax.png",
+    "photo_alt": "A tax return form marked as filed"
+  },
+  {
+    "position": 10,
+    "photo": "/banners/agreement.png",
+    "photo_alt": "A signed agreement with a stamp"
+  },
+  {
+    "position": 11,
+    "photo": "/banners/passport.png",
+    "photo_alt": "A passport booklet with a boarding pass"
+  }
+]

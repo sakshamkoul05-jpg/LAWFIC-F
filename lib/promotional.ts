@@ -95,8 +95,8 @@ export const TONES: Record<BannerTone, { from: string; to: string; accent: strin
 export const promotionalBanners: Banner[] = [
   {
     id: 1,
-    photo: "/banners/msme.jpg",
-    photoAlt: "A small workshop bench, tools laid out",
+    photo: "/banners/udyam.png",
+    photoAlt: "A stylised Udyam registration certificate with a seal",
     eyebrow: "Start a business",
     title: "Udyam registration, done properly",
     label:
@@ -107,8 +107,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 2,
-    photo: "/banners/gst.jpg",
-    photoAlt: "An invoice and a calculator on a desk",
+    photo: "/banners/gst.png",
+    photoAlt: "A stylised tax invoice with the tax line picked out",
     eyebrow: "Tax & filings",
     title: "A GSTIN in your name in 7–10 days",
     label:
@@ -119,8 +119,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 3,
-    photo: "/banners/membership.jpg",
-    photoAlt: "A ledger open on a counter",
+    photo: "/banners/membership.png",
+    photoAlt: "A membership card with a ten per cent roundel",
     eyebrow: "Membership",
     title: "Ten percent off every filing",
     label:
@@ -131,8 +131,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 4,
-    photo: "/banners/jobs.jpg",
-    photoAlt: "An open-plan office of empty desks",
+    photo: "/banners/jobs.png",
+    photoAlt: "Job listing cards with a location marker",
     eyebrow: "Jobs",
     title: "Openings matched to your city and trade",
     label:
@@ -143,8 +143,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 5,
-    photo: "/banners/identity.jpg",
-    photoAlt: "Documents and a pen on a table",
+    photo: "/banners/identity.png",
+    photoAlt: "An identity card beside a digital signature token",
     eyebrow: "Identity",
     title: "PAN, TAN and DSC without the guesswork",
     label:
@@ -155,8 +155,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 6,
-    photo: "/banners/branding.jpg",
-    photoAlt: "A studio wall of pinned design work",
+    photo: "/banners/trademark.png",
+    photoAlt: "A shield protecting a trademark symbol, with class chips",
     eyebrow: "Trademark & brand",
     title: "Your name, protected in the right classes",
     label:
@@ -173,8 +173,8 @@ export const promotionalBanners: Banner[] = [
      a lie the customer finds out about on the next click. */
   {
     id: 7,
-    photo: "/banners/food.jpg",
-    photoAlt: "A commercial kitchen worktop",
+    photo: "/banners/food.png",
+    photoAlt: "A food licence certificate with a leaf mark",
     eyebrow: "Food business",
     title: "The FSSAI licence your kitchen needs",
     label:
@@ -185,8 +185,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 8,
-    photo: "/banners/legal.jpg",
-    photoAlt: "Bound files on a shelf",
+    photo: "/banners/incorporation.png",
+    photoAlt: "A certificate of incorporation with a company structure diagram",
     eyebrow: "Incorporation",
     title: "A private limited company, filed properly",
     label:
@@ -197,8 +197,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 9,
-    photo: "/banners/education.jpg",
-    photoAlt: "A stack of books on a desk",
+    photo: "/banners/income-tax.png",
+    photoAlt: "A tax return form marked as filed",
     eyebrow: "Income tax",
     title: "Your return, filed by someone who reads it",
     label:
@@ -209,6 +209,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 10,
+    photo: "/banners/agreement.png",
+    photoAlt: "A signed agreement with a stamp",
     eyebrow: "Agreements",
     title: "A rent agreement that would hold up",
     label:
@@ -219,6 +221,8 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 11,
+    photo: "/banners/passport.png",
+    photoAlt: "A passport booklet with a boarding pass",
     eyebrow: "Travel",
     title: "Passport, without the second appointment",
     label:
