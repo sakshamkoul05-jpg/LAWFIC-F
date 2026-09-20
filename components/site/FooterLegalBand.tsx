@@ -38,6 +38,19 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  * 3. The blueprint names five terms documents and four exist on the site.
  *    A link with no document behind it renders as plain text rather than
  *    pointing at a 404 — see LEGAL_LINKS.
+ *
+ * 4. The links are not underlined. They are not underlined in the blueprint
+ *    either, and at this size five underlined phrases across one row read as
+ *    a scribble rather than as navigation. The underline appears on hover and
+ *    focus instead, so the affordance is still there when it is wanted.
+ *
+ * ON THE SIZE
+ *
+ * The first version of this band was 842px tall against a 900px viewport —
+ * almost a full screen of legal small print before anybody reached the end of
+ * the page. Everything here is deliberately tight: the measure is wide so the
+ * paragraphs wrap into fewer lines, the badge is small, and the type steps
+ * down rather than shouting. It is a notice, not a section.
  */
 
 /** Read from the blueprint's cell fills. */
@@ -66,34 +79,34 @@ export default function FooterLegalBand() {
       aria-label={tx("Legal notices")}
       style={{ background: BAND, color: INK }}
     >
-      <div className="mx-auto max-w-5xl px-6 py-12 text-center sm:px-10 sm:py-16">
+      <div className="mx-auto max-w-6xl px-6 py-5 text-center sm:px-10 sm:py-6">
         {/* ── The badge, at the top, as the blueprint anchors it ──────── */}
         <Image
           src="/lawfic-badge.webp"
           alt={tx("LAWFIC")}
-          width={112}
-          height={112}
-          className="mx-auto h-[92px] w-[92px] sm:h-28 sm:w-28"
+          width={72}
+          height={72}
+          className="mx-auto h-[44px] w-[44px] sm:h-[50px] sm:w-[50px]"
         />
 
         {/* ── Copyright ───────────────────────────────────────────────── */}
-        <p className="mt-6 text-[24px] font-extrabold leading-tight tracking-tight sm:text-[30px]">
+        <p className="mt-2.5 text-[17px] font-extrabold leading-tight tracking-tight sm:text-[19px]">
           © 2026–2027 LAWFIC
         </p>
-        <p className="mt-2 text-[16px] font-bold sm:text-[20px]">
+        <p className="mt-1 text-[13px] font-bold sm:text-[15px]">
           {tx("All Rights & Every Content Reserved.")}
         </p>
-        <p className="mx-auto mt-3 max-w-3xl text-[14px] font-semibold leading-snug sm:text-[18px]">
+        <p className="mx-auto mt-1.5 max-w-4xl text-[12px] font-semibold leading-snug sm:text-[13.5px]">
           {tx("Unauthorized reproduction or use is strictly prohibited and punishable under law.")}
         </p>
 
         {/* ── The notice in full ──────────────────────────────────────── */}
-        <p className="mx-auto mt-7 max-w-3xl text-[12.5px] leading-relaxed sm:text-[14px]">
+        <p className="mx-auto mt-3 max-w-6xl text-[11px] leading-snug sm:text-[11.5px]">
           {tx(
             "Unauthorized reproduction, copying, distribution, or use of any content from this website — including, idea, text, images, logos, pattern or design.",
           )}
         </p>
-        <p className="mx-auto mt-2.5 max-w-3xl text-[12.5px] font-bold leading-relaxed sm:text-[14px]">
+        <p className="mx-auto mt-1 max-w-6xl text-[11px] font-bold leading-snug sm:text-[11.5px]">
           {tx(
             "Without prior written permission is strictly prohibited. Any such act shall be treated as an offence under Section 63 of the Copyright Act, 1957, which is punishable with imprisonment for a term ranging from six months to three years, along with a fine ranging from ₹50,000 to ₹2,00,000, or both.",
           )}
@@ -104,13 +117,13 @@ export default function FooterLegalBand() {
             stranger, so it is given a rule above and below and the largest
             weight after the copyright, as the blueprint gives it. */}
         <div
-          className="mx-auto mt-9 max-w-3xl border-y py-6"
+          className="mx-auto mt-3.5 max-w-6xl border-y py-3"
           style={{ borderColor: "rgba(26,18,8,0.28)" }}
         >
-          <p className="text-[17px] font-extrabold sm:text-[21px]">
+          <p className="text-[14px] font-extrabold sm:text-[16px]">
             <span aria-hidden>⚠️</span> {tx("Customer Safety Warning")}
           </p>
-          <p className="mt-3 text-[12.5px] leading-relaxed sm:text-[14px]">
+          <p className="mt-1.5 text-[11px] leading-snug sm:text-[11.5px]">
             {tx(
               "Lawfic never asks for OTP, passwords, payment details, or personal banking information via phone calls, SMS, or email. Beware of fraudulent individuals or websites impersonating Lawfic. For any verification or query, please contact us only through our official website or registered contact details.",
             )}
@@ -118,16 +131,16 @@ export default function FooterLegalBand() {
         </div>
 
         {/* ── The five documents ──────────────────────────────────────── */}
-        <ul className="mt-8 flex flex-wrap items-stretch justify-center gap-x-6 gap-y-3">
+        <ul className="mt-3.5 flex flex-wrap items-stretch justify-center gap-x-6 gap-y-2">
           {LEGAL_LINKS.map((item) => {
             const label = (
-              <span className="block text-[11.5px] font-bold leading-snug sm:text-[12.5px]">
+              <span className="block text-[10.5px] font-bold leading-snug sm:text-[11.5px]">
                 {tx(item.label)}
               </span>
             );
 
             return (
-              <li key={item.label} className="max-w-[210px]">
+              <li key={item.label} className="max-w-[230px]">
                 {item.href ? (
                   <Link href={item.href} className="legal-link" style={{ color: LINK }}>
                     {label}

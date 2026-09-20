@@ -1851,16 +1851,19 @@
    blueprint's yellow, so the underline is the affordance rather than a hover
    background — a tinted panel on that ground reads as a highlighter. */
 .legal-link {
-  text-decoration: underline;
+  /* No underline at rest. The blueprint does not underline these, and five
+     underlined phrases in one row read as a scribble rather than as links.
+     It appears on hover and on focus, so the affordance is there when it is
+     being looked for. */
+  text-decoration: none;
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
-  transition: text-decoration-thickness 0.15s ease, opacity 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .legal-link:hover,
 .legal-link:focus-visible {
-  outline: none;
-  text-decoration-thickness: 2px;
+  text-decoration: underline;
 }
 
 .legal-link:focus-visible {
