@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatPaise } from "@/lib/money";
 import { type OrderStatus, type ServiceOrder } from "@/lib/orders";
 import { createClient } from "@/lib/supabase/server";
+import CustomerDirectory, { type DirectoryRow } from "@/components/admin/CustomerDirectory";
 import { AdminGate } from "../AdminGate";
 
 export const metadata: Metadata = {
@@ -22,6 +22,15 @@ type Profile = {
 };
 
 type Entry = { user_id: string; balance_after_paise: number; seq: number };
+
+/** What staff_user_directory() returns. See the migration for why it exists. */
+type DirectoryEntry = {
+  id: string;
+  email: string | null;
+  last_sign_in_at: string | null;
+  created_at: string;
+  email_confirmed_at: string | null;
+};
 
 /**
  * Everyone who has signed up, and where each of them stands.
@@ -53,18 +62,34 @@ export default async function CustomersPage() {
   const { data: staff } = await supabase.rpc("is_staff");
   if (!staff) return <AdminGate reason="not-staff" userId={auth.user.id} email={auth.user.email} />;
 
-  const [{ data: profileData }, { data: orderData }, { data: entryData }] = await Promise.all([
+  /* FOUR QUERIES, ONE ROUND TRIP'S WORTH OF WAITING.
+     Sequential awaits here would make the page as slow as the sum of them
+     rather than as slow as the slowest. The directory is an RPC over
+     auth.users — see the migration for why it is not auth.admin.listUsers(),
+     which would be one HTTP call per fifty users. */
+  const [
+    { data: profileData },
+    { data: orderData },
+    { data: entryData },
+    { data: directoryData },
+  ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("service_orders").select("*"),
     supabase
       .from("wallet_entries")
       .select("user_id, balance_after_paise, seq")
       .order("seq", { ascending: false }),
+    /* Missing until the migration is run. The page degrades to no email and
+       no last-login rather than failing, because a directory without those
+       two columns is still the directory. */
+    supabase.rpc("staff_user_directory"),
   ]);
 
   const profiles = (profileData ?? []) as Profile[];
   const orders = (orderData ?? []) as ServiceOrder[];
   const entries = (entryData ?? []) as Entry[];
+  const directory = new Map<string, DirectoryEntry>();
+  for (const d of (directoryData ?? []) as DirectoryEntry[]) directory.set(d.id, d);
 
   /* Newest entry per user wins, and the list is already newest-first. */
   const balance = new Map<string, number>();
@@ -90,12 +115,15 @@ export default async function CustomersPage() {
         (acc, o) => (acc === null || o.created_at < acc ? o.created_at : acc),
         null,
       );
+      const auth = directory.get(p.id);
       return {
         profile: p,
         orders: theirs,
         waiting: waiting.length,
         oldestWait,
         balancePaise: balance.get(p.id) ?? 0,
+        email: auth?.email ?? null,
+        lastSignInAt: auth?.last_sign_in_at ?? null,
       };
     })
     .sort((a, b) => {
@@ -105,6 +133,22 @@ export default async function CustomersPage() {
     });
 
   const totalWaiting = rows.reduce((n, r) => n + r.waiting, 0);
+
+  /* Flattened for the client component: it needs strings and numbers, not the
+     shape the queries happened to return. */
+  const directoryRows: DirectoryRow[] = rows.map((r) => ({
+    id: r.profile.id,
+    name: r.profile.full_name,
+    email: r.email,
+    phone: r.profile.phone,
+    city: r.profile.city,
+    businessType: r.profile.business_type,
+    balancePaise: r.balancePaise,
+    filings: r.orders.length,
+    waiting: r.waiting,
+    lastSignInAt: r.lastSignInAt,
+    createdAt: r.profile.created_at,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
@@ -131,55 +175,10 @@ export default async function CustomersPage() {
         </p>
       </header>
 
-      {rows.length === 0 ? (
-        <p className="rounded-2xl border border-border px-5 py-10 text-center text-[14px] text-muted-foreground">
-          Nobody has signed up yet.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {rows.map((r) => (
-            <li key={r.profile.id}>
-              <Link
-                href={`/admin/customers/${r.profile.id}`}
-                className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border border-border px-5 py-4 transition-colors hover:border-border-3"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14.5px] font-medium text-foreground">
-                    {r.profile.full_name ?? "Unnamed account"}
-                  </span>
-                  <span className="mt-0.5 block truncate text-[12px] text-muted-foreground">
-                    {[r.profile.phone, r.profile.city, r.profile.business_type]
-                      .filter(Boolean)
-                      .join(" · ") || "No details given"}
-                  </span>
-                </span>
-
-                {r.waiting > 0 && (
-                  <span className="rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-medium text-primary">
-                    {r.waiting} waiting
-                  </span>
-                )}
-
-                <span className="text-right">
-                  <span className="block font-mono text-[13.5px] tabular-nums text-foreground">
-                    {formatPaise(r.balancePaise)}
-                  </span>
-                  <span className="block text-[11px] text-subtle">wallet</span>
-                </span>
-
-                <span className="w-20 text-right">
-                  <span className="block font-mono text-[13.5px] tabular-nums text-foreground">
-                    {r.orders.length}
-                  </span>
-                  <span className="block text-[11px] text-subtle">
-                    filing{r.orders.length === 1 ? "" : "s"}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* The rows are handed to a client component so the search box can
+          filter between frames instead of making a round trip per keystroke.
+          See the note in CustomerDirectory. */}
+      <CustomerDirectory rows={directoryRows} />
 
       <p className="mt-8 text-[11.5px] leading-relaxed text-subtle">
         Everything here is visible because you are staff. A customer sees only
