@@ -43,6 +43,26 @@ export default async function AdminSettingsPage() {
     return <AdminGate reason="not-staff" userId={auth.user.id} email={auth.user.email} />;
   }
 
+  /* Settings is the one back-office page a "staff" seat does not get. Changing
+     the support number or the site-wide notice is an owner-or-admin decision,
+     and site_settings' write policy does not distinguish the two — so the line
+     is drawn here, and it asks the database rather than deciding for itself.
+     `=== false` rather than `!mayEdit`: a null means the roles migration has
+     not been run, and locking everybody out of settings because of that would
+     be a worse failure than letting the previous behaviour stand. */
+  const { data: mayEdit } = await supabase.rpc("staff_can", { capability: "settings" });
+  if (mayEdit === false) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+        <h1 className="font-display text-[24px] font-bold text-foreground">Site settings</h1>
+        <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
+          Changing these is an admin or owner decision. Ask one of them — the
+          People page lists who they are.
+        </p>
+      </div>
+    );
+  }
+
   const settings = await loadSettings(supabase);
 
   const { data: auditData, error: auditError } = await supabase

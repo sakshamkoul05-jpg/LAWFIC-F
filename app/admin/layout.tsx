@@ -29,13 +29,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   const user = data.user;
 
-  /* Whether to show the nav at all. Not a permission check — the pages each
-     re-check `is_staff()` against the database, and RLS holds regardless. This
-     only decides whether a bar is drawn. */
+  /* Whether to show the nav at all, and which links belong in it. Not a
+     permission check — every page re-checks against the database and RLS holds
+     regardless. This only decides what is drawn.
+
+     `is_back_office` includes guests, who may look but not touch; is_staff()
+     deliberately excludes them. Falling back to is_staff() keeps this working
+     on a deployment where the roles migration has not been run. */
   let staff = false;
+  let role: string | null = null;
   if (supabase && user) {
-    const { data: isStaff } = await supabase.rpc("is_staff");
-    staff = Boolean(isStaff);
+    const [{ data: inBackOffice }, { data: isStaff }, { data: myRole }] = await Promise.all([
+      supabase.rpc("is_back_office"),
+      supabase.rpc("is_staff"),
+      supabase.rpc("staff_role"),
+    ]);
+    staff = Boolean(inBackOffice ?? isStaff);
+    role = (myRole as string | null) ?? (isStaff ? "staff" : null);
   }
 
   return (
@@ -56,7 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </span>
             </Link>
 
-            <AdminNav />
+            <AdminNav role={role} />
 
             <div className="ml-auto flex items-center gap-3">
               <span className="hidden max-w-[22ch] truncate text-[12px] text-muted-foreground sm:block">
