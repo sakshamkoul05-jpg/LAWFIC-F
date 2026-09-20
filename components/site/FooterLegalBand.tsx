@@ -79,18 +79,18 @@ export default function FooterLegalBand() {
       aria-label={tx("Legal notices")}
       style={{ background: BAND, color: INK }}
     >
-      <div className="mx-auto max-w-6xl px-6 py-5 text-center sm:px-10 sm:py-6">
+      <div className="mx-auto max-w-6xl px-5 py-4 text-center sm:px-8 sm:py-5">
         {/* ── The badge, at the top, as the blueprint anchors it ──────── */}
         <Image
           src="/lawfic-badge.webp"
           alt={tx("LAWFIC")}
           width={72}
           height={72}
-          className="mx-auto h-[44px] w-[44px] sm:h-[50px] sm:w-[50px]"
+          className="mx-auto h-[38px] w-[38px] sm:h-[44px] sm:w-[44px]"
         />
 
         {/* ── Copyright ───────────────────────────────────────────────── */}
-        <p className="mt-2.5 text-[17px] font-extrabold leading-tight tracking-tight sm:text-[19px]">
+        <p className="mt-2 text-[16px] font-extrabold leading-tight tracking-tight sm:text-[18px]">
           © 2026–2027 LAWFIC
         </p>
         <p className="mt-1 text-[13px] font-bold sm:text-[15px]">
@@ -101,12 +101,12 @@ export default function FooterLegalBand() {
         </p>
 
         {/* ── The notice in full ──────────────────────────────────────── */}
-        <p className="mx-auto mt-3 max-w-6xl text-[11px] leading-snug sm:text-[11.5px]">
+        <p className="mx-auto mt-2.5 max-w-6xl text-[10.5px] leading-snug sm:text-[11px]">
           {tx(
             "Unauthorized reproduction, copying, distribution, or use of any content from this website — including, idea, text, images, logos, pattern or design.",
           )}
         </p>
-        <p className="mx-auto mt-1 max-w-6xl text-[11px] font-bold leading-snug sm:text-[11.5px]">
+        <p className="mx-auto mt-1 max-w-6xl text-[10.5px] font-bold leading-snug sm:text-[11px]">
           {tx(
             "Without prior written permission is strictly prohibited. Any such act shall be treated as an offence under Section 63 of the Copyright Act, 1957, which is punishable with imprisonment for a term ranging from six months to three years, along with a fine ranging from ₹50,000 to ₹2,00,000, or both.",
           )}
@@ -117,13 +117,13 @@ export default function FooterLegalBand() {
             stranger, so it is given a rule above and below and the largest
             weight after the copyright, as the blueprint gives it. */}
         <div
-          className="mx-auto mt-3.5 max-w-6xl border-y py-3"
+          className="mx-auto mt-3 max-w-6xl border-y py-2.5"
           style={{ borderColor: "rgba(26,18,8,0.28)" }}
         >
           <p className="text-[14px] font-extrabold sm:text-[16px]">
             <span aria-hidden>⚠️</span> {tx("Customer Safety Warning")}
           </p>
-          <p className="mt-1.5 text-[11px] leading-snug sm:text-[11.5px]">
+          <p className="mt-1.5 text-[10.5px] leading-snug sm:text-[11px]">
             {tx(
               "Lawfic never asks for OTP, passwords, payment details, or personal banking information via phone calls, SMS, or email. Beware of fraudulent individuals or websites impersonating Lawfic. For any verification or query, please contact us only through our official website or registered contact details.",
             )}
@@ -131,16 +131,23 @@ export default function FooterLegalBand() {
         </div>
 
         {/* ── The five documents ──────────────────────────────────────── */}
-        <ul className="mt-3.5 flex flex-wrap items-stretch justify-center gap-x-6 gap-y-2">
+        {/* ONE ROW, NOT FOUR-PLUS-ONE.
+            As a wrapping flex row the fifth always dropped underneath: five
+            items at max-w-[230px] plus gaps needed ~1246px and only ~1072px
+            was going. A five-column grid makes the row structural rather than
+            something the browser arrives at — each column is an equal share of
+            whatever width there is, so it cannot fall over. Two columns on a
+            phone, where five across would be unreadable. */}
+        <ul className="mx-auto mt-3 grid max-w-5xl grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-5 sm:gap-x-4">
           {LEGAL_LINKS.map((item) => {
             const label = (
-              <span className="block text-[10.5px] font-bold leading-snug sm:text-[11.5px]">
+              <span className="block text-[10px] font-bold leading-snug sm:text-[10.5px]">
                 {tx(item.label)}
               </span>
             );
 
             return (
-              <li key={item.label} className="max-w-[230px]">
+              <li key={item.label}>
                 {item.href ? (
                   <Link href={item.href} className="legal-link" style={{ color: LINK }}>
                     {label}
