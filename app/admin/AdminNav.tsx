@@ -4,13 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Four destinations, in the order the day uses them.
+ * The back office, in the order the day uses them.
  *
  * Orders answers "what needs doing" and stays first, because that is what an
  * agent opens the back office to do. Customers answers "who is this" — the
  * same data pivoted, so it sits next to it. Dashboard answers "how are we
  * doing", which is an owner's question rather than an agent's and therefore
- * does not get the front slot. Content is the home page itself.
+ * does not get the front slot. Content is the home page itself; Categories is
+ * the service catalogue behind the menu, the footer and the search box; Jobs
+ * is the postings board.
+ *
+ * Seven is close to the point where a row of links becomes a thing to read
+ * rather than a thing to glance at. The next addition should probably group
+ * the three content-shaped ones behind a single heading rather than making it
+ * eight.
  *
  * Orders keeps /admin rather than being moved under a path of its own. The
  * daily queue should be what the bare URL opens, and a dashboard at the root
@@ -22,6 +29,8 @@ const LINKS = [
   { href: "/admin/customers", label: "Customers", exact: false },
   { href: "/admin/dashboard", label: "Dashboard", exact: false },
   { href: "/admin/content", label: "Content", exact: false },
+  { href: "/admin/categories", label: "Categories", exact: false },
+  { href: "/admin/jobs", label: "Jobs", exact: false },
   { href: "/admin/settings", label: "Settings", exact: false },
 ];
 
@@ -29,7 +38,7 @@ export default function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Back office" className="flex items-center gap-1">
+    <nav aria-label="Back office" className="flex flex-wrap items-center gap-1">
       {LINKS.map((l) => {
         const active = l.exact ? pathname === l.href : pathname.startsWith(l.href);
         return (

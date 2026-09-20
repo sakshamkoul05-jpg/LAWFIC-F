@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
 import { TONES } from "@/lib/promotional";
+import { staffClient, type ActionResult } from "@/lib/admin-gate";
 
 /**
  * Banner edits from the back office.
@@ -27,7 +27,7 @@ import { TONES } from "@/lib/promotional";
  * the design system.
  */
 
-type Result = { ok: true } | { ok: false; error: string };
+type Result = ActionResult;
 
 const TONE_KEYS = Object.keys(TONES) as [string, ...string[]];
 
@@ -49,26 +49,6 @@ const Fields = z.object({
     ),
   tone: z.enum(TONE_KEYS),
 });
-
-/** Either a client that has proved it belongs to staff, or the reason it did
-    not. An explicit union so `"error" in gate` narrows to a defined string
-    rather than to `string | undefined`. */
-type Gate =
-  | { supabase: SupabaseClient }
-  | { error: string };
-
-async function staffClient(): Promise<Gate> {
-  const supabase = await createClient();
-  if (!supabase) return { error: "No database is configured for this build." };
-
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { error: "Sign in first." };
-
-  const { data: staff } = await supabase.rpc("is_staff");
-  if (!staff) return { error: "This is a staff-only action." };
-
-  return { supabase };
-}
 
 /** Everything that changed has to show up on the home page, not just here. */
 function refresh() {
