@@ -129,7 +129,7 @@ const digits = (x, y, count, accent, size = 13) => {
 const BANNERS = [
   {
     position: 1,
-    file: "udyam.png",
+    file: "udyam.webp",
     alt: "A stylised Udyam registration certificate with a seal",
     bg: ["#1B2A6B", "#0C1330"],
     accent: "#F0A93B",
@@ -151,7 +151,7 @@ const BANNERS = [
   },
   {
     position: 2,
-    file: "gst.png",
+    file: "gst.webp",
     alt: "A stylised tax invoice with the tax line picked out",
     bg: ["#0B4F4A", "#04211F"],
     accent: "#4FD8C4",
@@ -176,7 +176,7 @@ const BANNERS = [
   },
   {
     position: 3,
-    file: "membership.png",
+    file: "membership.webp",
     alt: "A membership card with a ten per cent roundel",
     bg: ["#6B4A0E", "#2A1B04"],
     accent: "#FFC857",
@@ -200,7 +200,7 @@ const BANNERS = [
   },
   {
     position: 4,
-    file: "jobs.png",
+    file: "jobs.webp",
     alt: "Job listing cards with a location marker",
     bg: ["#123A6B", "#061527"],
     accent: "#5AB0FF",
@@ -222,7 +222,7 @@ const BANNERS = [
   },
   {
     position: 5,
-    file: "identity.png",
+    file: "identity.webp",
     alt: "An identity card beside a digital signature token",
     bg: ["#3B1C6B", "#150A2A"],
     accent: "#B98CFF",
@@ -248,7 +248,7 @@ const BANNERS = [
   },
   {
     position: 6,
-    file: "trademark.png",
+    file: "trademark.webp",
     alt: "A shield protecting a trademark symbol, with class chips",
     bg: ["#5E1146", "#26071C"],
     accent: "#FF7ACF",
@@ -272,7 +272,7 @@ const BANNERS = [
   },
   {
     position: 7,
-    file: "food.png",
+    file: "food.webp",
     alt: "A food licence certificate with a leaf mark",
     bg: ["#14501F", "#04200B"],
     accent: "#63DD7E",
@@ -298,7 +298,7 @@ const BANNERS = [
   },
   {
     position: 8,
-    file: "incorporation.png",
+    file: "incorporation.webp",
     alt: "A certificate of incorporation with a company structure diagram",
     bg: ["#1E3350", "#081320"],
     accent: "#7FB2E5",
@@ -321,7 +321,7 @@ const BANNERS = [
   },
   {
     position: 9,
-    file: "income-tax.png",
+    file: "income-tax.webp",
     alt: "A tax return form marked as filed",
     bg: ["#6B2A10", "#2A0F05"],
     accent: "#FF9A5C",
@@ -348,7 +348,7 @@ const BANNERS = [
   },
   {
     position: 10,
-    file: "agreement.png",
+    file: "agreement.webp",
     alt: "A signed agreement with a stamp",
     bg: ["#134A57", "#041D23"],
     accent: "#57D1E8",
@@ -375,7 +375,7 @@ const BANNERS = [
   },
   {
     position: 11,
-    file: "passport.png",
+    file: "passport.webp",
     alt: "A passport booklet with a boarding pass",
     bg: ["#5C1220", "#24060C"],
     accent: "#FF8A9B",
@@ -433,8 +433,15 @@ for (const banner of BANNERS) {
   <!-- The left third is where the headline goes. Kept clear. -->
 </svg>`;
 
+  /* WEBP, NOT PNG.
+     Vercel's image optimiser is returning 402 on this account — its quota is
+     spent — so next/image is bypassed and these files are served exactly as
+     they are written here. Nothing downstream will compress them, which makes
+     the encoder's job ours. PNG palette quantisation cannot cope with the
+     full-frame gradient behind the artwork and left every banner at 130-190KB;
+     WebP handles gradients natively and lands around a third of that. */
   const target = `${OUT}/${banner.file}`;
-  const info = await sharp(Buffer.from(svg)).png({ compressionLevel: 9, palette: true, quality: 90 }).toFile(target);
+  const info = await sharp(Buffer.from(svg)).webp({ quality: 86, effort: 6 }).toFile(target);
   console.log(`${target.padEnd(34)} ${info.width}x${info.height}  ${(info.size / 1024).toFixed(0)} KB`);
 }
 

@@ -95,7 +95,7 @@ export const TONES: Record<BannerTone, { from: string; to: string; accent: strin
 export const promotionalBanners: Banner[] = [
   {
     id: 1,
-    photo: "/banners/udyam.png",
+    photo: "/banners/udyam.webp",
     photoAlt: "A stylised Udyam registration certificate with a seal",
     eyebrow: "Start a business",
     title: "Udyam registration, done properly",
@@ -107,7 +107,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 2,
-    photo: "/banners/gst.png",
+    photo: "/banners/gst.webp",
     photoAlt: "A stylised tax invoice with the tax line picked out",
     eyebrow: "Tax & filings",
     title: "A GSTIN in your name in 7–10 days",
@@ -119,7 +119,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 3,
-    photo: "/banners/membership.png",
+    photo: "/banners/membership.webp",
     photoAlt: "A membership card with a ten per cent roundel",
     eyebrow: "Membership",
     title: "Ten percent off every filing",
@@ -131,7 +131,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 4,
-    photo: "/banners/jobs.png",
+    photo: "/banners/jobs.webp",
     photoAlt: "Job listing cards with a location marker",
     eyebrow: "Jobs",
     title: "Openings matched to your city and trade",
@@ -143,7 +143,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 5,
-    photo: "/banners/identity.png",
+    photo: "/banners/identity.webp",
     photoAlt: "An identity card beside a digital signature token",
     eyebrow: "Identity",
     title: "PAN, TAN and DSC without the guesswork",
@@ -155,7 +155,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 6,
-    photo: "/banners/trademark.png",
+    photo: "/banners/trademark.webp",
     photoAlt: "A shield protecting a trademark symbol, with class chips",
     eyebrow: "Trademark & brand",
     title: "Your name, protected in the right classes",
@@ -173,7 +173,7 @@ export const promotionalBanners: Banner[] = [
      a lie the customer finds out about on the next click. */
   {
     id: 7,
-    photo: "/banners/food.png",
+    photo: "/banners/food.webp",
     photoAlt: "A food licence certificate with a leaf mark",
     eyebrow: "Food business",
     title: "The FSSAI licence your kitchen needs",
@@ -185,7 +185,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 8,
-    photo: "/banners/incorporation.png",
+    photo: "/banners/incorporation.webp",
     photoAlt: "A certificate of incorporation with a company structure diagram",
     eyebrow: "Incorporation",
     title: "A private limited company, filed properly",
@@ -197,7 +197,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 9,
-    photo: "/banners/income-tax.png",
+    photo: "/banners/income-tax.webp",
     photoAlt: "A tax return form marked as filed",
     eyebrow: "Income tax",
     title: "Your return, filed by someone who reads it",
@@ -209,7 +209,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 10,
-    photo: "/banners/agreement.png",
+    photo: "/banners/agreement.webp",
     photoAlt: "A signed agreement with a stamp",
     eyebrow: "Agreements",
     title: "A rent agreement that would hold up",
@@ -221,7 +221,7 @@ export const promotionalBanners: Banner[] = [
   },
   {
     id: 11,
-    photo: "/banners/passport.png",
+    photo: "/banners/passport.webp",
     photoAlt: "A passport booklet with a boarding pass",
     eyebrow: "Travel",
     title: "Passport, without the second appointment",
