@@ -4,6 +4,7 @@ import { isCashfreeConfigured } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
 import TopUpForm from "../TopUpForm";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
+import { configFromRow } from "@/lib/wallet3d/config";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -58,12 +59,22 @@ export default async function TopUpPage() {
       },
     ) ?? DEFAULT_PREFS;
 
+  /* Same row, same appearance as the wallet home. Passed down rather than
+     fetched on the client so the object does not change material between the
+     two screens while a request is in flight. */
+  const walletConfig = configFromRow(p);
+
   return (
     <div className="mx-auto max-w-lg" style={{ color: "var(--wallet-fg)" }}>
       <p className="mb-6 text-center text-[14px] leading-relaxed opacity-40">
         Top up with UPI, card or net banking. The money lands in your wallet and pays for filings.
       </p>
-      <TopUpForm initialBalancePaise={balancePaise} paymentsReady={isCashfreeConfigured} look={prefs} />
+      <TopUpForm
+        initialBalancePaise={balancePaise}
+        paymentsReady={isCashfreeConfigured}
+        look={prefs}
+        config={walletConfig}
+      />
     </div>
   );
 }

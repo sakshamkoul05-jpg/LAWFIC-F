@@ -7,6 +7,7 @@ import PhysicalWallet from "@/components/wallet/PhysicalWallet";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
 import { useWalletConfig } from "@/components/wallet/useWalletConfig";
+import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import AddedCelebration from "@/components/wallet/AddedCelebration";
 import WalletStage from "@/components/wallet3d/WalletStage";
 import { breakIntoNotes } from "@/lib/wallet3d/banknote";
@@ -15,10 +16,14 @@ export default function TopUpForm({
   initialBalancePaise,
   paymentsReady,
   look,
+  config: initialConfig,
 }: {
   initialBalancePaise: number;
   paymentsReady: boolean;
   look: WalletPrefs;
+  /** The stored configuration, so the wallet does not change material between
+      the wallet home and this screen while the client fetch is in flight. */
+  config?: WalletConfig;
 }) {
   const {
     amount,
@@ -36,7 +41,7 @@ export default function TopUpForm({
     clearMessage,
   } = useTopUp(initialBalancePaise, paymentsReady);
 
-  const { config } = useWalletConfig(look.nameplate);
+  const { config } = useWalletConfig(look.nameplate, initialConfig);
 
   /* The flight and the tick are driven by `credited`, which is the amount the
      SERVER confirmed, never the amount that was typed. A payment can fail

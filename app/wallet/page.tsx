@@ -4,6 +4,7 @@ import { formatPaise } from "@/lib/money";
 import { isCashfreeConfigured, isCashfreeTestMode } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
+import { configFromRow } from "@/lib/wallet3d/config";
 import WalletSection from "@/components/wallet/WalletSection";
 import WalletDemo from "@/components/wallet/WalletDemo";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
@@ -95,6 +96,13 @@ export default async function WalletPage() {
       },
     ) ?? DEFAULT_PREFS;
 
+  /* The wallet's own appearance, off the same row. Server-rendered so the
+     customer's finish paints on the first pass — a wallet that arrives walnut
+     and turns oxblood a moment later is how this looked before it was stored
+     at all. configFromRow tolerates a project without the migration, and reads
+     that as the factory finish. */
+  const walletConfig = configFromRow(prefsInput);
+
   const displayName =
     auth.user.user_metadata?.full_name ?? auth.user.email?.split("@")[0] ?? "there";
   const month = monthStart.toLocaleDateString("en-IN", { month: "long" });
@@ -122,6 +130,7 @@ export default async function WalletPage() {
       <div className="cred-stage">
         <WalletSection
           prefs={prefs}
+          config={walletConfig}
           balancePaise={balancePaise}
           persist
           lastEntry={

@@ -9,6 +9,7 @@ import { EMBOSS, FINISHES, THREADS, getColor, getFinish } from "@/lib/wallet3d/f
 import { breakIntoNotes, getNoteStyle, NOTE_STYLES } from "@/lib/wallet3d/banknote";
 import { useWalletConfig } from "./useWalletConfig";
 import WalletStage from "@/components/wallet3d/WalletStage";
+import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import PhysicalWallet from "./PhysicalWallet";
 
 /**
@@ -36,6 +37,7 @@ import PhysicalWallet from "./PhysicalWallet";
 
 export default function WalletSection({
   prefs,
+  config: initialConfig,
   balancePaise,
   actions,
   eyebrow,
@@ -44,6 +46,9 @@ export default function WalletSection({
   className = "",
 }: {
   prefs: WalletPrefs;
+  /** The customer's stored configuration, server-rendered so there is no flash
+      of the factory finish before their own arrives. Absent when signed out. */
+  config?: WalletConfig;
   balancePaise: number;
   landing?: number[];
   persist?: boolean;
@@ -61,7 +66,7 @@ export default function WalletSection({
   className?: string;
 }) {
   const reduced = useReducedMotion();
-  const { config, update } = useWalletConfig(prefs.nameplate);
+  const { config, update } = useWalletConfig(prefs.nameplate, initialConfig);
   const [open, setOpen] = useState(false);
   const [studio, setStudio] = useState(false);
 
