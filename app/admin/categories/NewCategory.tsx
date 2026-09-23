@@ -91,7 +91,7 @@ export default function NewCategory() {
       </label>
 
       {error && (
-        <p role="alert" className="sm:col-span-2 text-[12px] text-danger">
+        <p role="alert" className="sm:col-span-2 text-[12px] text-destructive">
           {error}
         </p>
       )}

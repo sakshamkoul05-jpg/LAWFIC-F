@@ -89,7 +89,7 @@ export default function JobForm({
               {/* An expired posting is still switched on but is not public.
                   Saying "live" would be a lie the agent acts on. */}
               {job.is_live && expired && (
-                <span className="rounded-full bg-danger-light px-2 py-0.5 text-[10.5px] text-danger">
+                <span className="rounded-full bg-destructive-light px-2 py-0.5 text-[10.5px] text-destructive">
                   expired
                 </span>
               )}
@@ -115,7 +115,7 @@ export default function JobForm({
       )}
 
       {error && (
-        <p role="alert" className="px-4 pb-3 text-[12px] text-danger">
+        <p role="alert" className="px-4 pb-3 text-[12px] text-destructive">
           {error}
         </p>
       )}
@@ -191,7 +191,7 @@ export default function JobForm({
                     run(() => deleteJob(job.id));
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] text-danger hover:bg-danger-light"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] text-destructive hover:bg-destructive-light"
               >
                 <Trash2 size={14} /> Remove
               </button>

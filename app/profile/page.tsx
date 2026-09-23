@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatPaise } from "@/lib/money";
 import { ACCOUNT_GROUPS, MONEY_ROWS } from "@/lib/account-sections";
+import { getProfilePhotos } from "@/lib/profile-photos.server";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 /**
@@ -45,9 +47,20 @@ export default async function ProfileHubPage() {
   const user = auth?.user ?? null;
 
   let balancePaise: number | null = null;
+  let avatarUrl: string | null = null;
+  let coverUrl: string | null = null;
+
   if (supabase && user) {
-    const { data } = await supabase.rpc("my_wallet_balance");
-    balancePaise = Number(data ?? 0);
+    /* One await, two round trips. The balance and the photographs are
+       independent, and running them in series adds a whole trip to the time
+       before anything paints. */
+    const [balance, photos] = await Promise.all([
+      supabase.rpc("my_wallet_balance"),
+      getProfilePhotos(supabase, user.id),
+    ]);
+    balancePaise = Number(balance.data ?? 0);
+    avatarUrl = photos.avatarUrl;
+    coverUrl = photos.coverUrl;
   }
 
   const fullName =
@@ -58,14 +71,12 @@ export default async function ProfileHubPage() {
 
   return (
     <div className="mx-auto w-full max-w-[900px] px-5 py-12 sm:px-8">
-      <header className="mb-10">
-        <h1 className="type-h1 text-foreground">
-          {fullName ? `Hi ${fullName}` : "Your account"}
-        </h1>
-        <p className="mt-2 text-[14px] text-muted-foreground">
-          Welcome to the LAWFIC family.
-        </p>
-      </header>
+      <ProfileHeader
+        fullName={fullName}
+        avatarUrl={avatarUrl}
+        coverUrl={coverUrl}
+        signedIn={Boolean(user)}
+      />
 
       {!user && (
         <div className="mb-10 rounded-2xl border border-border bg-surface px-5 py-5">
@@ -155,7 +166,7 @@ export default async function ProfileHubPage() {
                           </span>
                         )}
                       </span>
-                      {row.href ? (
+                      {row.href || row.action ? (
                         <svg
                           width="12"
                           height="12"
@@ -187,6 +198,18 @@ export default async function ProfileHubPage() {
                         >
                           {body}
                         </Link>
+                      ) : row.action === "signout" ? (
+                        /* A form, not a link. Ending a session on a GET means
+                           any <img src="/auth/signout"> on any page signs the
+                           customer out — including one in an email. */
+                        <form action="/auth/signout" method="post">
+                          <button
+                            type="submit"
+                            className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-surface-2"
+                          >
+                            {body}
+                          </button>
+                        </form>
                       ) : (
                         /* Not a link and not a button: there is nothing behind
                            it yet, and a control that does nothing when pressed

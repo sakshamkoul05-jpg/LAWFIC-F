@@ -132,7 +132,7 @@ export default function CategoryRow({
       </div>
 
       {error && (
-        <p role="alert" className="px-4 pb-3 text-[12px] text-danger">
+        <p role="alert" className="px-4 pb-3 text-[12px] text-destructive">
           {error}
         </p>
       )}
@@ -169,7 +169,7 @@ export default function CategoryRow({
                     run(() => deleteCategory(category.id));
                   }
                 }}
-                className="rounded-lg px-3 py-2 text-[13px] text-danger hover:bg-danger-light"
+                className="rounded-lg px-3 py-2 text-[13px] text-destructive hover:bg-destructive-light"
               >
                 Remove category
               </button>
@@ -225,7 +225,7 @@ export default function CategoryRow({
                         if (confirm(`Remove "${s.name}"?`)) run(() => deleteService(s.id));
                       }}
                       aria-label={`Remove ${s.name}`}
-                      className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-danger-light"
+                      className="grid h-8 w-8 place-items-center rounded-lg text-destructive hover:bg-destructive-light"
                     >
                       <Trash2 size={14} />
                     </button>

@@ -38,7 +38,7 @@ export default function ImportCatalogue() {
         turn a category on.
       </p>
       {error && (
-        <p role="alert" className="mt-2 text-[12px] text-danger">
+        <p role="alert" className="mt-2 text-[12px] text-destructive">
           {error}
         </p>
       )}

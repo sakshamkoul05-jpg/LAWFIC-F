@@ -123,7 +123,7 @@ export default function PeopleList({
         ))}
 
       {error && (
-        <p role="alert" className="mt-3 rounded-lg bg-danger-light px-3 py-2 text-[12.5px] text-danger">
+        <p role="alert" className="mt-3 rounded-lg bg-destructive-light px-3 py-2 text-[12.5px] text-destructive">
           {error}
         </p>
       )}
@@ -189,7 +189,7 @@ export default function PeopleList({
                   }
                 }}
                 aria-label="Remove access"
-                className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-danger-light disabled:opacity-30"
+                className="grid h-8 w-8 place-items-center rounded-lg text-destructive hover:bg-destructive-light disabled:opacity-30"
               >
                 <Trash2 size={15} />
               </button>

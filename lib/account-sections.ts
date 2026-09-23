@@ -21,6 +21,12 @@ export type AccountRow = {
   href?: string;
   /** One line under the label, where the label alone is ambiguous. */
   note?: string;
+  /**
+   * A row that does something rather than going somewhere. Only `signout` so
+   * far, which posts to /auth/signout: a session must never end on a GET, or
+   * any <img> on any page can end it for you.
+   */
+  action?: "signout";
 };
 
 export type AccountGroup = {
@@ -36,9 +42,17 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
     title: "Profile",
     rows: [
       { label: "Name", href: "/profile/edit" },
-      { label: "Change Profile & Cover Pics" },
+      {
+        label: "Change Profile & Cover Pics",
+        href: "/profile/photos",
+        note: "Take one with your camera or choose one from your files.",
+      },
       { label: "Mobile Number", href: "/profile/edit" },
       { label: "Email ID & Website", href: "/profile/edit" },
+      /* The sheet lists logout as a row in this group, so it is one. It posts
+         rather than links — a GET that ends a session can be fired by any image
+         tag on any page, which is how people get signed out by a forum post. */
+      { label: "Profile Logout", action: "signout" },
     ],
   },
   {
