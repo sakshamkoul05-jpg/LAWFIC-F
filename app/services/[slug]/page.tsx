@@ -5,6 +5,8 @@ import { getService, services } from "@/lib/services";
 import { ORG_ID, absolute, breadcrumbJsonLd, graph, metaDescription } from "@/lib/seo";
 import ServiceVisual from "@/components/motion/ServiceVisual";
 import RequestForm from "@/components/site/RequestForm";
+import ApplySlot from "@/components/apply/ApplySlot";
+import { hasApplyForm } from "@/lib/apply-forms";
 import Reveal from "@/components/ui/Reveal";
 
 export function generateStaticParams() {
@@ -132,15 +134,20 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
               </dl>
             </Reveal>
 
-            <Reveal delay={0.24}>
-              <div className="mt-8">
-                <RequestForm
-                  slug={service.slug}
-                  label={service.name}
-                  turnaround={service.turnaround}
-                />
-              </div>
-            </Reveal>
+            {/* A service with a bespoke application gets it instead of the
+                generic enquiry box, and the box would be a second, worse way
+                to ask for the same thing sitting directly beneath it. */}
+            {!hasApplyForm(service.slug) && (
+              <Reveal delay={0.24}>
+                <div className="mt-8">
+                  <RequestForm
+                    slug={service.slug}
+                    label={service.name}
+                    turnaround={service.turnaround}
+                  />
+                </div>
+              </Reveal>
+            )}
           </div>
 
           <div className="relative z-2">
@@ -150,6 +157,24 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
       </section>
 
       {/* ---------- summary + who ---------- */}
+      {hasApplyForm(service.slug) && (
+        <section id="apply" className="mx-auto max-w-3xl px-5 pt-14 sm:px-8">
+          <Reveal>
+            <div className="mb-6">
+              <p className="label text-primary">Start here</p>
+              <h2 className="mt-2 font-display text-[26px] tracking-tight text-foreground sm:text-[32px]">
+                Apply for {service.name.toLowerCase()}
+              </h2>
+              <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-muted-foreground">
+                Four steps, and the form works out what it can as you go. Nothing is filed and
+                nothing is charged until a person has checked it.
+              </p>
+            </div>
+            <ApplySlot slug={service.slug} />
+          </Reveal>
+        </section>
+      )}
+
       <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
         <div className="grid gap-14 lg:grid-cols-[1.25fr_1fr]">
           <Reveal>
