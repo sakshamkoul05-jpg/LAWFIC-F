@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ProfileMenu from "@/components/site/ProfileMenu";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
+import { useAvatarUrl } from "@/components/profile/useAvatarUrl";
 import { usePreferencesValue } from "@/components/account/usePreferences";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
@@ -87,10 +88,28 @@ export default function ProfileCorner({
      is one. */
   const addressee = name ? name.split(" ")[0] : tx("User");
 
+  /* The customer's own photograph, when they have uploaded one. The generated
+     avatar stays as the fallback rather than a grey silhouette — but a real
+     face beats a generated one every time, and somebody who has gone to the
+     trouble of taking a photo should see it wherever they see themselves. */
+  const photo = useAvatarUrl(Boolean(user));
+
   return (
     <div className="flex shrink-0 items-start gap-1.5">
       <div className="flex flex-col items-center gap-1">
-        <WalletAvatar seed={seed} size={34} />
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a signed URL
+          // that expires; the optimizer would cache it past its own lifetime.
+          <img
+            src={photo}
+            alt=""
+            width={34}
+            height={34}
+            className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
+          />
+        ) : (
+          <WalletAvatar seed={seed} size={34} />
+        )}
 
         {/* Reserved height even before the greeting resolves, so the header
             does not jolt a few milliseconds after it paints. */}

@@ -100,6 +100,11 @@ export default function FlatWallet({
   const deep = mix(colour.hex, "#000000", 0.42);
   const threadHex = thread.hex || mix(colour.hex, "#ffffff", 0.3);
 
+  /* What is pressed into the leather: the customer's engraving if they set one,
+     otherwise the wordmark. Same rule as the 3D wallet, so the two never
+     disagree about whose wallet this is. */
+  const stamp = config.engraving.trim().toUpperCase() || "LAWFIC";
+
   const body = (
     <div
       className="relative select-none"
@@ -197,32 +202,33 @@ export default function FlatWallet({
           />
         </svg>
 
-        {/* The stamp. Two offset copies: a dark one pressed down and a light one
-            catching the edge of the impression. Foiled stampings get their
-            metal colour; a blind one is only the leather, pressed. */}
-        <div className="absolute inset-x-0 bottom-[16%] flex flex-col items-center">
+        {/* The stamp. Two offset copies: a dark one pressed down and a light
+            one catching the edge of the impression. Foiled stampings get their
+            metal colour; a blind one is only the leather, pressed.
+
+            THE ENGRAVING REPLACES THE WORDMARK, matching the 3D wallet. A
+            wallet stamped LAWFIC with somebody's name under it is a branded
+            item with a label stuck on; one stamped with their name is theirs.
+            The tracking loosens as the word gets longer so a short name does
+            not look cramped and a long one still fits. */}
+        <div className="absolute inset-x-0 bottom-[16%] flex flex-col items-center px-8">
           <span
-            className="relative font-mono text-[13px] font-semibold uppercase"
-            style={{ letterSpacing: "0.42em", color: emboss.hex ?? "rgba(0,0,0,.45)" }}
+            className="relative max-w-full truncate font-mono font-semibold uppercase"
+            style={{
+              fontSize: stamp.length > 10 ? 10 : stamp.length > 7 ? 11.5 : 13,
+              letterSpacing: stamp.length > 10 ? "0.24em" : "0.42em",
+              color: emboss.hex ?? "rgba(0,0,0,.45)",
+            }}
           >
             <span
               aria-hidden
-              className="absolute inset-0"
+              className="absolute inset-0 truncate"
               style={{ transform: "translateY(1px)", color: "rgba(255,255,255,.07)" }}
             >
-              LAWFIC
+              {stamp}
             </span>
-            LAWFIC
+            {stamp}
           </span>
-
-          {config.engraving ? (
-            <span
-              className="mt-1.5 font-mono text-[9.5px] uppercase"
-              style={{ letterSpacing: "0.3em", color: emboss.hex ?? "rgba(0,0,0,.38)" }}
-            >
-              {config.engraving}
-            </span>
-          ) : null}
         </div>
       </div>
     </div>

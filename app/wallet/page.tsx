@@ -7,7 +7,6 @@ import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import { configFromRow } from "@/lib/wallet3d/config";
 import WalletSection from "@/components/wallet/WalletSection";
 import WalletDemo from "@/components/wallet/WalletDemo";
-import WalletAvatar from "@/components/wallet/WalletAvatar";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
 import WalletQuickActions from "@/components/wallet/WalletQuickActions";
 import WalletActivity, { type ActivityRow } from "@/components/wallet/WalletActivity";
@@ -111,15 +110,6 @@ export default async function WalletPage() {
     <div className="mx-auto w-full max-w-[860px]" style={{ color: "var(--wallet-fg)" }}>
       <WalletOnboarding />
 
-      {/* GREETING. Deliberately the smallest thing on the page. */}
-      <header className="mb-10 flex items-center justify-between px-1">
-        <div>
-          <p className="cred-label">Welcome back</p>
-          <p className="mt-2 text-[17px] font-medium tracking-tight">{displayName}</p>
-        </div>
-        <WalletAvatar seed={prefs.avatarSeed} size={44} />
-      </header>
-
       {isCashfreeTestMode && (
         <p className="mb-6 text-center text-[11.5px]" style={{ color: "var(--wallet-fg-muted)" }}>
           Test mode — no real money moves
@@ -130,6 +120,7 @@ export default async function WalletPage() {
       <div className="cred-stage">
         <WalletSection
           prefs={prefs}
+          identity={{ displayName, signedIn: true }}
           config={walletConfig}
           balancePaise={balancePaise}
           persist

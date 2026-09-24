@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_BYTES, isPhotoKind, photoPath, sniffImageType } from "@/lib/profile-photos";
+import { getProfilePhotos } from "@/lib/profile-photos.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +52,30 @@ async function authed(): Promise<Gate> {
   if (!auth.user) return { ok: false, error: "not_signed_in", status: 401 };
 
   return { ok: true, supabase, userId: auth.user.id };
+}
+
+/**
+ * Both signed URLs, for anything that needs to draw the customer's face and
+ * cannot reach the database itself.
+ *
+ * The site header is a client component — it learns who is signed in from the
+ * browser's own Supabase session — so it has no way to sign a storage URL. This
+ * is that one round trip. Returns nulls rather than a 404 when there is no
+ * photograph: "you have no picture" is a fact, not an error, and a header that
+ * logs a 404 on every page load for everybody who has not uploaded one is
+ * noise that hides real failures.
+ */
+export async function GET() {
+  const gate = await authed();
+  if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
+  const photos = await getProfilePhotos(gate.supabase, gate.userId);
+  return NextResponse.json(
+    { avatarUrl: photos.avatarUrl, coverUrl: photos.coverUrl },
+    /* Private, and short: the URLs inside expire in ten minutes, so a cache
+       that outlived them would hand back links that 403. */
+    { headers: { "cache-control": "private, max-age=120" } },
+  );
 }
 
 export async function POST(request: Request) {

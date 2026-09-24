@@ -955,6 +955,80 @@ function fitText(
 const cache = new Map<string, THREE.CanvasTexture>();
 
 /**
+ * Build the textures for a set of notes before anybody asks for them.
+ *
+ * WHY THIS EXISTS
+ *
+ * NoteStack mounts only when the wallet opens, so every texture it needs was
+ * drawn in the single frame the customer tapped — six elaborate banknotes, one
+ * after another, on the main thread, while they watched. That is the lag.
+ *
+ * The work cannot be made free, so it is moved: while the wallet sits closed,
+ * one note is drawn per idle callback. By the time anybody taps, `noteTexture`
+ * is a cache hit and the open is just the animation.
+ *
+ * ONE PER CALLBACK, deliberately. Drawing all six inside a single idle slot
+ * would hand back a stall of exactly the same length, merely earlier and
+ * somewhere the customer had not asked for anything.
+ *
+ * Returns a cancel function: a component that unmounts mid-warm must be able
+ * to stop, or it keeps drawing textures for a wallet nobody is looking at.
+ */
+export function warmNoteTextures(
+  notes: Denomination[],
+  styleId: NoteStyleId = "classic",
+  faces: ("front" | "back")[] = ["front"],
+): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  /* The same key noteTexture builds, resolved through getNoteStyle so an
+     unknown id warms the texture that will actually be asked for rather than
+     one under a key nothing looks up. */
+  const style = getNoteStyle(styleId);
+  const jobs: [Denomination, "front" | "back"][] = [];
+  const seen = new Set<string>();
+  /* Six: what NoteStack renders. Warming a seventh is work for a note that is
+     never drawn. */
+  for (const value of notes.slice(0, 6)) {
+    for (const face of faces) {
+      const key = `${value}-${face}-${style.id}`;
+      if (seen.has(key) || cache.has(key)) continue;
+      seen.add(key);
+      jobs.push([value, face]);
+    }
+  }
+
+  let cancelled = false;
+  let handle: number | null = null;
+
+  /* requestIdleCallback is missing on Safari before 17. setTimeout is not the
+     same guarantee, but a note drawn a frame late is better than a browser
+     that never warms at all and takes the old stall on open. */
+  const schedule: (fn: () => void) => number =
+    "requestIdleCallback" in window
+      ? (fn) => (window as unknown as { requestIdleCallback: (f: () => void) => number }).requestIdleCallback(fn)
+      : (fn) => window.setTimeout(fn, 32);
+
+  const step = () => {
+    if (cancelled) return;
+    const job = jobs.shift();
+    if (!job) return;
+    const design = getDenomination(job[0]);
+    if (design) noteTexture(design, job[1], styleId);
+    handle = schedule(step);
+  };
+
+  handle = schedule(step);
+
+  return () => {
+    cancelled = true;
+    if (handle !== null && "cancelIdleCallback" in window) {
+      (window as unknown as { cancelIdleCallback: (h: number) => void }).cancelIdleCallback(handle);
+    }
+  };
+}
+
+/**
  * Draw one face of a note and return it as a texture.
  *
  * Cached: six denominations by two faces is twelve canvases of several thousand
@@ -975,7 +1049,15 @@ export function noteTexture(
   const hit = cache.get(key);
   if (hit) return hit;
 
-  const W = 2048;
+  /* 1024, not 2048.
+     A note is drawn at most a couple of hundred CSS pixels tall on the biggest
+     screen this runs on, so 2048 was roughly ten times oversampled — and the
+     cost is not the memory, it is that every one of these is a synchronous
+     canvas draw of some twelve hundred lines of path work. Halving the side
+     quarters the raster area, and at 1024 the intaglio hatching is still finer
+     than the screen can resolve. This was most of the stall when the wallet
+     opened. */
+  const W = 1024;
   const H = Math.round(W / NOTE_ASPECT);
 
   const canvas = document.createElement("canvas");

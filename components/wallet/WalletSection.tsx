@@ -11,6 +11,7 @@ import { useWalletConfig } from "./useWalletConfig";
 import WalletStage from "@/components/wallet3d/WalletStage";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import FlatWallet from "./FlatWallet";
+import { WalletIdentity } from "./WalletIdentity";
 
 /**
  * The wallet page: one object, quietly presented.
@@ -37,6 +38,7 @@ import FlatWallet from "./FlatWallet";
 
 export default function WalletSection({
   prefs,
+  identity,
   config: initialConfig,
   balancePaise,
   actions,
@@ -49,6 +51,15 @@ export default function WalletSection({
   /** The customer's stored configuration, server-rendered so there is no flash
       of the factory finish before their own arrives. Absent when signed out. */
   config?: WalletConfig;
+  /**
+   * Draws the photograph and the editable name above the object.
+   *
+   * It lives in here rather than in the page because the name IS the engraving:
+   * it has to share this component's config state so the leather restamps as
+   * it is typed. A header in the page could only have talked to the server and
+   * waited for a round trip.
+   */
+  identity?: { displayName: string; signedIn: boolean };
   balancePaise: number;
   landing?: number[];
   persist?: boolean;
@@ -75,6 +86,16 @@ export default function WalletSection({
 
   return (
     <section className={`mx-auto w-full max-w-[1180px] px-4 sm:px-6 ${className}`}>
+      {identity && (
+        <WalletIdentity
+          displayName={identity.displayName}
+          signedIn={identity.signedIn}
+          avatarSeed={prefs.avatarSeed}
+          config={config}
+          onEngravingChange={(engraving) => update({ engraving })}
+        />
+      )}
+
       {eyebrow}
 
       {/* THE OBJECT */}

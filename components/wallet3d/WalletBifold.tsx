@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { THREADS, getColor, getEmboss, getFinish, type WalletConfig } from "@/lib/wallet3d/finishes";
-import type { Denomination } from "@/lib/wallet3d/banknote";
+import { warmNoteTextures, type Denomination } from "@/lib/wallet3d/banknote";
 import NoteStack from "./NoteStack";
 
 /**
@@ -188,6 +188,14 @@ export default function WalletBifold({
 }) {
   const closedGltf = useGLTF(CLOSED_URL);
   const openGltf = useGLTF(OPEN_URL);
+
+  /* THE NOTES ARE DRAWN BEFORE THEY ARE NEEDED.
+     NoteStack mounts only when the wallet opens, so until now every banknote
+     texture was rasterised in the one frame the customer tapped — six
+     elaborate drawings, in a row, on the main thread, while they watched it
+     not move. Warming them one per idle callback while the wallet sits shut
+     turns the open back into just the animation. */
+  useEffect(() => warmNoteTextures(notes, look.notes), [notes, look.notes]);
 
   const closed = useMemo(() => fit(closedGltf, TARGET_W), [closedGltf]);
   /* The open wallet is the same leather unfolded, so it is scaled by the SAME
@@ -467,7 +475,7 @@ function Emboss({
      — three 1400px draws landing in the frame where the meshes exchange, which
      is exactly the stall that made the flip feel laggy. */
   const { bump, rough, mask, planeW, planeH } = useMemo(
-    () => embossMaps(size),
+    () => embossMaps(size, engraving),
     [engraving, size],
   );
 
@@ -498,7 +506,7 @@ function Emboss({
  * The stamp maps. A plain function rather than a hook so the caller decides
  * when they are built.
  */
-function embossMaps(size: THREE.Vector3) {
+function embossMaps(size: THREE.Vector3, engraving: string) {
   const planeW = size.x * 0.98;
   const planeH = size.y * 0.98;
   const w = 1400;
@@ -523,13 +531,32 @@ function embossMaps(size: THREE.Vector3) {
       ctx.font = `700 ${unit * 1.5}px ${serif}`;
       ctx.letterSpacing = `${-unit * 0.06}px`;
       ctx.fillText("IL", cx, baseY);
-      ctx.letterSpacing = `${unit * 0.16}px`;
-      ctx.font = `600 ${unit * 0.52}px ${serif}`;
+
+      /* The word shrinks to fit rather than running past the panel. A name is
+         whatever somebody types; "LAWFIC" is six characters and everything was
+         sized around it, so an eleven-character name at the same size walks off
+         the edge of the leather. */
+      const maxWidth = w * 0.34;
+      let px = unit * 0.52;
+      let tracking = unit * 0.16;
+      for (let i = 0; i < 12; i += 1) {
+        ctx.letterSpacing = `${tracking}px`;
+        ctx.font = `600 ${px}px ${serif}`;
+        if (ctx.measureText(word).width <= maxWidth) break;
+        px *= 0.92;
+        tracking *= 0.92;
+      }
       ctx.fillText(word, cx, baseY + unit * 0.72);
       ctx.letterSpacing = "0px";
     };
 
-    lockup(w * 0.78, h * 0.76, h * 0.115, "LAWFIC");
+    /* THE ENGRAVING REPLACES THE WORDMARK — it does not sit under it.
+       A wallet stamped LAWFIC with somebody's name beneath is a branded item
+       with a label stuck on. A wallet stamped with their name is theirs, which
+       is the whole point of offering the engraving. The IL monogram stays: it
+       is the maker's mark, and a maker's mark is not the owner's name. */
+    const word = engraving.trim().toUpperCase() || "LAWFIC";
+    lockup(w * 0.78, h * 0.76, h * 0.115, word);
     return c;
   };
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Check, ImageIcon, Loader2, RotateCcw, Trash2, X, ZoomIn } from "lucide-react";
 import { ACCEPT, PHOTO_SPEC, type PhotoKind } from "@/lib/profile-photos";
+import { clearAvatarCache } from "./useAvatarUrl";
 
 /**
  * Taking or choosing a profile picture, cropping it, and saving it.
@@ -117,6 +118,10 @@ export function PhotoStudio({
 
         setUrl(json.url ?? null);
         onChanged?.(json.url ?? null);
+        /* The header caches the avatar for the tab, so it has to be told.
+           Without this the customer saves a photograph, looks up at the corner
+           of the page, and still sees the generated one. */
+        if (kind === "avatar") clearAvatarCache();
         setStage({ name: "idle" });
       } catch {
         setError("That did not reach us. Check your connection and try again.");
@@ -136,6 +141,7 @@ export function PhotoStudio({
       } else {
         setUrl(null);
         onChanged?.(null);
+        if (kind === "avatar") clearAvatarCache();
       }
     } catch {
       setError("That did not reach us. Check your connection and try again.");
