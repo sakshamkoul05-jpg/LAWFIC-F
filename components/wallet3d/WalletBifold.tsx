@@ -6,7 +6,6 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { THREADS, getColor, getEmboss, getFinish, type WalletConfig } from "@/lib/wallet3d/finishes";
-import { WaxSeal } from "./WaxSeal";
 import { warmNoteTextures, type Denomination } from "@/lib/wallet3d/banknote";
 import NoteStack from "./NoteStack";
 
@@ -424,17 +423,6 @@ export default function WalletBifold({
                   <meshBasicMaterial color="#120c07" transparent opacity={0.72} depthWrite={false} />
                 </mesh>
 
-                {/* THE FOCAL POINT. Everything else on this panel is pressed
-                    into the hide and shares its colour and its matte surface,
-                    which leaves the eye nothing to land on. The seal is domed,
-                    glossy and sits on top — the opposite of leather in every
-                    way that matters. See WaxSeal for why a seal in particular. */}
-                <WaxSeal
-                  engraving={look.engraving}
-                  emboss={emboss}
-                  size={closed.size}
-                  visible
-                />
                 <Emboss
                   engraving={look.engraving}
                   emboss={emboss}
