@@ -61,9 +61,13 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
     rows: [
       { label: "Wallet Balance", href: "/wallet" },
       { label: "Wallet Auto Reload Money", note: "Top up automatically below a limit you set." },
-      { label: "Wallet Theme & Design", href: "/wallet/customize" },
+      {
+        label: "Wallet Theme & Design",
+        href: "/wallet",
+        note: "Open your wallet and press Customise.",
+      },
       { label: "Wallet Security Question" },
-      { label: "Create & Design Own Wallet", href: "/wallet/customize" },
+      { label: "Create & Design Own Wallet", href: "/wallet" },
       { label: "Wallet Password / PIN Change" },
       { label: "Wallet Transaction History", href: "/wallet/transactions" },
       { label: "Download Wallet Statement", href: "/wallet/transactions" },

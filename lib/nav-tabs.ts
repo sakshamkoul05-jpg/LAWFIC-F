@@ -326,7 +326,7 @@ export const classicTabs: NavTab[] = [
       { label: "Wallet balance", href: "/wallet" },
       { label: "Add money", href: "/wallet/topup" },
       { label: "Transactions", href: "/wallet/transactions" },
-      { label: "Customise your wallet", href: "/wallet/customize" },
+      { label: "Customise your wallet", href: "/wallet" },
     ],
   },
   {

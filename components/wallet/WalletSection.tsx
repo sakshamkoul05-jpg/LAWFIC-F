@@ -10,7 +10,7 @@ import { breakIntoNotes, getNoteStyle, NOTE_STYLES } from "@/lib/wallet3d/bankno
 import { useWalletConfig } from "./useWalletConfig";
 import WalletStage from "@/components/wallet3d/WalletStage";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
-import PhysicalWallet from "./PhysicalWallet";
+import FlatWallet from "./FlatWallet";
 
 /**
  * The wallet page: one object, quietly presented.
@@ -85,12 +85,12 @@ export default function WalletSection({
           arriving={arriving}
           onTap={() => setOpen((o) => !o)}
           notes={breakIntoNotes(balancePaise)}
+          /* The same configuration the 3D version draws. This used to be a
+             leather bifold from the previous design, so anyone with reduce
+             motion switched on saw a different product from everyone else. */
           fallback={
-            <PhysicalWallet
-              hide={prefs.hide}
-              plate={prefs.plate}
-              thread={prefs.thread}
-              nameplate={prefs.nameplate}
+            <FlatWallet
+              config={config}
               balancePaise={balancePaise}
               open={open}
               onToggle={() => setOpen((o) => !o)}

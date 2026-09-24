@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 const items = [
   { href: "/wallet", label: "Balance" },
   { href: "/wallet/topup", label: "Top up" },
-  { href: "/wallet/customize", label: "Customize" },
+  /* No Customize tab. The studio is inside the wallet itself, on /wallet —
+     a tab that navigated away from the object you were customising was the
+     previous design's idea and it never made sense. */
   { href: "/wallet/transactions", label: "Transactions" },
 ];
 

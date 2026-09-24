@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 /**
  * Read and write a user's profile.
  *
- * Same security shape as /api/wallet/prefs: anon key + RLS. A user can only
+ * Same security shape as /api/wallet/config: anon key + RLS. A user can only
  * touch their own row, and the resume file is already scoped by its storage
  * path (<user_id>/...) enforced at upload time.
  */

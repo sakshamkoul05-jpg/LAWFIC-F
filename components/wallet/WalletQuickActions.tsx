@@ -53,7 +53,7 @@ const TILES: Tile[] = [
   {
     label: "Customise",
     hint: "Material, colour, engraving",
-    href: "/wallet/customize",
+    href: "/wallet",
     icon: (
       <>
         <circle cx="10" cy="10" r="2.4" />

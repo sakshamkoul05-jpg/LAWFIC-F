@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { formatPaise, MAX_TOPUP_PAISE, MIN_TOPUP_PAISE } from "@/lib/money";
-import PhysicalWallet from "@/components/wallet/PhysicalWallet";
+import FlatWallet from "@/components/wallet/FlatWallet";
 import type { WalletPrefs } from "@/lib/wallet-custom";
 import { PRESETS, useTopUp } from "@/components/wallet/useTopUp";
 import { useWalletConfig } from "@/components/wallet/useWalletConfig";
@@ -98,15 +98,7 @@ export default function TopUpForm({
           open={0}
           arriving={arriving}
           notes={breakIntoNotes(balance)}
-          fallback={
-            <PhysicalWallet
-              hide={look.hide}
-              plate={look.plate}
-              thread={look.thread}
-              nameplate={look.nameplate}
-              balancePaise={balance}
-            />
-          }
+          fallback={<FlatWallet config={config} balancePaise={balance} />}
         />
       </div>
 

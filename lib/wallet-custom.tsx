@@ -1,54 +1,37 @@
 /**
- * A customer's wallet preferences.
+ * What a customer's wallet row still holds that the wallet itself does not.
  *
- * The card is gone. It held an `entity` and a `finish` — a statutory
- * identifier and a surface treatment for a credit-card face — and that whole
- * metaphor was untrue: LAWFIC issues no card, and nothing it holds can be
- * tapped or swiped. What a customer actually has is a prepaid balance for
- * filings, so the object is now a leather wallet and the choices are the ones
- * a wallet offers.
+ * WHAT THIS FILE USED TO BE
  *
- *   hide       — the leather. Five, each with its own grain and stitch.
- *   plate      — the metal nameplate: brass, steel or blackened.
- *   thread     — the stitching: tonal, contrast or brass.
- *   nameplate  — what is stamped on it. A person's name or their firm's.
- *   avatarSeed — unchanged; the avatar moves onto the wallet.
+ * The wallet's whole appearance: a `hide`, a `plate` and a `thread`, describing
+ * a leather bifold, and before that an `entity` and a `finish` describing a
+ * plastic card. Both of those objects are gone. The product is a card holder
+ * configured by finish, colour, stamping, stitch and note style, and all of
+ * that now lives in lib/wallet3d/config.ts against the columns the
+ * wallet_config migration added.
  *
- * The filing signature is not stored and never was: it derives from the
- * customer's real ledger at render time.
+ * Two fields outlived the redesigns, because neither ever described the object:
  *
- * Everything here is cosmetic. None of it touches a balance, the ledger or an
- * order — the boundary the card model kept, kept.
+ *   nameplate  — what is stamped on it. The wallet reads it as `engraving`.
+ *   avatarSeed — the customer's face, which moved from the card to the wallet
+ *                to the account header without ever meaning anything else.
+ *
+ * Keeping a whole vocabulary for a bifold nobody can see any more is how a
+ * codebase ends up with two wallets, which is exactly what happened: the
+ * no-WebGL fallback drew the bifold while everyone else saw the card holder.
  */
 
-import {
-  HIDES,
-  PLATES,
-  THREADS,
-  getHide,
-  getPlate,
-  normalizeNameplate,
-  NAMEPLATE_MAX,
-  type HideId,
-  type PlateId,
-  type ThreadId,
-} from "./wallet-leather";
+import { normalizeEngraving, ENGRAVING_MAX } from "./wallet3d/config";
 
-export { HIDES, PLATES, THREADS, getHide, getPlate, normalizeNameplate, NAMEPLATE_MAX };
-export type { HideId, PlateId, ThreadId };
+export const NAMEPLATE_MAX = ENGRAVING_MAX;
 
 export type WalletPrefs = {
-  hide: HideId;
-  plate: PlateId;
-  thread: ThreadId;
+  /** Stamped into the wallet. The 3D renderer calls the same string `engraving`. */
   nameplate: string;
   avatarSeed: string;
 };
 
 export const DEFAULT_PREFS: WalletPrefs = {
-  hide: "midnight",
-  plate: "brass",
-  thread: "contrast",
   nameplate: "",
   avatarSeed: "Felix",
 };
@@ -63,13 +46,16 @@ export const AVATAR_SEEDS = [
   "Sage", "Toni", "Uma", "Vex", "Wren",
 ];
 
+export function normalizeNameplate(input: unknown): string {
+  return normalizeEngraving(input);
+}
+
 /**
- * Rows written before the wallet existed still hold a card `finish`, and
- * before that a `cardType`. Neither maps onto anything meaningful now — a
- * surface treatment for a plastic card says nothing about which leather
- * someone would pick — so they map onto the default hide rather than a guess
- * dressed up as a migration. What a customer chose that still matters, their
- * avatar, survives untouched.
+ * A prefs object from anything: a row, a request body, a value a previous build
+ * wrote. Columns that described the retired objects are ignored rather than
+ * mapped onto something new — a surface treatment for a plastic card says
+ * nothing about which leather somebody would have picked, and inventing a
+ * correspondence is a guess dressed up as a migration.
  */
 export function normalizePrefs(input: unknown): WalletPrefs | null {
   if (!input || typeof input !== "object") return null;
@@ -79,10 +65,6 @@ export function normalizePrefs(input: unknown): WalletPrefs | null {
   if (!rawSeed) return null;
 
   return {
-    hide: getHide(String(obj.hide ?? ""))?.id ?? DEFAULT_PREFS.hide,
-    plate: getPlate(String(obj.plate ?? ""))?.id ?? DEFAULT_PREFS.plate,
-    thread:
-      THREADS.find((t) => t.id === String(obj.thread ?? ""))?.id ?? DEFAULT_PREFS.thread,
     nameplate: normalizeNameplate(obj.nameplate),
     avatarSeed: rawSeed.slice(0, 64),
   };

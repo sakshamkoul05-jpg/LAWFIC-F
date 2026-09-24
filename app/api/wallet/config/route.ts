@@ -22,12 +22,10 @@ export const dynamic = "force-dynamic";
  * "sign in to keep the material, colour and engraving you choose". This keeps
  * that promise. See 20260922080000_wallet_config.sql.
  *
- * Kept separate from /api/wallet/prefs rather than folded into it: that route
- * still serves the retired bifold's hide, plate and thread to the customise
- * screen, and widening its response shape would put a working page at risk for
- * the sake of one fewer round trip. The wallet page server-renders the config
- * from the row it already reads, so in practice this GET is only hit by screens
- * that mount without one.
+ * This is now the only route that describes the wallet. /api/wallet/prefs and
+ * the customise screen it fed served the retired bifold and have been removed
+ * with it. The wallet page server-renders the config from the row it already
+ * reads, so in practice this GET is only hit by screens that mount without one.
  *
  * Anon key, RLS decides. Cosmetic only — nothing here touches a balance, the
  * ledger or an order.

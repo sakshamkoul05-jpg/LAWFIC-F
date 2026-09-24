@@ -40,9 +40,9 @@ const NOTE_STYLES: Record<NoteStyleId, true> = {
 };
 
 /**
- * Matches NAMEPLATE_MAX in lib/wallet-leather.ts, because the engraving is
- * stored in the same column the nameplate always used. The studio's own input
- * stops at 16; this is the ceiling the column is willing to hold, not a target.
+ * The engraving is stored in the `nameplate` column, which is the one field
+ * that survived both redesigns intact. The studio's own input stops at 16;
+ * this is the ceiling the column is willing to hold, not a target.
  */
 export const ENGRAVING_MAX = 22;
 
