@@ -12,6 +12,7 @@ import WalletStage from "@/components/wallet3d/WalletStage";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
 import FlatWallet from "./FlatWallet";
 import { WalletIdentity } from "./WalletIdentity";
+import { useAvatarUrl } from "@/components/profile/useAvatarUrl";
 
 /**
  * The wallet page: one object, quietly presented.
@@ -78,6 +79,13 @@ export default function WalletSection({
 }) {
   const reduced = useReducedMotion();
   const { config, update } = useWalletConfig(prefs.nameplate, initialConfig);
+
+  /* Read once here and handed to both the header and the object. The hook
+     caches per tab, so a second call would not cost a request — but two callers
+     means two pieces of state that can disagree for a frame, and the face above
+     the wallet flickering out of step with the face ON it is worse than either
+     being late. */
+  const photo = useAvatarUrl(Boolean(identity?.signedIn));
   const [open, setOpen] = useState(false);
   const [studio, setStudio] = useState(false);
 
@@ -90,6 +98,7 @@ export default function WalletSection({
         <WalletIdentity
           displayName={identity.displayName}
           signedIn={identity.signedIn}
+          photoUrl={photo}
           avatarSeed={prefs.avatarSeed}
           config={config}
           onEngravingChange={(engraving) => update({ engraving })}
@@ -101,6 +110,7 @@ export default function WalletSection({
       {/* THE OBJECT */}
       <div className="relative mx-auto w-full max-w-[720px]">
         <WalletStage
+          photoUrl={photo}
           config={config}
           open={open ? 1 : 0}
           arriving={arriving}
@@ -111,6 +121,7 @@ export default function WalletSection({
              motion switched on saw a different product from everyone else. */
           fallback={
             <FlatWallet
+              photoUrl={photo}
               config={config}
               balancePaise={balancePaise}
               open={open}

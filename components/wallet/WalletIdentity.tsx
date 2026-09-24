@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, Pencil, User, X } from "lucide-react";
 import WalletAvatar from "@/components/wallet/WalletAvatar";
-import { useAvatarUrl } from "@/components/profile/useAvatarUrl";
 import { ENGRAVING_MAX, normalizeEngraving } from "@/lib/wallet3d/config";
 import type { WalletConfig } from "@/lib/wallet3d/finishes";
 
@@ -28,6 +27,7 @@ export function WalletIdentity({
   onEngravingChange,
   signedIn,
   avatarSeed,
+  photoUrl: photo,
 }: {
   /** The account name, from auth. Shown when nothing is engraved. */
   displayName: string;
@@ -36,8 +36,9 @@ export function WalletIdentity({
   onEngravingChange: (next: string) => void;
   signedIn: boolean;
   avatarSeed: string;
+  /** Passed in rather than fetched, so this and the wallet never disagree. */
+  photoUrl: string | null;
 }) {
-  const photo = useAvatarUrl(signedIn);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(config.engraving);
   const [saving, setSaving] = useState(false);

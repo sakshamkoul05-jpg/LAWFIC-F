@@ -65,11 +65,14 @@ export default function FlatWallet({
   balancePaise,
   open = false,
   onToggle,
+  photoUrl,
 }: {
   config: WalletConfig;
   balancePaise: number;
   open?: boolean;
   onToggle?: () => void;
+  /** Set into the leather beside the name, as in the 3D wallet. */
+  photoUrl?: string | null;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const finish = getFinish(config.finish);
@@ -211,9 +214,28 @@ export default function FlatWallet({
             item with a label stuck on; one stamped with their name is theirs.
             The tracking loosens as the word gets longer so a short name does
             not look cramped and a long one still fits. */}
-        <div className="absolute inset-x-0 bottom-[16%] flex flex-col items-center px-8">
+        <div className="absolute inset-x-0 bottom-[16%] flex items-center justify-center gap-3 px-8">
+          {/* The window. Same idea as the 3D wallet: a photograph is held
+              behind a cut, not pressed into the hide — emboss a face and you
+              get a relief of somebody, which is a death mask. No photograph
+              means no window at all, because an empty frame cut into leather
+              reads as a fault rather than an invitation. */}
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- a signed URL
+            // that expires; the optimizer would cache it past its own lifetime.
+            <img
+              src={photoUrl}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-[7px] object-cover"
+              style={{
+                boxShadow:
+                  "0 0 0 1.5px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.10), inset 0 1px 3px rgba(0,0,0,.5)",
+              }}
+            />
+          ) : null}
+
           <span
-            className="relative max-w-full truncate font-mono font-semibold uppercase"
+            className="relative min-w-0 truncate font-mono font-semibold uppercase"
             style={{
               fontSize: stamp.length > 10 ? 10 : stamp.length > 7 ? 11.5 : 13,
               letterSpacing: stamp.length > 10 ? "0.24em" : "0.42em",

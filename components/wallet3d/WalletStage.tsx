@@ -43,6 +43,7 @@ function webglAvailable(): boolean {
 
 export default function WalletStage({
   config,
+  photoUrl,
   open,
   notes,
   arriving,
@@ -58,6 +59,8 @@ export default function WalletStage({
   /** Tap the wallet itself to open or shut it. */
   onTap?: () => void;
   fallback: React.ReactNode;
+  /** The customer's photograph, shown on the leather beside the name. */
+  photoUrl?: string | null;
   className?: string;
 }) {
   const [state, setState] = useState<"checking" | "ok" | "no">("checking");
@@ -75,6 +78,7 @@ export default function WalletStage({
 
   return (
     <WalletScene
+      photoUrl={photoUrl}
       config={config}
       open={open}
       notes={notes}
