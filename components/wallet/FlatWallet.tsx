@@ -3,6 +3,7 @@
 import { useId, useMemo } from "react";
 import { EMBOSS, THREADS, getColor, getFinish, type WalletConfig } from "@/lib/wallet3d/finishes";
 import { formatPaise } from "@/lib/money";
+import { sealInitials } from "@/components/wallet3d/WaxSeal";
 
 /**
  * The wallet, drawn flat.
@@ -65,14 +66,11 @@ export default function FlatWallet({
   balancePaise,
   open = false,
   onToggle,
-  photoUrl,
 }: {
   config: WalletConfig;
   balancePaise: number;
   open?: boolean;
   onToggle?: () => void;
-  /** Set into the leather beside the name, as in the 3D wallet. */
-  photoUrl?: string | null;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const finish = getFinish(config.finish);
@@ -107,6 +105,12 @@ export default function FlatWallet({
      otherwise the wordmark. Same rule as the 3D wallet, so the two never
      disagree about whose wallet this is. */
   const stamp = config.engraving.trim().toUpperCase() || "LAWFIC";
+
+  /* The same seal the 3D wallet presses, from the same letters and the same
+     foil choice. Two renderers that disagree about the ornament are two
+     different products again. */
+  const initials = sealInitials(config.engraving);
+  const wax = WAX[config.emboss] ?? WAX.blind!;
 
   const body = (
     <div
@@ -215,24 +219,36 @@ export default function FlatWallet({
             The tracking loosens as the word gets longer so a short name does
             not look cramped and a long one still fits. */}
         <div className="absolute inset-x-0 bottom-[16%] flex items-center justify-center gap-3 px-8">
-          {/* The window. Same idea as the 3D wallet: a photograph is held
-              behind a cut, not pressed into the hide — emboss a face and you
-              get a relief of somebody, which is a death mask. No photograph
-              means no window at all, because an empty frame cut into leather
-              reads as a fault rather than an invitation. */}
-          {photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- a signed URL
-            // that expires; the optimizer would cache it past its own lifetime.
-            <img
-              src={photoUrl}
-              alt=""
-              className="h-10 w-10 shrink-0 rounded-[7px] object-cover"
-              style={{
-                boxShadow:
-                  "0 0 0 1.5px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.10), inset 0 1px 3px rgba(0,0,0,.5)",
-              }}
-            />
-          ) : null}
+          {/* THE SEAL. An irregular rim from three overlapping sines, a radial
+              dome, and the initials sunk into it. The same object the 3D
+              wallet builds out of bump maps, drawn here with a gradient and a
+              path — glossy and domed against matte leather, which is the
+              entire point of putting wax on hide. */}
+          <svg width="46" height="46" viewBox="0 0 100 100" aria-hidden className="shrink-0">
+            <defs>
+              <radialGradient id={`${uid}wax`} cx="38%" cy="32%" r="72%">
+                <stop offset="0" stopColor={wax.lit} />
+                <stop offset="0.6" stopColor={wax.base} />
+                <stop offset="1" stopColor={wax.deep} />
+              </radialGradient>
+            </defs>
+            <path d={SEAL_PATH} fill={`url(#${uid}wax)`} />
+            <path d={SEAL_PATH} fill="none" stroke="#000" strokeOpacity={0.35} strokeWidth={1.2} />
+            <circle cx={50} cy={50} r={30} fill="none" stroke="#000" strokeOpacity={0.22} strokeWidth={1.6} />
+            <text
+              x={50}
+              y={50}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontFamily='"Cinzel", Georgia, serif'
+              fontWeight={700}
+              fontSize={initials.length > 1 ? 30 : 40}
+              fill="#000"
+              fillOpacity={0.42}
+            >
+              {initials}
+            </text>
+          </svg>
 
           <span
             className="relative min-w-0 truncate font-mono font-semibold uppercase"
@@ -336,6 +352,31 @@ function Surface({
     </svg>
   );
 }
+
+/**
+ * The seal's outline: a circle pushed about by three sine waves, flattened to
+ * a path once rather than recomputed per render. Wax spreads as it is pressed,
+ * so a true circle here reads as a button.
+ */
+const SEAL_PATH = (() => {
+  const pts: string[] = [];
+  for (let i = 0; i <= 72; i += 1) {
+    const a = (i / 72) * Math.PI * 2;
+    const r =
+      40 *
+      (1 + 0.055 * Math.sin(a * 5 + 1.1) + 0.032 * Math.sin(a * 9 + 2.4) + 0.018 * Math.sin(a * 14));
+    pts.push(`${(50 + Math.cos(a) * r).toFixed(2)},${(50 + Math.sin(a) * r).toFixed(2)}`);
+  }
+  return `M${pts.join("L")}Z`;
+})();
+
+/** Sealing wax comes in metallics too, so the foil choice carries across. */
+const WAX: Record<string, { lit: string; base: string; deep: string }> = {
+  blind: { lit: "#B03042", base: "#7E1420", deep: "#4A0A12" },
+  gold: { lit: "#D8B45E", base: "#A8842E", deep: "#5E4A17" },
+  silver: { lit: "#A8B0BA", base: "#6E7681", deep: "#3C424A" },
+  copper: { lit: "#C07A50", base: "#8A4B2A", deep: "#4E2716" },
+};
 
 /** Blend two hex colours. Written out rather than pulled in — it is six lines. */
 function mix(hex: string, towards: string, amount: number): string {

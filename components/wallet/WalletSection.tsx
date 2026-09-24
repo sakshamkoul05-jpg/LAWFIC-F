@@ -110,7 +110,6 @@ export default function WalletSection({
       {/* THE OBJECT */}
       <div className="relative mx-auto w-full max-w-[720px]">
         <WalletStage
-          photoUrl={photo}
           config={config}
           open={open ? 1 : 0}
           arriving={arriving}
@@ -121,7 +120,6 @@ export default function WalletSection({
              motion switched on saw a different product from everyone else. */
           fallback={
             <FlatWallet
-              photoUrl={photo}
               config={config}
               balancePaise={balancePaise}
               open={open}

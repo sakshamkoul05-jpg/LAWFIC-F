@@ -6,6 +6,7 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { leatherMaps } from "@/lib/wallet3d/materials";
 import { THREADS, getColor, getEmboss, getFinish, type WalletConfig } from "@/lib/wallet3d/finishes";
+import { WaxSeal } from "./WaxSeal";
 import { warmNoteTextures, type Denomination } from "@/lib/wallet3d/banknote";
 import NoteStack from "./NoteStack";
 
@@ -176,7 +177,6 @@ export default function WalletBifold({
   look,
   open,
   notes,
-  photoUrl,
   arriving,
   pointer,
 }: {
@@ -184,8 +184,6 @@ export default function WalletBifold({
   /** 0 shut, 1 open. */
   open: number;
   notes: Denomination[];
-  /** The customer's photograph, set into the leather beside the name. */
-  photoUrl?: string | null;
   arriving?: number;
   pointer: { x: number; y: number };
 }) {
@@ -426,7 +424,17 @@ export default function WalletBifold({
                   <meshBasicMaterial color="#120c07" transparent opacity={0.72} depthWrite={false} />
                 </mesh>
 
-                <PhotoInset url={photoUrl} size={closed.size} visible />
+                {/* THE FOCAL POINT. Everything else on this panel is pressed
+                    into the hide and shares its colour and its matte surface,
+                    which leaves the eye nothing to land on. The seal is domed,
+                    glossy and sits on top — the opposite of leather in every
+                    way that matters. See WaxSeal for why a seal in particular. */}
+                <WaxSeal
+                  engraving={look.engraving}
+                  emboss={emboss}
+                  size={closed.size}
+                  visible
+                />
                 <Emboss
                   engraving={look.engraving}
                   emboss={emboss}
@@ -504,130 +512,6 @@ function Emboss({
       />
     </mesh>
   );
-}
-
-/**
- * The customer's photograph, set into the leather beside the name.
- *
- * A PHOTO IS NOT A STAMP
- *
- * Everything else on this panel is embossed — pressed into the hide, carrying
- * no colour of its own, revealed only by how light falls into the depression.
- * A face cannot work that way: emboss it and you get a grey relief of somebody,
- * which is a death mask, not a portrait. So this is what a wallet actually does
- * with a photograph — it holds it behind a window. A slightly recessed frame,
- * a darker surround where the leather has been cut away, and the picture itself
- * sitting proud of the panel by a fraction of a millimetre.
- *
- * It sits to the LEFT of the lockup because that is the reading order: the face
- * then the name, the way it is on every identity card anybody has ever held.
- *
- * WHEN THERE IS NO PHOTOGRAPH THERE IS NO WINDOW
- *
- * Not an empty frame, not a silhouette — nothing at all, and the lockup keeps
- * the panel to itself. An empty window cut into leather looks like a
- * manufacturing fault rather than an invitation.
- */
-function PhotoInset({
-  url,
-  size,
-  visible,
-}: {
-  url: string | null | undefined;
-  size: THREE.Vector3;
-  visible: boolean;
-}) {
-  const texture = usePhotoTexture(url);
-  if (!texture) return null;
-
-  const planeW = size.x * 0.98;
-  const planeH = size.y * 0.98;
-
-  /* Matched to the lockup, which embossMaps draws centred at 78% across and
-     76% down. Canvas coordinates map to the plane as (fraction - 0.5) * span,
-     with y inverted. The window is the height of the monogram-and-word block
-     so the pair reads as one object rather than two things that happen to be
-     near each other. */
-  const s = planeH * 0.26;
-  const x = (0.78 - 0.5) * planeW - planeW * 0.17 - s * 0.62;
-  const y = (0.5 - 0.725) * planeH;
-
-  return (
-    <group visible={visible} position={[x, y, size.z / 2]}>
-      {/* The cut: a darker, slightly larger plane the window sits inside. */}
-      <mesh position={[0, 0, 0.012]}>
-        <planeGeometry args={[s * 1.1, s * 1.1]} />
-        <meshStandardMaterial color="#000000" roughness={0.95} opacity={0.55} transparent />
-      </mesh>
-
-      <mesh position={[0, 0, 0.026]}>
-        <planeGeometry args={[s, s]} />
-        {/* Low roughness and a little clearcoat: a photograph behind a window
-            has a sheen the leather around it does not, and that difference is
-            most of why it reads as being UNDER something. */}
-        <meshPhysicalMaterial
-          map={texture}
-          roughness={0.28}
-          metalness={0}
-          clearcoat={0.6}
-          clearcoatRoughness={0.25}
-          envMapIntensity={0.9}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/**
- * The photograph as a texture, or null.
- *
- * Null covers every way this can fail — no photograph, a signed URL that has
- * expired, a CORS refusal, a decode error — and every one of them renders as
- * "no window", which is a state the panel already looks right in. A wallet must
- * not show a black square because a ten-minute URL ran out.
- */
-function usePhotoTexture(url: string | null | undefined): THREE.Texture | null {
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
-
-  useEffect(() => {
-    if (!url) {
-      setTexture(null);
-      return;
-    }
-
-    let alive = true;
-    const loader = new THREE.TextureLoader();
-    /* Without this the draw taints the WebGL context on a cross-origin image
-       and the whole canvas stops rendering, not just the photograph. */
-    loader.setCrossOrigin("anonymous");
-
-    loader.load(
-      url,
-      (t) => {
-        if (!alive) {
-          t.dispose();
-          return;
-        }
-        t.colorSpace = THREE.SRGBColorSpace;
-        t.anisotropy = 4;
-        setTexture(t);
-      },
-      undefined,
-      () => {
-        if (alive) setTexture(null);
-      },
-    );
-
-    return () => {
-      alive = false;
-    };
-  }, [url]);
-
-  /* Freed when it is replaced or the wallet goes away. A texture per photo
-     change, never released, is a leak that only shows up on a long session. */
-  useEffect(() => () => texture?.dispose(), [texture]);
-
-  return texture;
 }
 
 /**

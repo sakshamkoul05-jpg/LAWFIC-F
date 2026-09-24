@@ -37,8 +37,6 @@ import type { Denomination } from "@/lib/wallet3d/banknote";
 
 export type WalletSceneProps = {
   config: WalletConfig;
-  /** The customer's photograph, set into the leather beside the name. */
-  photoUrl?: string | null;
   open: number;
   /** Change this to replay the notes' fly-in. */
   arriving?: number;
@@ -59,7 +57,6 @@ export type WalletSceneProps = {
 
 export default function WalletScene({
   config,
-  photoUrl,
   open,
   arriving,
   notes,
@@ -225,7 +222,6 @@ export default function WalletScene({
                 wallet back rather than leaving a blank canvas. */}
             <ModelBoundary fallback={null} onFail={onLost}>
               <WalletBifold
-                photoUrl={photoUrl}
                 look={config}
                 open={open}
                 notes={notes}
