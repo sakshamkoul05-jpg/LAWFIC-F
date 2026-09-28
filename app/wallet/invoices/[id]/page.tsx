@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked } from "@/lib/wallet-lock";
 import PrintButton from "@/components/wallet/PrintButton";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 import { company } from "@/lib/company";
@@ -55,6 +56,11 @@ export default async function InvoicePage({
       </div>
     );
   }
+
+  /* THE LOCK. Every route that can reach a balance, a ledger, an invoice or a
+     payment calls this — see isWalletLocked for why it is shared rather than
+     checked on one page. Redirected to /wallet, where the unlock lives. */
+  if (await isWalletLocked(supabase, auth.user.id)) redirect("/wallet");
 
   /* RLS already limits this to the owner; the explicit filter says out loud
      what the query depends on, because a policy is easy to change without

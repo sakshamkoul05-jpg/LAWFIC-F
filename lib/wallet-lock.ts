@@ -1,6 +1,9 @@
 import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies, headers } from "next/headers";
+/* eslint-disable @typescript-eslint/no-explicit-any -- the gate takes any
+   Supabase client shape so callers can pass the one they already made rather
+   than this file creating a second and doubling the auth round trip. */
 
 /**
  * The wallet lock: what it protects, and what it would be worth without this
@@ -199,3 +202,43 @@ export async function isUnlocked(userId: string): Promise<boolean> {
   if (!key) return false;
   return checkToken((await cookies()).get(COOKIE)?.value, userId, key);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE GATE — used by every route that can reach the money
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Is this customer's wallet locked right now?
+ *
+ * WHY THIS IS A SHARED FUNCTION AND NOT A CHECK ON ONE PAGE
+ *
+ * The first version of the lock guarded /wallet and nothing else, which made
+ * it bypassable by typing /wallet/transactions — the statement, the balance on
+ * the top-up screen, the invoices and three API routes were all still open. A
+ * lock with a second door is not a lock, and the second door is always the one
+ * added later by somebody who did not know the first existed.
+ *
+ * So there is one function, every route that touches a balance, a ledger, an
+ * invoice or a payment calls it, and adding a new such route means calling it
+ * too. The list of callers is the audit.
+ *
+ * NO KEY REGISTERED MEANS NO LOCK. Switching it on is the customer's decision;
+ * an account with no passkey is not locked out of its own wallet.
+ */
+export async function isWalletLocked(
+  supabase: { from: (t: string) => any },
+  userId: string,
+): Promise<boolean> {
+  if (!lockConfigured()) return false;
+
+  const { count } = await supabase
+    .from("wallet_passkeys")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (!count) return false;
+  return !(await isUnlocked(userId));
+}
+
+/** 423 Locked. Distinct from 401 so a client can tell "sign in" from "unlock". */
+export const LOCKED_STATUS = 423;

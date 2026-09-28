@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked, LOCKED_STATUS } from "@/lib/wallet-lock";
 import { z } from "zod";
 import { checkTopUpAmount } from "@/lib/money";
 import {
@@ -52,6 +54,14 @@ export async function POST(request: Request) {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
+  }
+
+  /* THE LOCK. Starting a payment against a locked wallet is worse than reading
+     one: it moves money. The client for this check is made here rather than
+     reusing getUser()'s, which does not hand one back. */
+  const gate = await createClient();
+  if (gate && (await isWalletLocked(gate, user.id))) {
+    return NextResponse.json({ error: "wallet_locked" }, { status: LOCKED_STATUS });
   }
 
   if (!isCashfreeConfigured) {

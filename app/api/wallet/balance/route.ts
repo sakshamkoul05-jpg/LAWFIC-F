@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked, LOCKED_STATUS } from "@/lib/wallet-lock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,13 @@ export async function GET() {
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
+  /* THE LOCK. A locked wallet must not be readable through the API either —
+     that is precisely the door somebody bypassing the lock screen would try.
+     423 rather than 401 so the client can tell "sign in" from "unlock". */
+  if (await isWalletLocked(supabase, auth.user.id)) {
+    return NextResponse.json({ error: "wallet_locked" }, { status: LOCKED_STATUS });
+  }
+
 
   const { data, error } = await supabase.rpc("my_wallet_balance");
   if (error) {

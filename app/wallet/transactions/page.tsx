@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked } from "@/lib/wallet-lock";
 import { WalletEntry } from "@/lib/wallet-entries";
 import TransactionList from "./TransactionList";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
@@ -21,6 +23,7 @@ export default async function TransactionsPage() {
   }
 
   const { data: auth } = await supabase.auth.getUser();
+
   if (!auth.user) {
     return (
       <div className="glass-panel mx-auto max-w-lg rounded-2xl p-8 text-center" style={{ color: "var(--wallet-fg)" }}>
@@ -34,6 +37,13 @@ export default async function TransactionsPage() {
       </div>
     );
   }
+
+  /* THE LOCK. Every route that can reach a balance, a ledger, an invoice or a
+     payment calls this — see isWalletLocked for why it is shared rather than
+     checked on one page. Redirected to /wallet because that is where the
+     unlock lives; a second unlock screen per route is a second thing to keep
+     correct. */
+  if (await isWalletLocked(supabase, auth.user.id)) redirect("/wallet");
 
   const { data: entries } = await supabase
     .from("wallet_entries")

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked, LOCKED_STATUS } from "@/lib/wallet-lock";
 import { statementCsv, statementFilename } from "@/lib/statement";
 import type { WalletEntry } from "@/lib/wallet-entries";
 
@@ -37,6 +38,15 @@ export async function GET() {
     .catch(() => ({ data: { user: null } }));
   if (!auth?.user) {
     return new Response("Sign in to download your statement.", { status: 401 });
+  }
+
+  /* THE LOCK. A statement is the whole ledger in one file — the single most
+     valuable thing behind the lock, and the obvious target for anybody going
+     round the lock screen. */
+  if (await isWalletLocked(supabase, auth.user.id)) {
+    return new Response("Unlock your wallet to download your statement.", {
+      status: LOCKED_STATUS,
+    });
   }
 
   const { data, error } = await supabase

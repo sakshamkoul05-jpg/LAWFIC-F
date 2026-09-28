@@ -40,6 +40,15 @@ const Body = z.object({ orderId: z.string().min(3).max(45) });
  * design: without it, reconciliation and the webhook would race and sometimes
  * both win.
  */
+/* NOT GATED BY THE WALLET LOCK, DELIBERATELY.
+ *
+ * Everything else that touches the money calls isWalletLocked. This does not,
+ * and the reason is the direction money moves: reconciliation only ever
+ * settles a payment the customer has ALREADY made, crediting them. There is
+ * nothing here for somebody holding a stolen session to gain — and a great
+ * deal for a real customer to lose, because a payment whose webhook never
+ * arrived would sit unsettled until they happened to unlock. Locking the door
+ * that puts their own money back is the wrong failure. */
 export async function POST(request: Request) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });

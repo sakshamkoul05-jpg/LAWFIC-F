@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { isCashfreeConfigured } from "@/lib/cashfree";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked } from "@/lib/wallet-lock";
+import { redirect } from "next/navigation";
 import TopUpForm from "../TopUpForm";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import { configFromRow } from "@/lib/wallet3d/config";
@@ -40,6 +42,11 @@ export default async function TopUpPage() {
       </div>
     );
   }
+
+  /* THE LOCK. Every route that can reach a balance, a ledger, an invoice or a
+     payment calls this — see isWalletLocked for why it is shared rather than
+     checked on one page. Redirected to /wallet, where the unlock lives. */
+  if (await isWalletLocked(supabase, auth.user.id)) redirect("/wallet");
 
   const [{ data: balanceData }, { data: prefsRow }] = await Promise.all([
     supabase.rpc("my_wallet_balance"),

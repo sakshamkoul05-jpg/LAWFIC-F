@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { formatEntry } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked } from "@/lib/wallet-lock";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,9 @@ export default async function TransactionPage({ params }: { params: Promise<{ id
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) notFound();
+
+  /* THE LOCK. One entry is still the ledger, in smaller pieces. */
+  if (await isWalletLocked(supabase, auth.user.id)) redirect("/wallet");
 
   const { data } = await supabase
     .from("wallet_entries")

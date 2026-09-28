@@ -5,6 +5,7 @@ import { formatEntry, formatPaise } from "@/lib/money";
 import { orderTotalPaise, STATUS_META, type ServiceOrder } from "@/lib/orders";
 import { getService } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
+import { isWalletLocked } from "@/lib/wallet-lock";
 import { FeeBreakdown, StatusPill, Timeline } from "@/components/orders/OrderBits";
 import PayButton from "./PayButton";
 import MessageThread from "@/components/orders/MessageThread";
@@ -62,7 +63,13 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
       .order("seq", { ascending: false }),
   ]);
 
-  const balancePaise = Number(balanceData ?? 0);
+  /* THE LOCK. The order page is not a wallet page, so it does not redirect —
+     but it must not print the balance, and it must not offer to spend from a
+     wallet the customer has not unlocked. Zero here both hides the figure and
+     makes PayButton fall through to the gateway, which is the honest outcome:
+     the money is still theirs, it just needs the wallet opening first. */
+  const walletLocked = await isWalletLocked(supabase, auth.user.id);
+  const balancePaise = walletLocked ? 0 : Number(balanceData ?? 0);
   const ledger = (entries ?? []) as {
     id: string;
     direction: "credit" | "debit";
@@ -116,7 +123,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                     totalPaise={total}
                   />
                   <p className="mt-3 font-mono text-[12px] text-muted tabular-nums">
-                    Wallet balance {formatPaise(balancePaise)}
+                    {walletLocked ? (
+                      <>
+                        Wallet locked &mdash;{" "}
+                        <Link href="/wallet" className="underline">
+                          unlock to pay from it
+                        </Link>
+                      </>
+                    ) : (
+                      <>Wallet balance {formatPaise(balancePaise)}</>
+                    )}
                   </p>
                 </div>
               )}

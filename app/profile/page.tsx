@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPaise } from "@/lib/money";
 import { ACCOUNT_GROUPS, MONEY_ROWS } from "@/lib/account-sections";
 import { getProfilePhotos } from "@/lib/profile-photos.server";
+import { isWalletLocked } from "@/lib/wallet-lock";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
 
@@ -47,6 +48,7 @@ export default async function ProfileHubPage() {
   const user = auth?.user ?? null;
 
   let balancePaise: number | null = null;
+  let walletLocked = false;
   let avatarUrl: string | null = null;
   let coverUrl: string | null = null;
 
@@ -58,7 +60,11 @@ export default async function ProfileHubPage() {
       supabase.rpc("my_wallet_balance"),
       getProfilePhotos(supabase, user.id),
     ]);
-    balancePaise = Number(balance.data ?? 0);
+    /* THE LOCK, without a redirect. This is the account hub, not a wallet
+       page — bouncing somebody to /wallet because they came to check their
+       address would be absurd. The figure is simply not shown. */
+    walletLocked = await isWalletLocked(supabase, user.id);
+    balancePaise = walletLocked ? null : Number(balance.data ?? 0);
     avatarUrl = photos.avatarUrl;
     coverUrl = photos.coverUrl;
   }
@@ -124,7 +130,11 @@ export default async function ProfileHubPage() {
 
                     {isWallet ? (
                       <span className="shrink-0 font-mono text-[14px] tabular-nums text-foreground">
-                        {balancePaise === null ? "—" : formatPaise(balancePaise)}
+                        {walletLocked
+                          ? "Locked"
+                          : balancePaise === null
+                            ? "—"
+                            : formatPaise(balancePaise)}
                       </span>
                     ) : (
                       <span className="type-label shrink-0 text-subtle">Not linked</span>
