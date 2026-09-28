@@ -7,6 +7,9 @@ import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import { configFromRow } from "@/lib/wallet3d/config";
 import WalletSection from "@/components/wallet/WalletSection";
 import WalletDemo from "@/components/wallet/WalletDemo";
+import WalletLock from "@/components/wallet/WalletLock";
+import PasskeyManager, { type Passkey } from "@/components/wallet/PasskeyManager";
+import { isUnlocked, lockConfigured } from "@/lib/wallet-lock";
 import WalletOnboarding from "@/components/wallet/WalletOnboarding";
 import WalletQuickActions from "@/components/wallet/WalletQuickActions";
 import WalletActivity, { type ActivityRow } from "@/components/wallet/WalletActivity";
@@ -43,12 +46,47 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+type PasskeyRow = {
+  id: string;
+  label: string;
+  created_at: string;
+  last_used_at: string | null;
+  backed_up: boolean;
+};
+
 export default async function WalletPage() {
   const supabase = await createClient();
   if (!supabase) return <WalletDemo />;
 
   const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
   if (!auth.user) return <WalletDemo />;
+
+  /* ── THE LOCK, BEFORE ANYTHING WORTH LOCKING IS FETCHED ──────────────
+     The registered keys are read first and on their own. If the wallet is
+     locked the page returns here, having asked the database for nothing about
+     the money — which is what makes this a lock rather than a CSS class over
+     data the browser already holds. */
+  const { data: keyRows } = await supabase
+    .from("wallet_passkeys")
+    .select("id, label, created_at, last_used_at, backed_up")
+    .eq("user_id", auth.user.id)
+    .order("created_at");
+
+  const passkeys: Passkey[] = ((keyRows ?? []) as PasskeyRow[]).map((k) => ({
+    id: k.id,
+    label: k.label || "This device",
+    createdAt: k.created_at,
+    lastUsedAt: k.last_used_at,
+    backedUp: k.backed_up,
+  }));
+
+  const configured = lockConfigured();
+
+  /* No key registered means no lock. Switching it on is a decision somebody
+     makes, not something that starts happening to them after an update. */
+  if (passkeys.length > 0 && !(await isUnlocked(auth.user.id))) {
+    return <WalletLock configured={configured} />;
+  }
 
   /* Month-to-date, for the strip under the actions. Bounded by a limit as well
      as a date so a busy account cannot turn the home page into a full table
@@ -168,6 +206,11 @@ export default async function WalletPage() {
 
       <div className="mt-16">
         <WalletActivity rows={rows} />
+      </div>
+
+      <div className="mt-16">
+        <p className="cred-label mb-4 px-1">Security</p>
+        <PasskeyManager passkeys={passkeys} configured={configured} />
       </div>
 
       <div className="mt-16">
