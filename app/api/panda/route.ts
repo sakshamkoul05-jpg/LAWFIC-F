@@ -78,6 +78,36 @@ const Body = z.object({
  */
 const SYSTEM = `${PANDA_RULES}\n\n${SITE_BRIEF}`;
 
+/* ── CORS: the LAWFIC app, and nothing else ─────────────────────────────────
+   The mobile app calls this route too. A native app is not a browser and
+   needs no CORS; the app's browser build on law-m.vercel.app does, and so does
+   its local preview. Those origins are named exactly — never "*", which would
+   let any site on the internet spend this account's model budget from its
+   visitors' browsers. The per-visitor rate limit applies to all of them. */
+const APP_ORIGINS = new Set([
+  "https://law-m.vercel.app",
+  "http://localhost:4173",
+  "http://localhost:8081",
+]);
+
+function cors(request: Request): Record<string, string> {
+  const origin = request.headers.get("origin");
+  if (!origin || !APP_ORIGINS.has(origin)) return {};
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "POST, OPTIONS",
+    "access-control-allow-headers": "content-type",
+    "access-control-max-age": "600",
+    vary: "Origin",
+  };
+}
+
+/** The browser's preflight for a JSON POST from the app's origin. */
+export function OPTIONS(request: Request) {
+  const headers = cors(request);
+  return new Response(null, { status: Object.keys(headers).length ? 204 : 403, headers });
+}
+
 let client: Groq | null = null;
 function getClient(): Groq | null {
   const apiKey = process.env.GROQ_API_KEY;
@@ -87,11 +117,12 @@ function getClient(): Groq | null {
 }
 
 export async function POST(request: Request) {
+  const headers = cors(request);
   const groq = getClient();
   if (!groq) {
     /* Deliberately explicit: a chat box that fails silently looks broken, and
        the person who can fix this is the operator, not the visitor. */
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+    return NextResponse.json({ error: "not_configured" }, { status: 503, headers });
   }
 
   const verdict = takeToken({
@@ -102,7 +133,7 @@ export async function POST(request: Request) {
   if (!verdict.ok) {
     return NextResponse.json(
       { error: "rate_limited" },
-      { status: 429, headers: { "retry-after": String(verdict.retryAfterSeconds) } },
+      { status: 429, headers: { ...headers, "retry-after": String(verdict.retryAfterSeconds) } },
     );
   }
 
@@ -110,7 +141,7 @@ export async function POST(request: Request) {
   try {
     body = Body.parse(await request.json());
   } catch {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    return NextResponse.json({ error: "bad_request" }, { status: 400, headers });
   }
 
   let completion: Awaited<ReturnType<typeof groq.chat.completions.create>>;
@@ -129,7 +160,7 @@ export async function POST(request: Request) {
        id, or Groq rate-limiting us rather than the visitor. Still a clean
        status code at this point, so send one. */
     console.error("[panda] groq rejected the request", error);
-    return NextResponse.json({ error: "upstream" }, { status: 502 });
+    return NextResponse.json({ error: "upstream" }, { status: 502, headers });
   }
 
   const encoder = new TextEncoder();
@@ -172,6 +203,7 @@ export async function POST(request: Request) {
 
   return new Response(readable, {
     headers: {
+      ...headers,
       "content-type": "text/plain; charset=utf-8",
       "cache-control": "no-store",
       /* Tells nginx-style proxies not to buffer, which would otherwise hold the
