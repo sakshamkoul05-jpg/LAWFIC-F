@@ -3,7 +3,7 @@ import { z } from "zod";
 import { isCashfreeConfigured } from "@/lib/cashfree";
 import { reconcilePaidOrder } from "@/lib/reconcile";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
-import { getUser } from "@/lib/supabase/server";
+import { clientForRequest, corsHeaders, preflight } from "@/lib/app-access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,18 +49,26 @@ const Body = z.object({ orderId: z.string().min(3).max(45) });
  * deal for a real customer to lose, because a payment whose webhook never
  * arrived would sit unsettled until they happened to unlock. Locking the door
  * that puts their own money back is the wrong failure. */
+/** The app's browser build calls this cross-origin. */
+export function OPTIONS(request: Request) {
+  return preflight(request);
+}
+
 export async function POST(request: Request) {
-  const user = await getUser();
-  if (!user) return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
+  const cors = corsHeaders(request);
+  const json = (body: unknown, init?: { status?: number }) => NextResponse.json(body, { status: init?.status, headers: cors });
+  /* The website's cookie, or the app's bearer token — see lib/app-access.ts. */
+  const user = (await clientForRequest(request))?.user;
+  if (!user) return json({ error: "not_signed_in" }, { status: 401 });
   if (!isCashfreeConfigured || !isServiceRoleConfigured) {
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+    return json({ error: "not_configured" }, { status: 503 });
   }
 
   let body: z.infer<typeof Body>;
   try {
     body = Body.parse(await request.json());
   } catch {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    return json({ error: "bad_request" }, { status: 400 });
   }
 
   const admin = createAdminClient()!;
@@ -69,8 +77,8 @@ export async function POST(request: Request) {
 
   if (!result.ok) {
     const status = result.reason === "unknown_order" ? 404 : result.reason === "credit_failed" ? 500 : 502;
-    return NextResponse.json({ error: result.reason }, { status });
+    return json({ error: result.reason }, { status });
   }
 
-  return NextResponse.json({ ok: true, credited: result.credited, reason: result.reason });
+  return json({ ok: true, credited: result.credited, reason: result.reason });
 }

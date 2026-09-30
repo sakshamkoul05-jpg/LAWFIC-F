@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { isWalletLocked, LOCKED_STATUS } from "@/lib/wallet-lock";
 import { z } from "zod";
 import { checkTopUpAmount } from "@/lib/money";
@@ -11,7 +10,7 @@ import {
   newTopUpOrderId,
 } from "@/lib/cashfree";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
-import { getUser } from "@/lib/supabase/server";
+import { clientForRequest, corsHeaders, preflight } from "@/lib/app-access";
 import { SITE_URL } from "@/lib/seo";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 
@@ -25,7 +24,16 @@ const Body = z.object({
   /* Optional because most customers already have one on their profile. Sent
      only by the form when the profile has none — see the note below. */
   phone: z.string().optional(),
+  /* "app" when the LAWFIC app starts the payment: the gateway then returns to
+     a page that hands the customer back to the app, not to the website's
+     wallet, which the in-app browser is not signed in to. */
+  returnTo: z.enum(["web", "app"]).optional(),
 });
+
+/** The app's browser build calls this route cross-origin. */
+export function OPTIONS(request: Request) {
+  return preflight(request);
+}
 
 /**
  * Starts a top-up: creates a Cashfree order and records our own intent.
@@ -51,38 +59,46 @@ const Body = z.object({
  * that way is saved to the profile, so it is asked for exactly once.
  */
 export async function POST(request: Request) {
-  const user = await getUser();
-  if (!user) {
-    return NextResponse.json({ error: "not_signed_in" }, { status: 401 });
+  const cors = corsHeaders(request);
+  const json = (body: unknown, init?: { status?: number }) => NextResponse.json(body, { status: init?.status, headers: cors });
+
+  /* The website's cookie session, or the app's bearer token — both resolve to
+     the caller's own RLS-bound client. See lib/app-access.ts. */
+  const caller = await clientForRequest(request);
+  if (!caller) {
+    return json({ error: "not_signed_in" }, { status: 401 });
   }
+  const user = caller.user;
 
   /* THE LOCK. Starting a payment against a locked wallet is worse than reading
      one: it moves money. The client for this check is made here rather than
      reusing getUser()'s, which does not hand one back. */
-  const gate = await createClient();
-  if (gate && (await isWalletLocked(gate, user.id))) {
-    return NextResponse.json({ error: "wallet_locked" }, { status: LOCKED_STATUS });
+  /* The passkey unlock is a browser cookie, so it gates the website. The app
+     gates payments itself, on the device, with Face ID or fingerprint before
+     it ever calls this route. */
+  if (caller.via === "web" && (await isWalletLocked(caller.supabase as never, user.id))) {
+    return json({ error: "wallet_locked" }, { status: LOCKED_STATUS });
   }
 
   if (!isCashfreeConfigured) {
-    return NextResponse.json({ error: "payments_not_configured" }, { status: 503 });
+    return json({ error: "payments_not_configured" }, { status: 503 });
   }
   if (!isServiceRoleConfigured) {
     // Without the service role we cannot record the intent, and an unrecorded
     // payment is one the webhook cannot attribute. Refuse rather than take money.
-    return NextResponse.json({ error: "server_not_configured" }, { status: 503 });
+    return json({ error: "server_not_configured" }, { status: 503 });
   }
 
   let parsed: z.infer<typeof Body>;
   try {
     parsed = Body.parse(await request.json());
   } catch {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    return json({ error: "bad_request" }, { status: 400 });
   }
 
   const amount = checkTopUpAmount(parsed.rupees);
   if (!amount.ok) {
-    return NextResponse.json({ error: "bad_amount", message: amount.error }, { status: 400 });
+    return json({ error: "bad_amount", message: amount.error }, { status: 400 });
   }
 
   const admin = createAdminClient()!;
@@ -104,7 +120,7 @@ export async function POST(request: Request) {
   if (!phone) {
     /* 422 and not 400: the request was well formed, it is the account that is
        incomplete. The form branches on this code to show the field. */
-    return NextResponse.json(
+    return json(
       {
         error: "phone_required",
         message:
@@ -140,7 +156,7 @@ export async function POST(request: Request) {
 
   if (intentErr) {
     console.error("[wallet/topup] could not record the intent", intentErr);
-    return NextResponse.json({ error: "intent_not_recorded" }, { status: 500 });
+    return json({ error: "intent_not_recorded" }, { status: 500 });
   }
 
   const created = await createTopUpOrder({
@@ -154,7 +170,10 @@ export async function POST(request: Request) {
        request's own host: the same reasoning as the sign-in emails, and here it
        is stricter still — Cashfree validates the URL against the domains
        registered on the merchant account, so a preview host is simply refused. */
-    returnUrl: `${SITE_URL}/wallet/topup/return?order_id={order_id}`,
+    returnUrl:
+      parsed.returnTo === "app"
+        ? `${SITE_URL}/app-checkout/done?order_id={order_id}`
+        : `${SITE_URL}/wallet/topup/return?order_id={order_id}`,
     /**
      * THE ORDER CARRIES ITS OWN CALLBACK.
      *
@@ -181,10 +200,10 @@ export async function POST(request: Request) {
     /* The intent is left behind deliberately. It is harmless, it records that
        a top-up was attempted, and deleting it would need a second round trip
        on the path where something is already going wrong. */
-    return NextResponse.json({ error: created.error }, { status: 502 });
+    return json({ error: created.error }, { status: 502 });
   }
 
-  return NextResponse.json({
+  return json({
     orderId: created.order.orderId,
     /* Single-use and order-scoped. This is the only payment value the browser
        ever sees — there is no publishable key in this integration. */

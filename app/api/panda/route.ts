@@ -3,6 +3,7 @@ import Groq from "groq-sdk";
 import { z } from "zod";
 import { PANDA_RULES, SITE_BRIEF } from "@/lib/panda-knowledge";
 import { clientKey, takeToken } from "@/lib/rate-limit";
+import { corsHeaders, preflight } from "@/lib/app-access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,34 +79,13 @@ const Body = z.object({
  */
 const SYSTEM = `${PANDA_RULES}\n\n${SITE_BRIEF}`;
 
-/* ── CORS: the LAWFIC app, and nothing else ─────────────────────────────────
-   The mobile app calls this route too. A native app is not a browser and
-   needs no CORS; the app's browser build on law-m.vercel.app does, and so does
-   its local preview. Those origins are named exactly — never "*", which would
-   let any site on the internet spend this account's model budget from its
-   visitors' browsers. The per-visitor rate limit applies to all of them. */
-const APP_ORIGINS = new Set([
-  "https://law-m.vercel.app",
-  "http://localhost:4173",
-  "http://localhost:8081",
-]);
-
-function cors(request: Request): Record<string, string> {
-  const origin = request.headers.get("origin");
-  if (!origin || !APP_ORIGINS.has(origin)) return {};
-  return {
-    "access-control-allow-origin": origin,
-    "access-control-allow-methods": "POST, OPTIONS",
-    "access-control-allow-headers": "content-type",
-    "access-control-max-age": "600",
-    vary: "Origin",
-  };
-}
+/* CORS for the LAWFIC app's browser build — one allow-list, shared with the
+   other app-facing routes, in lib/app-access.ts. */
+const cors = (request: Request) => corsHeaders(request);
 
 /** The browser's preflight for a JSON POST from the app's origin. */
 export function OPTIONS(request: Request) {
-  const headers = cors(request);
-  return new Response(null, { status: Object.keys(headers).length ? 204 : 403, headers });
+  return preflight(request);
 }
 
 let client: Groq | null = null;
