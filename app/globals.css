@@ -1914,7 +1914,7 @@
 }
 
 /* --- Search band ---------------------------------------------------------- */
-.home-search-band { background: var(--bar-bg, #000); transition: background-color .7s ease; border-bottom: 1px solid rgba(242, 201, 76, 0.22); }
+.home-search-band { background: #000; border-bottom: 1px solid rgba(242, 201, 76, 0.22); }
 .home-search-title {
   min-height: 1.3em;
   text-align: center;
