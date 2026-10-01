@@ -91,7 +91,9 @@ import {
    exists. */
 /* The client's sheet: black band, yellow lettering. The current tab turns
    white and carries the rule, so it stays the one lit thing on the bar. */
-const BAND = "#000000";
+/* Black by default; on the home page the flyer carousel publishes the colour
+   of the slide on screen as --bar-bg, and the bar follows it. */
+const BAND = "var(--bar-bg, #000000)";
 const GOLD = "#FFFFFF";
 const INK = "#F2C94C";
 
@@ -398,7 +400,7 @@ export default function ClassicCategoryTabs() {
        page below it. One line of gold at low alpha, the same edge the second
        row uses, so the bar has a bottom. */
     <div
-      className="relative border-b"
+      className="relative border-b transition-colors duration-700"
       style={{ background: BAND, borderColor: "rgba(242,201,76,0.25)" }}
       onMouseLeave={scheduleClose}
     >

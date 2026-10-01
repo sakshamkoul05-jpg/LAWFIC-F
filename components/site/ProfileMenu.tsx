@@ -82,7 +82,7 @@ export default function ProfileMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={user ? "Your account" : "Account and sign in"}
-        className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
+        className="grid size-10 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground"
       >
         {/* TWO LINES, BOTH COLOURED — the small sibling of the four-line
             icon on the far left. Two rather than four because this one opens
@@ -94,11 +94,10 @@ export default function ProfileMenu({
             Colour carries no meaning here — the button has a label and a
             tooltip either way — so it costs nothing to a viewer who cannot
             separate the hues. */}
-        {/* A chevron now, not two bars: it sat right beside the four-bar site
-            menu, and two hamburgers side by side read as one control drawn
-            twice. A chevron under the name says "your account opens here". */}
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden className={`transition-transform ${open ? "rotate-180" : ""}`}>
-          <path d="M3.5 5.5 7 9l3.5-3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Two coloured bars: the account menu, beside the photo. */}
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+          <path d="M3 6.5h12" stroke="#C58F6B" strokeWidth="2" strokeLinecap="round" />
+          <path d="M3 11.5h12" stroke="#7FA8A0" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>
 

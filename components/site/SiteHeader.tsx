@@ -117,7 +117,7 @@ export default function SiteHeader() {
             exactly above the edges of everything below. It used to share the
             first row and wrap wherever it ran out of room, which is what made
             the top of the page look scattered. */}
-        <div className="home-wrap flex items-center gap-3 py-2.5 sm:gap-4">
+        <div className="flex w-full items-center gap-3 px-3 py-2 sm:gap-4 sm:px-4 lg:px-5">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -194,7 +194,7 @@ export default function SiteHeader() {
               header's search is only drawn on every other page. */}
           {!isHomePage && <HeaderSearch className="hidden min-w-0 flex-1 md:block" />}
 
-          <div className="ml-auto flex shrink-0 items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             {mounted ? (
               <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
@@ -221,7 +221,7 @@ export default function SiteHeader() {
             sticky header is one slim row for the rest of the page. */}
         {!compact && (
           <div className="hidden border-t border-border/70 xl:block">
-            <HeaderActions className="home-wrap flex" />
+            <HeaderActions className="flex w-full px-3 sm:px-4 lg:px-5" />
           </div>
         )}
 

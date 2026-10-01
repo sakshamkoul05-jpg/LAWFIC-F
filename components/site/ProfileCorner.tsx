@@ -93,36 +93,34 @@ export default function ProfileCorner({
      Aarti Chopra"), beside a larger photo, with the smiley under them. */
   const fullName = profile?.fullName?.trim() || name || tx("User");
 
+  /* The sheet's corner: the photo centred, the salutation on one line under
+     it, and the two-line account menu beside the pair. */
   return (
-    <div className="flex shrink-0 items-center gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex shrink-0 items-center gap-2.5">
+      <div className="flex flex-col items-center gap-1">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- a signed URL
           // that expires; the optimizer would cache it past its own lifetime.
           <img
             src={photo}
             alt=""
-            width={48}
-            height={48}
-            className="h-[48px] w-[48px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
+            width={44}
+            height={44}
+            className="h-[44px] w-[44px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
           />
         ) : (
-          <WalletAvatar seed={seed} size={48} />
+          <WalletAvatar seed={seed} size={44} />
         )}
 
-        <span className="hidden max-w-[150px] flex-col leading-tight lg:flex">
-          {greeting && privacy.showName && (
-            <>
-              <span className="text-[12px] font-medium text-foreground">
-                {tx("Very")} {tx(greeting)}
-              </span>
-              <span className="home-serif truncate text-[13.5px] text-foreground">{fullName}</span>
-              <span aria-hidden className="mt-0.5 self-end text-[16px] leading-none">
-                {GREETING_EMOJI}
-              </span>
-            </>
-          )}
-        </span>
+        {greeting && privacy.showName && (
+          <span className="hidden max-w-[240px] items-center gap-1 whitespace-nowrap text-[11.5px] leading-none text-foreground lg:flex">
+            <span className="font-medium">
+              {tx("Very")} {tx(greeting)},
+            </span>
+            <span className="home-serif truncate font-bold">{fullName}</span>
+            <span aria-hidden className="text-[13px]">{GREETING_EMOJI}</span>
+          </span>
+        )}
       </div>
 
       <ProfileMenu user={user} onSignInClick={onSignInClick} />
