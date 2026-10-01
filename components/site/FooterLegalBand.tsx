@@ -93,12 +93,13 @@ export default function FooterLegalBand() {
           className="mx-auto h-[34px] w-[34px] rounded-full ring-1 ring-[#E6C36B]/60"
         />
 
-        {/* ── Copyright on one line ──────────────────────────────────── */}
-        <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
-          <p className="text-[12.5px] font-extrabold leading-tight tracking-tight" style={{ color: GOLD }}>
-            © 2026–2027 LAWFIC
-          </p>
-          <span aria-hidden className="opacity-40">·</span>
+        {/* ── Copyright, centred under the badge ─────────────────────── */}
+        <p className="mt-1.5 text-center text-[13px] font-extrabold leading-tight tracking-tight" style={{ color: GOLD }}>
+          © 2026–2027 LAWFIC
+        </p>
+
+        {/* ── The two reserved-rights lines, on one line under it ─────── */}
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
           <p className="text-[11px] leading-tight">{tx("All Rights & Every Content Reserved.")}</p>
           <span aria-hidden className="hidden opacity-40 sm:inline">·</span>
           <p className="text-[11px] leading-tight">
