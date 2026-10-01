@@ -229,7 +229,7 @@ export default function HeaderActions({ className = "" }: { className?: string }
   const { firstName } = useProfileName();
 
   return (
-    <div className={`flex-wrap items-stretch justify-center gap-y-1 ${className}`}>
+    <div className={`items-start justify-between py-1.5 ${className}`}>
       {/* Theme first, as in the sheet — the site's own light/dark switch. */}
       <span title={tx("Theme")} className="header-quick-cell">
         <span className="grid h-[30px] place-items-center [&_button]:!size-[30px] [&_button]:!rounded-full [&_button]:!border-0 [&_button]:!bg-[#2D6CB5]/10 [&_button]:!text-[#2D6CB5]">

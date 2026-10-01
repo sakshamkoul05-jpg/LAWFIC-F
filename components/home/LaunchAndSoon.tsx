@@ -28,16 +28,16 @@ export default function LaunchAndSoon() {
 
   return (
     <>
-      <section aria-labelledby="launch-heading" className="mx-auto max-w-[1680px] px-4 py-12 sm:px-8">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
+      <section aria-labelledby="launch-heading" className="home-wrap home-section">
+        <div className="home-section-head">
           <h2 id="launch-heading" className="home-section-title">
             {tx("Latest Launch In LAWFIC")}
           </h2>
-          <Link href="/services" className="text-[13px] font-medium text-primary hover:text-primary-hover">
+          <Link href="/services" className="home-section-link">
             {tx("All services")} →
           </Link>
         </div>
-        <ul className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="home-section-body grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((s) => (
             <li key={s.slug}>
               <Link href={`/services/${s.slug}`} className="home-launch-card group">
@@ -61,15 +61,15 @@ export default function LaunchAndSoon() {
         </ul>
       </section>
 
-      <section aria-labelledby="soon-heading" className="border-t border-border bg-surface/40">
-        <div className="mx-auto max-w-[1680px] px-4 py-12 sm:px-8">
+      <section aria-labelledby="soon-heading" className="home-band is-tint">
+        <div className="home-wrap home-section">
           <h2 id="soon-heading" className="home-section-title">
             {tx("Coming Soon In LAWFIC")}
           </h2>
-          <p className="mt-2 text-[13.5px] text-muted-foreground">
+          <p className="home-section-sub">
             {soon.length} {tx("more services are on the way. Ask about any of them today — we will tell you what we can do.")}
           </p>
-          <ul className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+          <ul className="home-section-body grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {soon.map((s) => {
               const cat = categories.find((c) => c.id === s.categoryId);
               return (

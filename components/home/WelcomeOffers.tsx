@@ -113,15 +113,15 @@ export default function WelcomeOffers() {
   const tab = TABS.find((t) => t.id === active)!;
 
   return (
-    <section aria-labelledby="welcome-heading" className="home-welcome">
-      <div className="mx-auto max-w-[1680px] px-4 py-10 sm:px-8">
-        <h2 id="welcome-heading" className="home-serif text-[clamp(28px,3.4vw,46px)] leading-tight text-foreground">
+    <section aria-labelledby="welcome-heading" className="home-welcome home-band">
+      <div className="home-wrap home-section">
+        <h2 id="welcome-heading" className="home-section-title">
           {tx("A Heartfelt Welcome to the Lawfic Family")} <span aria-hidden className="text-[#E5262B]">❤</span>
         </h2>
-        <p className="home-serif mt-1 pl-[3%] text-[clamp(20px,2vw,30px)] text-foreground">
+        <p className="home-serif mt-2 text-[clamp(20px,1.8vw,26px)] font-bold text-[#C6A15B]">
           {name ? `${name} Ji!` : tx("Dear Customer Ji!")} <span aria-hidden>🙏</span>
         </p>
-        <div className="mt-4 max-w-[1100px] space-y-2 pl-[5%] text-[15px] leading-relaxed text-foreground/90">
+        <div className="mt-3 max-w-[920px] space-y-2 text-[14.5px] leading-relaxed text-muted-foreground">
           <p>
             {tx("We are delighted to have you as part of our family.")}
             <br />
@@ -136,9 +136,11 @@ export default function WelcomeOffers() {
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-6 xl:flex-row">
-          <div className="min-w-0 flex-1">
-            <div role="tablist" aria-label={tx("Offers for you")} className="flex flex-wrap gap-3">
+        <div className="home-section-body flex flex-col gap-6 xl:flex-row xl:items-stretch">
+          {/* The left column stretches to the wallet card's height and the
+              cards grow to fill it, so both sides finish on the same line. */}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div role="tablist" aria-label={tx("Offers for you")} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {TABS.map((t) => (
                 <button
                   key={t.id}
@@ -156,9 +158,9 @@ export default function WelcomeOffers() {
             </div>
 
             {/* Keyed by tab, so the five cards slide in afresh each time. */}
-            <ul key={tab.id} id={`welcome-panel-${tab.id}`} role="tabpanel" className="home-welcome-cards mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            <ul key={tab.id} id={`welcome-panel-${tab.id}`} role="tabpanel" className="home-welcome-cards mt-5 grid flex-1 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
               {tab.cards.map((c, i) => (
-                <li key={c.title} style={{ animationDelay: `${i * 60}ms` }}>
+                <li key={c.title} className="h-full" style={{ animationDelay: `${i * 60}ms` }}>
                   <Link href={c.href} className="home-welcome-card group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -186,26 +188,34 @@ export default function WelcomeOffers() {
 function WalletCard() {
   const { tx } = useLocale();
   return (
-    <aside aria-label={tx("Lawfic Wallet offers")} className="home-wallet-card xl:w-[480px] xl:shrink-0">
+    <aside aria-label={tx("Lawfic Wallet offers")} className="home-wallet-card xl:w-[400px] xl:shrink-0">
       <div className="home-wallet-card-inner">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mx-auto text-[#F2C94C]" aria-hidden>
-          <rect x="3" y="6" width="18" height="13" rx="2.5" fill="currentColor" />
-          <rect x="14" y="10.5" width="7" height="4" rx="1.2" fill="#0B1D4A" />
-          <path d="M5 6l9-3 1.5 3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-        </svg>
-        <p className="home-serif mt-2 text-center text-[28px] font-bold tracking-wide text-[#F2C94C]">{tx("LAWFIC WALLET")}</p>
+        <p className="home-serif flex items-center justify-center gap-2 text-center text-[24px] font-bold tracking-wide text-[#F2C94C]">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <rect x="3" y="6" width="18" height="13" rx="2.5" fill="currentColor" />
+            <rect x="14" y="10.5" width="7" height="4" rx="1.2" fill="#0B1D4A" />
+            <path d="M5 6l9-3 1.5 3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+          </svg>
+          {tx("LAWFIC WALLET")}
+        </p>
         <p className="mt-1 text-center text-[11.5px] text-white/80">{tx("Recharge once. Learn more. Get extra balance on every top-up.")}</p>
-        <ul className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {/* One row per tier — pay, get, extra, button — so the four line up
+            in columns and the card stays as short as the cards beside it. */}
+        <ul className="mt-4 space-y-2">
           {WALLET_RECHARGE.map((t) => (
             <li key={t.pay} className={`home-wallet-tier ${t.best ? "is-best" : ""}`}>
               {t.best && <span className="home-wallet-best">{tx("BEST VALUE")}</span>}
-              <span className="block text-[9px] text-white/70">{tx("Recharge with")}</span>
-              <span className="home-serif block text-[19px] font-bold text-white">{formatPaise(t.pay * 100)}</span>
-              <span className="my-1.5 block h-px bg-white/15" />
-              <span className="block text-[9px] text-white/70">{tx("You get")}</span>
-              <span className="home-serif block text-[21px] font-bold text-[#F2C94C]">{formatPaise(t.get * 100)}</span>
-              <span className="block text-[8.5px] text-white/60">
-                {formatPaise((t.get - t.pay) * 100)} {tx("extra")}
+              <span className="min-w-0">
+                <span className="block text-[9.5px] uppercase tracking-[0.08em] text-white/60">{tx("Recharge")}</span>
+                <span className="home-serif block text-[18px] font-bold leading-tight text-white">{formatPaise(t.pay * 100)}</span>
+              </span>
+              <span aria-hidden className="text-white/40">→</span>
+              <span className="min-w-0">
+                <span className="block text-[9.5px] uppercase tracking-[0.08em] text-white/60">{tx("You get")}</span>
+                <span className="home-serif block text-[18px] font-bold leading-tight text-[#F2C94C]">
+                  {formatPaise(t.get * 100)}
+                  <span className="ml-1.5 align-middle font-sans text-[9.5px] font-medium text-white/60">+{formatPaise((t.get - t.pay) * 100)}</span>
+                </span>
               </span>
               <Link href={`/wallet/topup?amount=${t.pay}`} className="home-wallet-btn">
                 {tx("Recharge now")}

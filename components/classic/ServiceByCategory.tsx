@@ -25,6 +25,11 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  * side by side would hide six of them at any width, and the whole point of the
  * section is that a visitor can see how much is on offer at once.
  */
+/* Each category is a card of the same size, showing at most this many rows
+   and "& more" to the rest — a twelve-row list beside a three-row one is what
+   made the section look uneven. */
+const SHOWN = 6;
+
 export default function ServiceByCategory() {
   const { tx } = useLocale();
 
@@ -32,31 +37,31 @@ export default function ServiceByCategory() {
     <section
       id="categories-blueprint"
       aria-labelledby="categories-blueprint-heading"
-      className="border-y border-border bg-surface/40"
+      className="home-band is-tint"
     >
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <div className="home-wrap home-section">
         <h2 id="categories-blueprint-heading" className="home-section-title">
           {tx("SERVICE EXPLORE BY CATEGORY !!")}
         </h2>
-        <p className="mt-2 max-w-2xl text-[13.5px] text-muted-foreground">
+        <p className="home-section-sub">
           {tx("Nine categories. Every row goes to the page that does the work.")}
         </p>
 
-        <div className="mt-9 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="home-section-body grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICE_CATEGORIES.map((cat) => (
-            <div key={cat.n}>
-              <p className="type-label text-subtle">
+            <div key={cat.n} className="home-cat-card">
+              <p className="type-label text-[#C6A15B]">
                 {tx("Category")} {cat.n}
               </p>
-              <h3 className="mt-1.5 text-[14.5px] font-semibold leading-snug text-foreground">
+              <h3 className="mt-1.5 border-b border-border pb-3 text-[15px] font-semibold leading-snug text-foreground">
                 <Link href={cat.href} className="transition-colors hover:text-primary">
                   {tx(cat.title)}
                 </Link>
               </h3>
 
               {cat.items.length > 0 ? (
-                <ul className="mt-4 space-y-1">
-                  {cat.items.map((item) => (
+                <ul className="mt-3 flex flex-1 flex-col space-y-0.5">
+                  {cat.items.slice(0, SHOWN).map((item) => (
                     <li key={item.label}>
                       <Link
                         href={item.href}
@@ -76,17 +81,17 @@ export default function ServiceByCategory() {
                       </Link>
                     </li>
                   ))}
-                  <li className="pt-1.5">
+                  <li className="mt-auto pt-2.5">
                     <Link
                       href={cat.href}
                       className="text-[12.5px] font-medium text-primary transition-colors hover:text-primary-hover"
                     >
-                      {tx("& more")} →
+                      {cat.items.length > SHOWN ? `${tx("& more")} (${cat.items.length - SHOWN})` : tx("& more")} →
                     </Link>
                   </li>
                 </ul>
               ) : (
-                <p className="mt-4 text-[13px] leading-relaxed text-subtle">
+                <p className="mt-3 text-[13px] leading-relaxed text-subtle">
                   {tx("The list for this category is still being written.")}{" "}
                   <Link href={cat.href} className="text-primary hover:text-primary-hover">
                     {tx("See the section")}

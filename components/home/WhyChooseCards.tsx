@@ -92,21 +92,21 @@ const BLUE: Reason[] = [
 export default function WhyChooseCards() {
   const { tx } = useLocale();
   return (
-    <section aria-labelledby="why-heading" className="home-why">
-      <div className="mx-auto max-w-[1680px] px-4 pt-10 sm:px-8">
+    <section aria-labelledby="why-heading" className="home-why home-band">
+      <div className="home-wrap pt-14">
         <h2 id="why-heading" className="home-section-title">
           {tx("Why Choose LAWFIC Service")}
         </h2>
       </div>
       <div className="home-why-band is-grey">
-        <ul className="mx-auto grid max-w-[1680px] grid-cols-1 gap-5 px-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 2xl:grid-cols-6">
+        <ul className="home-wrap grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {GREY.map((r) => (
             <ReasonCard key={r.title} reason={r} />
           ))}
         </ul>
       </div>
       <div className="home-why-band is-blue">
-        <ul className="mx-auto grid max-w-[1680px] grid-cols-1 gap-5 px-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-3 2xl:grid-cols-6">
+        <ul className="home-wrap grid grid-cols-1">
           {BLUE.map((r) => (
             <ReasonCard key={r.title} reason={r} blue />
           ))}
@@ -119,12 +119,17 @@ export default function WhyChooseCards() {
 function ReasonCard({ reason, blue }: { reason: Reason; blue?: boolean }) {
   const { tx } = useLocale();
   return (
-    <li className={`home-why-card ${blue ? "is-blue" : ""}`}>
-      <svg viewBox="0 0 64 64" width="76" height="76" aria-hidden className="mx-auto">
+    /* The blue card stands alone on its band, so it is laid out across the
+       full width — icon, title, words in one line — rather than as a lone
+       narrow card with an empty band beside it. */
+    <li className={`home-why-card ${blue ? "is-blue is-wide" : ""}`}>
+      <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden className="home-why-icon">
         {reason.icon}
       </svg>
-      <h3 className="home-serif mt-3 text-[clamp(19px,1.35vw,23px)] leading-snug text-white">{tx(reason.title)}</h3>
-      <p className="mt-4 text-[13.5px] italic leading-relaxed text-white/95">“{tx(reason.body)}”</p>
+      <span className="home-why-text">
+        <h3 className="home-serif text-[clamp(19px,1.35vw,22px)] font-bold leading-snug text-white">{tx(reason.title)}</h3>
+        <p className="mt-3 text-[13.5px] italic leading-relaxed text-white/95">“{tx(reason.body)}”</p>
+      </span>
     </li>
   );
 }

@@ -109,7 +109,15 @@ export default function SiteHeader() {
         className="sticky top-0 z-50 border-b border-border backdrop-blur-xl transition-colors duration-700"
         style={{ background: "var(--bar-header, color-mix(in srgb, var(--background) 85%, transparent))" }}
       >
-        <div className="flex w-full flex-wrap items-center gap-2 px-3 py-2 sm:gap-2.5 sm:px-4 lg:gap-2.5 lg:px-4">
+        {/* TWO ROWS, ONE GRID.
+            Row one is identity and place: menu, mark, location, language, the
+            app QR, and the account at the far edge. Row two is the client's
+            quick-icon bar on a line of its own, spread evenly across the same
+            width the page content uses — so its first and last icons sit
+            exactly above the edges of everything below. It used to share the
+            first row and wrap wherever it ran out of room, which is what made
+            the top of the page look scattered. */}
+        <div className="home-wrap flex items-center gap-3 py-2.5 sm:gap-4">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -128,7 +136,7 @@ export default function SiteHeader() {
                middle of the circle, which is the part of the mark the eye
                actually pairs it with. Aligning the tops puts two 56px squares
                on the same line. */
-            className="order-1 grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
+            className="grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
           >
             {/* FOUR LINES, FOUR COLOURS.
                 The client's note is about the ICON, not the menu behind it: the
@@ -155,118 +163,67 @@ export default function SiteHeader() {
             </svg>
           </button>
 
-          <Link href="/" aria-label="LAWFIC home" className="order-2 shrink-0">
+          <Link href="/" aria-label="LAWFIC home" className="shrink-0">
             <Wordmark />
           </Link>
 
-          {/* Where you are filing, then the language — both to the left of the
-              search, as the sheet places them. */}
-          <LocationBox className="order-3 hidden xl:block" />
-          <span className="order-4 hidden lg:block">
+          <span aria-hidden className="hidden h-12 w-px bg-border lg:block" />
+
+          <LocationBox className="hidden lg:block" />
+          <span className="hidden lg:block">
             <LanguageMenu />
           </span>
 
-          {/* The middle, and it takes everything left over.
-              No max-width: the client's note is that the search is long, and a
-              cap would leave a gap on a wide screen for no reason. It is the
-              only flexible item in the row, so it also absorbs the shrinking
-              rather than squeezing the controls either side of it.
-
-              LENGTH IS WON FROM THE OTHER ITEMS, NOT ASKED FOR HERE
-
-              `flex-1` already gives this everything spare, so the only way to
-              make it longer is to make its neighbours smaller — which is what
-              the sizes on the location box, the language chip and the action
-              cells are now doing. On a 1440 screen the row used to spend 874px
-              on fixed items and leave 430 for the search; it now leaves about
-              620, and past 1600 the search is the widest thing on the page by
-              a distance, which is the shape being asked for. */}
-          {/* `xl:grid`, not `xl:flex`: the component lays its cells out on a
-              grid with equal columns, and a `flex` here silently overrode that
-              and let every cell collapse to its own content — which is exactly
-              the ragged row this was meant to fix. */}
-          {/* The app download QR, between the language and the icons — the
-              sheet's "APP DOWNLOAD LAWFIC · SCAN TO DOWNLOAD" tile. It opens
-              the LAWFIC app's web version until the store listings exist. */}
+          {/* The app download QR — the sheet's "APP DOWNLOAD LAWFIC · SCAN TO
+              DOWNLOAD" tile. It opens the app's web version until the store
+              listings exist. */}
           <a
             href="https://law-m.vercel.app"
             target="_blank"
             rel="noreferrer"
             aria-label={t("nav.appDownload", "Download the LAWFIC app")}
-            className={`header-qr order-5 hidden ${compact ? "" : "lg:flex"}`}
+            className="header-qr hidden xl:flex"
           >
             <span className="header-qr-top">APP DOWNLOAD</span>
-            <span className="header-qr-brand">LAWFIC</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/app-download-qr.png" alt="" className="h-[46px] w-[46px] rounded-sm bg-white p-[2px]" />
+            <img src="/app-download-qr.png" alt="" className="h-[44px] w-[44px] rounded-sm bg-white p-[2px]" />
             <span className="header-qr-top">SCAN TO DOWNLOAD</span>
           </a>
 
-          <HeaderActions className={`order-6 hidden ${compact ? "" : "xl:flex"}`} />
+          {/* The home page has its own search band under this bar, so the
+              header's search is only drawn on every other page. */}
+          {!isHomePage && <HeaderSearch className="hidden min-w-0 flex-1 md:block" />}
 
-          {/* Compact, and no longer pinned to the far edge with `ml-auto`.
-              Signed out this used to be a "Sign in" pill a hundred and forty
-              pixels wide, held against the right rail; the search wanted that
-              width more than a second call to action did. */}
-          <div className="order-7 ml-auto flex shrink-0 items-center xl:ml-0">
+          <div className="ml-auto flex shrink-0 items-center gap-3">
             {mounted ? (
               <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
               <span className="h-11 w-14" aria-hidden />
             )}
+            {/* The second menu control, at the far right as in the sheet. */}
+            <button
+              type="button"
+              onClick={() => setDrawer(true)}
+              aria-label={t("nav.openMenu")}
+              className="hidden size-11 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:border-border-3 lg:grid"
+            >
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden className="size-[22px]">
+                <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
+                <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
+                <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
+                <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
+              </svg>
+            </button>
           </div>
-
-          {/* LAST IN THE MARKUP, FIFTH ON THE SCREEN.
-
-              The row wraps, and a flex row wraps whatever comes last in SOURCE
-              order — so with the search sitting in the middle it was the icons
-              that dropped to a second line, which is the one thing that had to
-              not happen. Ordering it LAST makes it the thing that wraps.
-              Ordering it fifth instead, while still last in the markup, was the
-              same bug wearing a different hat: a full-width item in the middle
-              of the order breaks the line before it as well as after, and the
-              icons ended up on a third row.
-
-              WHAT EACH WIDTH GETS
-
-              Below 2xl it is `order-8` AND `w-full`, so it sorts after
-              everything else and then takes a line of its own, running the
-              entire width of the header — about 1400px at 1440, which is
-              longer than it could ever be while sharing. The icons do not move:
-              they stay on the main row beside the mark, exactly where they
-              were.
-
-              At 2xl and up everything fits on one line with room to spare, so
-              it goes back to `flex-1` between the language chip and the icons
-              and takes whatever is left — around 880px at 1920.
-
-              The alternative was keeping one row at every width, which caps the
-              bar near 520px at 1440 and only gets there by squeezing the
-              location box, the language chip and the labels until the row is
-              cramped. That is the thing worth avoiding, so the layout does not
-              try. */}
-          {/* The second menu control, at the far right as in the sheet — the
-              same four-colour bars, the same drawer. */}
-          <button
-            type="button"
-            onClick={() => setDrawer(true)}
-            aria-label={t("nav.openMenu")}
-            className="order-[9] hidden size-12 shrink-0 self-center place-items-center rounded-xl border border-border transition-colors hover:border-border-3 xl:grid"
-          >
-            <svg viewBox="0 0 18 18" fill="none" aria-hidden className="size-[24px]">
-              <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
-            </svg>
-          </button>
-
-          {/* The home page has its own search band under this bar, so the
-              header's search is only drawn on every other page. */}
-          {!isHomePage && (
-            <HeaderSearch className="order-8 hidden w-full md:block 2xl:order-5 2xl:w-auto 2xl:min-w-[320px] 2xl:flex-1" />
-          )}
         </div>
+
+        {/* The quick-icon bar. Folds away once the reader scrolls, so the
+            sticky header is one slim row for the rest of the page. */}
+        {!compact && (
+          <div className="hidden border-t border-border/70 xl:block">
+            <HeaderActions className="home-wrap flex" />
+          </div>
+        )}
 
         {/* On a narrow screen the search moves under the row rather than off it */}
         {!isHomePage && (

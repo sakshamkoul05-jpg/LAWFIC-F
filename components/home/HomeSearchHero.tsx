@@ -146,7 +146,7 @@ export default function HomeSearchHero() {
 
   return (
     <section aria-label={tx("Search LAWFIC")} className="home-search-band">
-      <div className="mx-auto max-w-[1680px] px-4 py-8 sm:px-8 lg:py-10">
+      <div className="home-wrap py-8 lg:py-10">
         {/* The headline. One line at a time, crossfading; the region is polite
             so a screen reader hears each new line without being interrupted. */}
         <h2 className="home-search-title" aria-live="polite">
@@ -155,7 +155,7 @@ export default function HomeSearchHero() {
           </span>
         </h2>
 
-        <div ref={box} className="relative mx-auto mt-6 max-w-[1440px]">
+        <div ref={box} className="relative mt-6">
           <form onSubmit={submit} role="search" className="home-search-bar">
             <label className="relative shrink-0">
               <span className="sr-only">{tx("Search in")}</span>

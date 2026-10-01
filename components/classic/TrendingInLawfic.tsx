@@ -27,21 +27,21 @@ export default function TrendingInLawfic() {
     <section
       id="trending"
       aria-labelledby="trending-heading"
-      className="mx-auto max-w-7xl px-4 py-14 sm:px-6"
+      className="home-wrap home-section"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-4">
+      <div className="home-section-head">
         <h2 id="trending-heading" className="home-section-title">
           {tx("Top Twenty One Trending In LAWFIC")}
         </h2>
         <Link
           href="/services"
-          className="text-[13px] font-medium text-primary transition-colors hover:text-primary-hover"
+          className="home-section-link"
         >
           {tx("All services")} →
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="home-section-body grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {featured.map((t) => (
           <Link
             key={t.rank}

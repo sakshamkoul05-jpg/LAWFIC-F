@@ -22,7 +22,7 @@ export default function OfferPosters() {
 
   return (
     <section id="offers" aria-label={tx("Offers")} className="home-posters">
-      <div className="classic-marquee-group relative overflow-hidden py-4">
+      <div className="classic-marquee-group home-posters-rail relative overflow-hidden py-8">
         <div className="classic-marquee-track home-posters-track flex w-max items-stretch">
           {[0, 1].map((copy) => (
             <ul key={copy} className="flex items-stretch" aria-hidden={copy === 1 || undefined}>
@@ -37,7 +37,7 @@ export default function OfferPosters() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1680px] px-4 pb-6 sm:px-8">
+      <div className="home-wrap pb-10 pt-2">
         <Link href={FIRST_PURCHASE.href} className="home-first-strip">
           <span className="home-first-strip-big">{tx(FIRST_PURCHASE.headline)}</span>
           <span aria-hidden className="home-first-strip-cut" />

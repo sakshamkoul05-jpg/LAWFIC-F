@@ -1881,9 +1881,32 @@
 
 .home-serif { font-family: "Times New Roman", Times, Georgia, serif; }
 
+/* ONE CONTAINER, ONE RHYTHM.
+   Every band on the home page — header rows, menu, search, posters, every
+   section — lines up on the same 1440px column with the same side gutter, and
+   every section has the same top and bottom space, the same title, the same
+   subtitle and the same gap before its content. Uniform by construction
+   rather than by each section getting it nearly right. */
+.home-wrap {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 640px) { .home-wrap { padding-inline: 32px; } }
+.home-section { padding-block: 56px; }
+@media (max-width: 640px) { .home-section { padding-block: 40px; } }
+.home-band { border-top: 1px solid var(--border); }
+.home-band.is-tint { background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.home-section-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.home-section-sub { margin-top: 8px; max-width: 720px; font-size: 14px; line-height: 1.6; color: var(--muted-foreground); }
+.home-section-link { font-size: 13px; font-weight: 600; color: #C6A15B; white-space: nowrap; transition: color .15s ease; }
+.home-section-link:hover { color: #E6C36B; }
+.home-section-body { margin-top: 28px; }
+
 .home-section-title {
   font-family: "Times New Roman", Times, Georgia, serif;
-  font-size: clamp(26px, 2.6vw, 40px);
+  font-size: clamp(26px, 2.3vw, 36px);
   font-weight: 700;
   line-height: 1.15;
   color: var(--foreground);
@@ -1977,7 +2000,6 @@
 }
 .header-qr:hover { border-color: #E6B23C; transform: translateY(-1px); }
 .header-qr-top { font-size: 6.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted-foreground); line-height: 1; }
-.header-qr-brand { font-family: "Times New Roman", Times, Georgia, serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #C6A15B; line-height: 1.05; }
 
 .header-quick-cell {
   display: flex;
@@ -2118,9 +2140,16 @@
 .home-welcome { background: var(--background); overflow-x: clip; }
 .home-tab {
   position: relative;
-  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 8px 12px;
   border-radius: 12px;
-  font-size: 14px;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 13.5px;
   font-weight: 600;
   color: #fff;
   box-shadow: 0 8px 18px -12px rgba(0,0,0,.55);
@@ -2148,7 +2177,8 @@
 .home-welcome-card {
   position: relative;
   display: block;
-  aspect-ratio: 3 / 4;
+  height: 100%;
+  min-height: 240px;
   overflow: hidden;
   border-radius: 16px;
   background: #111;
@@ -2168,22 +2198,25 @@
   padding: 2px;
   background: linear-gradient(135deg, #F2C94C, #7A5A17 45%, #F2C94C);
 }
-.home-wallet-card-inner { height: 100%; border-radius: 18px; padding: 18px; background: radial-gradient(120% 120% at 0% 0%, #1D1D1D, #000 70%); }
+.home-wallet-card-inner { height: 100%; border-radius: 18px; padding: 16px 16px 12px; background: radial-gradient(120% 120% at 0% 0%, #1D1D1D, #000 70%); }
 .home-wallet-tier {
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1.3fr auto;
+  align-items: center;
+  gap: 10px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.04);
-  padding: 12px 8px 10px;
-  text-align: center;
+  padding: 9px 12px;
+  text-align: left;
   transition: transform .18s ease, border-color .18s ease;
 }
 .home-wallet-tier:hover { transform: translateY(-2px); border-color: rgba(242,201,76,.5); }
 .home-wallet-tier.is-best { border-color: #F2C94C; background: rgba(242,201,76,.08); }
 .home-wallet-best {
   position: absolute;
-  top: -8px; left: 50%;
-  transform: translateX(-50%);
+  top: -8px; right: 12px;
   white-space: nowrap;
   padding: 1px 7px;
   border-radius: 999px;
@@ -2195,8 +2228,8 @@
 }
 .home-wallet-btn {
   display: block;
-  margin-top: 8px;
-  padding: 5px 0;
+  padding: 7px 12px;
+  white-space: nowrap;
   border-radius: 999px;
   background: #F2C94C;
   color: #111;
@@ -2207,18 +2240,29 @@
 .home-wallet-btn:hover { filter: brightness(1.08); }
 
 /* --- Why choose ------------------------------------------------------------ */
-.home-why-band { margin-top: 22px; padding: 26px 0; }
+.home-why-band { margin-top: 28px; padding: 32px 0; }
 .home-why-band.is-grey { background: #D9D9D9; }
 .home-why-band.is-blue { margin-top: 0; background: #DCEAF7; }
 .home-why-card {
-  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  height: 100%;
+  border-radius: 14px;
   background: #737070;
-  padding: 22px 20px 24px;
+  padding: 26px 24px 28px;
   text-align: center;
   box-shadow: 0 12px 24px -16px rgba(0,0,0,.6);
   transition: transform .22s ease, box-shadow .22s ease;
 }
 .home-why-card.is-blue { background: #2E75B6; }
+.home-why-icon { flex-shrink: 0; }
+@media (min-width: 640px) {
+  .home-why-card.is-wide { flex-direction: row; align-items: center; gap: 28px; padding: 26px 36px; text-align: left; }
+  .home-why-card.is-wide .home-why-text { max-width: 900px; }
+}
+.home-why-card.is-wide:hover { transform: translateY(-2px); }
 .home-why-card:hover { transform: translateY(-4px); box-shadow: 0 20px 30px -16px rgba(0,0,0,.6); }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .home-why-band.is-grey { background: #2A2A2A; }
@@ -2226,6 +2270,20 @@
 }
 [data-theme="dark"] .home-why-band.is-grey { background: #2A2A2A; }
 [data-theme="dark"] .home-why-band.is-blue { background: #10243A; }
+
+/* --- Category cards ------------------------------------------------------ */
+.home-cat-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px 22px 18px;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.home-cat-card:hover { border-color: rgba(198,161,91,.55); transform: translateY(-2px); }
 
 /* --- Latest launch / coming soon ----------------------------------------- */
 .home-launch-card {
