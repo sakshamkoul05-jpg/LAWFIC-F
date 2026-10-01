@@ -84,15 +84,17 @@ export default function FooterLegalBand() {
       style={{ background: BAND, color: INK, borderColor: "rgba(230,195,107,0.35)" }}
     >
       <div className="mx-auto max-w-6xl px-5 py-3 text-center font-bold sm:px-8">
-        {/* ── Badge and copyright on one line ─────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
-          <Image
-            src="/lawfic-badge.webp"
-            alt={tx("LAWFIC")}
-            width={72}
-            height={72}
-            className="h-[24px] w-[24px] rounded-full ring-1 ring-[#E6C36B]/60"
-          />
+        {/* ── The badge, centred on top ──────────────────────────────── */}
+        <Image
+          src="/lawfic-badge.webp"
+          alt={tx("LAWFIC")}
+          width={72}
+          height={72}
+          className="mx-auto h-[34px] w-[34px] rounded-full ring-1 ring-[#E6C36B]/60"
+        />
+
+        {/* ── Copyright on one line ──────────────────────────────────── */}
+        <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
           <p className="text-[12.5px] font-extrabold leading-tight tracking-tight" style={{ color: GOLD }}>
             © 2026–2027 LAWFIC
           </p>
