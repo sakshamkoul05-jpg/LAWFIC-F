@@ -96,7 +96,7 @@ export default function ProfileCorner({
   /* The sheet's corner: the photo centred, the salutation on one line under
      it, and the two-line account menu beside the pair. */
   return (
-    <div className="flex shrink-0 items-center gap-2.5">
+    <div className="flex shrink-0 items-center gap-3">
       <div className="flex flex-col items-center gap-1">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- a signed URL
@@ -104,12 +104,12 @@ export default function ProfileCorner({
           <img
             src={photo}
             alt=""
-            width={44}
-            height={44}
-            className="h-[44px] w-[44px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
+            width={40}
+            height={40}
+            className="h-[40px] w-[40px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
           />
         ) : (
-          <WalletAvatar seed={seed} size={44} />
+          <WalletAvatar seed={seed} size={40} />
         )}
 
         {greeting && privacy.showName && (

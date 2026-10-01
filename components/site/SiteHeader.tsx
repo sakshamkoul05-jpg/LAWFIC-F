@@ -117,7 +117,11 @@ export default function SiteHeader() {
             exactly above the edges of everything below. It used to share the
             first row and wrap wherever it ran out of room, which is what made
             the top of the page look scattered. */}
-        <div className="flex w-full items-center gap-3 px-3 py-2 sm:gap-4 sm:px-4 lg:px-5">
+        {/* ONE CENTRE LINE. Every control on this row is the same 52px tall
+            and centred on the same line — menu, location, language, QR and the
+            account menu — with the logo stack centred between them, so the row
+            reads as one bar instead of items at different heights. */}
+        <div className="flex w-full items-center gap-3 px-3 py-2.5 sm:gap-4 sm:px-4 lg:px-6">
           <button
             type="button"
             onClick={() => setDrawer(true)}
@@ -136,7 +140,7 @@ export default function SiteHeader() {
                middle of the circle, which is the part of the mark the eye
                actually pairs it with. Aligning the tops puts two 56px squares
                on the same line. */
-            className="grid size-10 shrink-0 self-start place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground sm:size-12 lg:size-14"
+            className="grid size-11 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground lg:size-[52px]"
           >
             {/* FOUR LINES, FOUR COLOURS.
                 The client's note is about the ICON, not the menu behind it: the
@@ -167,10 +171,10 @@ export default function SiteHeader() {
             <Wordmark />
           </Link>
 
-          <span aria-hidden className="hidden h-12 w-px bg-border lg:block" />
+          <span aria-hidden className="mx-1 hidden h-10 w-px bg-border lg:block" />
 
           <LocationBox className="hidden lg:block" />
-          <span className="hidden lg:block">
+          <span className="hidden lg:block [&_button]:h-[52px] [&_button]:rounded-xl [&_button]:px-4 [&_button]:text-[13px]">
             <LanguageMenu />
           </span>
 
@@ -184,10 +188,13 @@ export default function SiteHeader() {
             aria-label={t("nav.appDownload", "Download the LAWFIC app")}
             className="header-qr hidden xl:flex"
           >
-            <span className="header-qr-top">APP DOWNLOAD</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/app-download-qr.png" alt="" className="h-[44px] w-[44px] rounded-sm bg-white p-[2px]" />
-            <span className="header-qr-top">SCAN TO DOWNLOAD</span>
+            <img src="/app-download-qr.png" alt="" className="h-[40px] w-[40px] rounded-[4px] bg-white p-[2px]" />
+            <span className="flex flex-col leading-none">
+              <span className="header-qr-top">APP DOWNLOAD</span>
+              <span className="header-qr-name">LAWFIC</span>
+              <span className="header-qr-top">SCAN TO DOWNLOAD</span>
+            </span>
           </a>
 
           {/* The home page has its own search band under this bar, so the
@@ -200,20 +207,6 @@ export default function SiteHeader() {
             ) : (
               <span className="h-11 w-14" aria-hidden />
             )}
-            {/* The second menu control, at the far right as in the sheet. */}
-            <button
-              type="button"
-              onClick={() => setDrawer(true)}
-              aria-label={t("nav.openMenu")}
-              className="hidden size-11 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:border-border-3 lg:grid"
-            >
-              <svg viewBox="0 0 18 18" fill="none" aria-hidden className="size-[22px]">
-                <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
-                <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
-                <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
-                <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
-              </svg>
-            </button>
           </div>
         </div>
 

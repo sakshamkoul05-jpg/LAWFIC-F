@@ -1989,17 +1989,18 @@
 
 /* --- Header additions: QR tile and the quick-icon bar --------------------- */
 .header-qr {
-  flex-direction: column;
+  height: 52px;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 1px;
-  padding: 3px 7px;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 0 10px 0 6px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   transition: border-color .15s ease, transform .15s ease;
 }
 .header-qr:hover { border-color: #E6B23C; transform: translateY(-1px); }
-.header-qr-top { font-size: 6.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted-foreground); line-height: 1; }
+.header-qr-name { margin: 3px 0; font-family: "Times New Roman", Times, Georgia, serif; font-size: 13px; font-weight: 700; letter-spacing: .1em; color: #C6A15B; }
+.header-qr-top { font-size: 7px; font-weight: 700; letter-spacing: .08em; color: var(--muted-foreground); line-height: 1; }
 
 .header-quick-cell {
   display: flex;

@@ -99,22 +99,22 @@ export default function LocationBox({ className = "" }: { className?: string }) 
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={tx("Choose your state and city")}
-        className="flex w-[232px] flex-col items-start gap-1 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-surface-2/60"
+        className="flex h-[52px] w-[250px] flex-col justify-center gap-[5px] rounded-xl border border-border px-3 text-left transition-colors hover:border-border-3"
       >
-        <span className="flex items-center gap-2">
+        <span className="flex w-full items-center gap-2">
           {/* Drawn, not an emoji: Windows has no flag emoji and shows "IN". */}
           <IndiaFlag />
-          <span className="text-[18px] font-medium leading-none tracking-wide text-foreground">{tx("BHARAT")}</span>
+          <span className="text-[14px] font-semibold leading-none tracking-wide text-foreground">{tx("BHARAT")}</span>
+          <span className="ml-auto flex min-w-0 items-center gap-1 text-[10.5px] leading-none text-muted-foreground">
+            <PinIcon />
+            <span className="max-w-[64px] truncate">{city ?? tx("City")}</span>
+            <Chevron open={open} />
+            <span className="ml-1 max-w-[70px] truncate">{region?.name ?? tx("State")}</span>
+            <Chevron open={open} />
+          </span>
         </span>
-        <span className="flex w-full items-center gap-1 text-[10.5px] text-muted-foreground">
-          <PinIcon />
-          <span className="max-w-[86px] truncate">{city ?? tx("City")}</span>
-          <Chevron open={open} />
-          <span className="ml-2 max-w-[96px] truncate">{region?.name ?? tx("State")}</span>
-          <Chevron open={open} />
-        </span>
-        <span className="marquee-clip mt-0.5 w-full rounded-md border border-border-3 px-2 py-[3px]">
-          <span className="marquee-track text-[10px] font-medium text-foreground/80">
+        <span className="marquee-clip w-full">
+          <span className="marquee-track text-[10px] font-medium leading-none text-[#C6A15B]">
             <span className="pr-10">{tx("Pan India Best & Quality Service,")} {tx("Meri Bhasha Meri Pehchan")}</span>
             <span aria-hidden className="pr-10">
               {tx("Pan India Best & Quality Service,")} {tx("Meri Bhasha Meri Pehchan")}

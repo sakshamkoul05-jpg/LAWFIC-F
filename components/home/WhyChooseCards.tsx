@@ -94,7 +94,7 @@ export default function WhyChooseCards() {
   return (
     <section aria-labelledby="why-heading" className="home-why home-band">
       <div className="home-wrap pt-14">
-        <h2 id="why-heading" className="home-section-title">
+        <h2 id="why-heading" className="home-section-title text-center">
           {tx("Why Choose LAWFIC Service")}
         </h2>
       </div>
