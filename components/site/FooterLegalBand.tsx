@@ -53,11 +53,14 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
  * down rather than shouting. It is a notice, not a section.
  */
 
-/** Read from the blueprint's cell fills. */
-const BAND = "#FEC200";
-const INK = "#1A1208";
-/* The blueprint's #FF0000, darkened until it passes on this yellow. */
-const LINK = "#9A0000";
+/* 2026 revision, at the owner's request: half the height, every line bold,
+   and the yellow replaced with the site's own navy and champagne gold so the
+   band reads as part of the page rather than a sticker on the end of it.
+   Cream on this navy is about 14:1 and the gold links about 9:1. */
+const BAND = "linear-gradient(180deg, #0B1D4A 0%, #071331 100%)";
+const INK = "#F3EEE2";
+const GOLD = "#E6C36B";
+const LINK = "#F2C94C";
 
 type LegalLink = { label: string; href?: string };
 
@@ -77,58 +80,56 @@ export default function FooterLegalBand() {
   return (
     <section
       aria-label={tx("Legal notices")}
-      style={{ background: BAND, color: INK }}
+      className="border-t"
+      style={{ background: BAND, color: INK, borderColor: "rgba(230,195,107,0.35)" }}
     >
-      <div className="mx-auto max-w-6xl px-5 py-4 text-center sm:px-8 sm:py-5">
-        {/* ── The badge, at the top, as the blueprint anchors it ──────── */}
-        <Image
-          src="/lawfic-badge.webp"
-          alt={tx("LAWFIC")}
-          width={72}
-          height={72}
-          className="mx-auto h-[38px] w-[38px] sm:h-[44px] sm:w-[44px]"
-        />
+      <div className="mx-auto max-w-6xl px-5 py-3 text-center font-bold sm:px-8">
+        {/* ── Badge and copyright on one line ─────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
+          <Image
+            src="/lawfic-badge.webp"
+            alt={tx("LAWFIC")}
+            width={72}
+            height={72}
+            className="h-[24px] w-[24px] rounded-full ring-1 ring-[#E6C36B]/60"
+          />
+          <p className="text-[12.5px] font-extrabold leading-tight tracking-tight" style={{ color: GOLD }}>
+            © 2026–2027 LAWFIC
+          </p>
+          <span aria-hidden className="opacity-40">·</span>
+          <p className="text-[11px] leading-tight">{tx("All Rights & Every Content Reserved.")}</p>
+          <span aria-hidden className="hidden opacity-40 sm:inline">·</span>
+          <p className="text-[11px] leading-tight">
+            {tx("Unauthorized reproduction or use is strictly prohibited and punishable under law.")}
+          </p>
+        </div>
 
-        {/* ── Copyright ───────────────────────────────────────────────── */}
-        <p className="mt-2 text-[16px] font-extrabold leading-tight tracking-tight sm:text-[18px]">
-          © 2026–2027 LAWFIC
-        </p>
-        <p className="mt-1 text-[13px] font-bold sm:text-[15px]">
-          {tx("All Rights & Every Content Reserved.")}
-        </p>
-        <p className="mx-auto mt-1.5 max-w-4xl text-[12px] font-semibold leading-snug sm:text-[13.5px]">
-          {tx("Unauthorized reproduction or use is strictly prohibited and punishable under law.")}
-        </p>
-
-        {/* ── The notice in full ──────────────────────────────────────── */}
-        <p className="mx-auto mt-2.5 max-w-6xl text-[10.5px] leading-snug sm:text-[11px]">
+        {/* ── The notice in full, as one paragraph ────────────────────── */}
+        <p className="mx-auto mt-1.5 max-w-6xl text-[9.5px] leading-snug opacity-85">
           {tx(
             "Unauthorized reproduction, copying, distribution, or use of any content from this website — including, idea, text, images, logos, pattern or design.",
-          )}
-        </p>
-        <p className="mx-auto mt-1 max-w-6xl text-[10.5px] font-bold leading-snug sm:text-[11px]">
+          )}{" "}
           {tx(
             "Without prior written permission is strictly prohibited. Any such act shall be treated as an offence under Section 63 of the Copyright Act, 1957, which is punishable with imprisonment for a term ranging from six months to three years, along with a fine ranging from ₹50,000 to ₹2,00,000, or both.",
           )}
         </p>
 
         {/* ── Customer safety warning ─────────────────────────────────── */}
-        {/* The one line here that can stop somebody handing an OTP to a
-            stranger, so it is given a rule above and below and the largest
-            weight after the copyright, as the blueprint gives it. */}
-        <div
-          className="mx-auto mt-3 max-w-6xl border-y py-2.5"
-          style={{ borderColor: "rgba(26,18,8,0.28)" }}
+        {/* Still ruled off above and below: it is the one line here that can
+            stop somebody handing an OTP to a stranger. */}
+        <p
+          className="mx-auto mt-2 max-w-6xl border-y py-1.5 text-[9.5px] leading-snug"
+          style={{ borderColor: "rgba(230,195,107,0.25)" }}
         >
-          <p className="text-[14px] font-extrabold sm:text-[16px]">
-            <span aria-hidden>⚠️</span> {tx("Customer Safety Warning")}
-          </p>
-          <p className="mt-1.5 text-[10.5px] leading-snug sm:text-[11px]">
+          <span className="text-[11px] font-extrabold" style={{ color: GOLD }}>
+            <span aria-hidden>⚠️</span> {tx("Customer Safety Warning")}:
+          </span>{" "}
+          <span className="opacity-90">
             {tx(
               "Lawfic never asks for OTP, passwords, payment details, or personal banking information via phone calls, SMS, or email. Beware of fraudulent individuals or websites impersonating Lawfic. For any verification or query, please contact us only through our official website or registered contact details.",
             )}
-          </p>
-        </div>
+          </span>
+        </p>
 
         {/* ── The five documents ──────────────────────────────────────── */}
         {/* ONE ROW, NOT FOUR-PLUS-ONE.
@@ -138,10 +139,10 @@ export default function FooterLegalBand() {
             something the browser arrives at — each column is an equal share of
             whatever width there is, so it cannot fall over. Two columns on a
             phone, where five across would be unreadable. */}
-        <ul className="mx-auto mt-3 grid max-w-5xl grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-5 sm:gap-x-4">
+        <ul className="mx-auto mt-2 grid max-w-5xl grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-5 sm:gap-x-4">
           {LEGAL_LINKS.map((item) => {
             const label = (
-              <span className="block text-[10px] font-bold leading-snug sm:text-[10.5px]">
+              <span className="block text-[9.5px] font-bold leading-snug">
                 {tx(item.label)}
               </span>
             );
