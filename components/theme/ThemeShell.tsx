@@ -5,6 +5,7 @@ import { ProfileProvider } from "@/components/profile/ProfileProvider";
 import AnnouncementTicker from "@/components/site/AnnouncementTicker";
 import SiteHeader from "@/components/site/SiteHeader";
 import ClassicCategoryTabs from "@/components/classic/ClassicCategoryTabs";
+import HomeSearchHero from "@/components/home/HomeSearchHero";
 import Footer from "@/components/site/Footer";
 import { QuickActionsProvider } from "@/components/quick-actions/QuickActionsContext";
 import QuickActionsWidget from "@/components/quick-actions/QuickActionsWidget";
@@ -47,6 +48,7 @@ export default function ThemeShell({
 }) {
   const pathname = usePathname();
   const isBackOffice = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isHome = pathname === "/";
 
   if (isBackOffice) {
     return (
@@ -82,9 +84,14 @@ export default function ThemeShell({
             </p>
           )}
 
-          {/* Above the logo, as the blueprint places it. */}
-          <AnnouncementTicker lines={tickerLines} />
+          {/* Above the logo, as the blueprint places it — and on the home page
+              only: "Ye sirf home page par hoga wo bhi sabse top par". */}
+          {isHome && <AnnouncementTicker lines={tickerLines} />}
           <SiteHeader />
+          {/* The search band sits between the logo bar and the menu on the
+              home page, item 3 of the final order. Every other page keeps the
+              search in the header. */}
+          {isHome && <HomeSearchHero />}
           <ClassicCategoryTabs />
           <main className="flex-1">{children}</main>
           <Footer />

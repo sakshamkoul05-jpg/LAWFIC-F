@@ -25,17 +25,19 @@ export default function Wordmark({ className = "" }: { className?: string }) {
       <img
         src="/lawfic-logo.png"
         alt=""
-        className="h-10 w-10 shrink-0 object-contain sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+        className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14 lg:h-[68px] lg:w-[68px]"
       />
-      <span className="mt-1 font-display text-[15px] font-bold leading-none text-foreground [letter-spacing:0.06em] sm:text-[17px] lg:text-[19px]">
+      <span className="home-serif mt-1 text-[16px] font-bold leading-none text-foreground [letter-spacing:0.05em] sm:text-[19px] lg:text-[22px]">
         LAWFIC
       </span>
       {/* Sized so twenty-five tracked characters land on the width of six
           large ones above. The name is tracked OUT and the tagline set small
           and tight; matching them by choosing a font size alone leaves one
           line visibly wider at every breakpoint but the one it was picked at. */}
-      <span className="mt-[3px] hidden w-full text-center text-[5.5px] font-medium uppercase leading-none text-muted-foreground sm:block sm:text-[6px] lg:text-[6.6px] [letter-spacing:0.02em]">
-        {tx("Quality service with love")}
+      {/* "Quality Service With Love !!" under the name, set so it can actually
+          be read — the client's note: "ye ache se set hona chahiye". */}
+      <span className="mt-[3px] hidden w-full whitespace-nowrap text-center text-[7.5px] font-medium leading-none text-muted-foreground sm:block lg:text-[8.5px]">
+        {tx("Quality Service With Love")} <span aria-hidden className="text-[#E6B23C]">♥</span>
       </span>
     </span>
   );

@@ -80,7 +80,8 @@ export function LanguageMenu() {
             about what it opens, the full names are one click away inside, and
             the button keeps its aria-label at every width. */}
         <span className="hidden sm:inline lg:hidden">{current.code.toUpperCase()}</span>
-        <span className="hidden 2xl:inline">{current.native}</span>
+        {/* The sheet shows the language by name — "English ▼". */}
+        <span className="hidden lg:inline">{current.native}</span>
         <Caret />
       </button>
 

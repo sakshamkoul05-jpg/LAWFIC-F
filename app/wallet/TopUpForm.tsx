@@ -14,11 +14,13 @@ import { breakIntoNotes } from "@/lib/wallet3d/banknote";
 
 export default function TopUpForm({
   initialBalancePaise,
+  initialAmount,
   paymentsReady,
   look,
   config: initialConfig,
 }: {
   initialBalancePaise: number;
+  initialAmount?: number;
   paymentsReady: boolean;
   look: WalletPrefs;
   /** The stored configuration, so the wallet does not change material between
@@ -39,7 +41,7 @@ export default function TopUpForm({
     busy,
     startTopUp,
     clearMessage,
-  } = useTopUp(initialBalancePaise, paymentsReady);
+  } = useTopUp(initialBalancePaise, paymentsReady, initialAmount);
 
   const { config } = useWalletConfig(look.nameplate, initialConfig);
 

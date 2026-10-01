@@ -35,8 +35,8 @@ export default function ServiceByCategory() {
       className="border-y border-border bg-surface/40"
     >
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <h2 id="categories-blueprint-heading" className="type-h2 text-foreground">
-          {tx("Service explore by category")}
+        <h2 id="categories-blueprint-heading" className="home-section-title">
+          {tx("SERVICE EXPLORE BY CATEGORY !!")}
         </h2>
         <p className="mt-2 max-w-2xl text-[13.5px] text-muted-foreground">
           {tx("Nine categories. Every row goes to the page that does the work.")}

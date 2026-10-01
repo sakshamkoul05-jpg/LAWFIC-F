@@ -89,9 +89,14 @@ import {
    carousel to the colour of the flyer on screen, and removed everywhere else,
    so this strip is navy on every other page without knowing the carousel
    exists. */
-const BAND = "var(--bar-bg, var(--band))";
-const GOLD = "var(--band-gold)";
-const INK = "var(--band-ink-dim)";
+/* THE CLIENT'S SHEET, 2026: "black bg, yellow text", both lines always on
+   show. The chevron that hid the second row is gone — the sheet draws all
+   twenty-seven, in two lines, and asks that every service be reachable with a
+   click. Yellow is the resting ink; the current tab turns white and carries
+   the rule, so it is still the one lit thing on the bar. */
+const BAND = "#000000";
+const GOLD = "#FFFFFF";
+const INK = "#F2C94C";
 
 export default function ClassicCategoryTabs() {
   const pathname = usePathname();
@@ -99,24 +104,19 @@ export default function ClassicCategoryTabs() {
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<{ left: number; top: number } | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* The tab the panel hangs off, kept so it can be re-measured on scroll. */
   const anchorEl = useRef<HTMLElement | null>(null);
-  const expandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openTab = openId ? classicTabs.find((x) => x.id === openId) : null;
 
   /* One flat order across both rows, because the arrow keys do not care that
-     twelve of the twenty-seven happen to be behind a chevron. */
+     the twenty-seven happen to sit in two lines. */
   const ORDERED = useMemo(() => [...TABS_VISIBLE, ...TABS_COLLAPSED], []);
 
   const tabEls = useRef(new Map<string, HTMLAnchorElement>());
   /** null means "nobody has arrowed yet" — see rovingId below. */
   const [roving, setRoving] = useState<string | null>(null);
-  /* Set when a tab in the collapsed row is arrowed to: the row has to un-hide
-     before the element can take focus, so the focus waits a render. */
-  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   /* Handed to the panel to say "you were opened by a keypress, take focus".
      A panel opened by hover must NOT steal it. */
   const [focusPanel, setFocusPanel] = useState(false);
@@ -165,32 +165,15 @@ export default function ClassicCategoryTabs() {
     if (returnFocus && id) tabEls.current.get(id)?.focus();
   }, []);
 
-  /* The collapsed row is `hidden` until it is expanded, and a hidden element
-     cannot take focus. So expanding and focusing are two renders, not one. */
-  useEffect(() => {
-    if (!pendingFocus) return;
-    const el = tabEls.current.get(pendingFocus);
-    if (!el) return;
-    el.focus();
-    setPendingFocus(null);
-  }, [pendingFocus, expanded]);
-
   const focusTabAt = useCallback(
     (index: number) => {
       const n = ORDERED.length;
       if (n === 0) return;
       const next = ORDERED[((index % n) + n) % n];
       setRoving(next.id);
-
-      const collapsed = TABS_COLLAPSED.some((tb) => tb.id === next.id);
-      if (collapsed && !expanded) {
-        setExpanded(true);
-        setPendingFocus(next.id);
-        return;
-      }
       tabEls.current.get(next.id)?.focus();
     },
-    [ORDERED, expanded],
+    [ORDERED],
   );
 
   /**
@@ -242,7 +225,6 @@ export default function ClassicCategoryTabs() {
 
   useEffect(() => {
     close();
-    setExpanded(false);
   }, [pathname, close]);
 
   useEffect(() => {
@@ -253,7 +235,6 @@ export default function ClassicCategoryTabs() {
          it, and yanking focus up to the navigation from there would be worse
          than leaving it. The panel's own handler does the focus return. */
       close();
-      setExpanded(false);
     };
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
@@ -275,21 +256,7 @@ export default function ClassicCategoryTabs() {
     cancelClose();
     closeTimer.current = setTimeout(close, 340);
   };
-  const cancelCollapse = () => {
-    if (expandTimer.current) clearTimeout(expandTimer.current);
-    expandTimer.current = null;
-  };
-  const scheduleCollapse = () => {
-    cancelCollapse();
-    expandTimer.current = setTimeout(() => setExpanded(false), 340);
-  };
-  useEffect(
-    () => () => {
-      cancelClose();
-      cancelCollapse();
-    },
-    [],
-  );
+  useEffect(() => () => cancelClose(), []);
 
   const open = (tab: NavTab, el: HTMLElement) => {
     cancelClose();
@@ -368,10 +335,10 @@ export default function ClassicCategoryTabs() {
            the latter. The weight does as much work as the size: a half-step up
            in weight buys legibility on a dark ground that another point of
            size does not. */
-        className="tab-link group shrink-0 grow-0 truncate whitespace-nowrap px-3 py-4 text-center text-[15px] font-medium lg:grow lg:px-2"
+        className="tab-link group shrink-0 grow-0 truncate whitespace-nowrap px-3 py-2.5 text-center text-[15px] font-medium lg:grow lg:px-2"
       >
         <span
-          className="tab-label group-hover:!text-[var(--band-gold)]"
+          className="tab-label group-hover:!text-white"
           style={{ color: active ? GOLD : INK }}
         >
           {t(`tab.${tab.id}`, tab.label)}
@@ -397,7 +364,7 @@ export default function ClassicCategoryTabs() {
        row uses, so the bar has a bottom. */
     <div
       className="relative border-b"
-      style={{ background: BAND, borderColor: "var(--band-edge)" }}
+      style={{ background: BAND, borderColor: "rgba(242,201,76,0.25)" }}
       onMouseLeave={scheduleClose}
     >
       <nav aria-label="Sections">
@@ -419,45 +386,11 @@ export default function ClassicCategoryTabs() {
           {TABS_VISIBLE.map(renderTab)}
         </div>
 
-        {/* THE CHEVRON, centred under them. */}
-        <div
-          className="flex justify-center"
-          onMouseEnter={() => {
-            cancelCollapse();
-            setExpanded(true);
-          }}
-          onMouseLeave={scheduleCollapse}
-        >
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-            aria-controls="more-sections"
-            aria-label={expanded ? "Hide the other sections" : "Show the other sections"}
-            className="grid h-6 w-24 place-items-center rounded-b-lg transition-colors hover:bg-white/5"
-            style={{ color: GOLD }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              aria-hidden
-              className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-            >
-              <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
-
         {/* THE SECOND ROW — Tab 16 to Tab 27. */}
         <div
           id="more-sections"
-          hidden={!expanded}
-          onMouseEnter={cancelCollapse}
-          onMouseLeave={scheduleCollapse}
-          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 pb-1 sm:px-5 lg:px-6"
-          style={{ borderColor: "var(--band-edge)" }}
+          className="classic-tabs-nav flex w-full items-stretch overflow-x-auto border-t px-3 sm:px-5 lg:px-6"
+          style={{ borderColor: "rgba(242,201,76,0.18)" }}
         >
           {TABS_COLLAPSED.map(renderTab)}
         </div>

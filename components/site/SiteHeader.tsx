@@ -79,6 +79,23 @@ export default function SiteHeader() {
     };
   }, [drawer]);
 
+  /* The header is sticky, and with the quick-icon row it stands about two
+     hundred pixels tall — a fifth of a laptop screen held over the page the
+     whole way down. Once the reader is past the top, the icon row and the QR
+     fold away and the bar keeps only the logo, location, language and account.
+     Two thresholds, not one, so the change in height cannot flip it back. */
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setCompact((c) => (c ? y > 60 : y > 260));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const isHomePage = pathname === "/";
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -168,7 +185,24 @@ export default function SiteHeader() {
               grid with equal columns, and a `flex` here silently overrode that
               and let every cell collapse to its own content — which is exactly
               the ragged row this was meant to fix. */}
-          <HeaderActions className="order-6 hidden xl:grid" />
+          {/* The app download QR, between the language and the icons — the
+              sheet's "APP DOWNLOAD LAWFIC · SCAN TO DOWNLOAD" tile. It opens
+              the LAWFIC app's web version until the store listings exist. */}
+          <a
+            href="https://law-m.vercel.app"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("nav.appDownload", "Download the LAWFIC app")}
+            className={`header-qr order-5 hidden ${compact ? "" : "lg:flex"}`}
+          >
+            <span className="header-qr-top">APP DOWNLOAD</span>
+            <span className="header-qr-brand">LAWFIC</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/app-download-qr.png" alt="" className="h-[46px] w-[46px] rounded-sm bg-white p-[2px]" />
+            <span className="header-qr-top">SCAN TO DOWNLOAD</span>
+          </a>
+
+          <HeaderActions className={`order-6 hidden ${compact ? "" : "xl:flex"}`} />
 
           {/* Compact, and no longer pinned to the far edge with `ml-auto`.
               Signed out this used to be a "Sign in" pill a hundred and forty
@@ -211,13 +245,35 @@ export default function SiteHeader() {
               location box, the language chip and the labels until the row is
               cramped. That is the thing worth avoiding, so the layout does not
               try. */}
-          <HeaderSearch className="order-8 hidden w-full md:block 2xl:order-5 2xl:w-auto 2xl:min-w-[320px] 2xl:flex-1" />
+          {/* The second menu control, at the far right as in the sheet — the
+              same four-colour bars, the same drawer. */}
+          <button
+            type="button"
+            onClick={() => setDrawer(true)}
+            aria-label={t("nav.openMenu")}
+            className="order-[9] hidden size-12 shrink-0 self-center place-items-center rounded-xl border border-border transition-colors hover:border-border-3 xl:grid"
+          >
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden className="size-[24px]">
+              <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
+              <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
+            </svg>
+          </button>
+
+          {/* The home page has its own search band under this bar, so the
+              header's search is only drawn on every other page. */}
+          {!isHomePage && (
+            <HeaderSearch className="order-8 hidden w-full md:block 2xl:order-5 2xl:w-auto 2xl:min-w-[320px] 2xl:flex-1" />
+          )}
         </div>
 
         {/* On a narrow screen the search moves under the row rather than off it */}
-        <div className="border-t border-border/60 px-3 py-2 md:hidden">
-          <HeaderSearch />
-        </div>
+        {!isHomePage && (
+          <div className="border-t border-border/60 px-3 py-2 md:hidden">
+            <HeaderSearch />
+          </div>
+        )}
       </header>
 
       {/* Everything, in one place. Opened from the hamburger at any width. */}

@@ -151,6 +151,20 @@ export const TRENDING: Trend[] = [
   { rank: 8, label: "Rent Agreement", section: "Legal", href: "/document/rent-agreement" },
   { rank: 9, label: "FSSAI Registration", section: "Business", href: "/document/fssai" },
   { rank: 10, label: "Birth Certificate", section: "Certificates", href: "/document/birth-certificate" },
+  /* "Top Twenty One Tranding In LAWFIC" — the final sheet takes the list from
+     ten to twenty-one. The eleven added are all on the website's own document
+     list; ordered by the same rule as above, not by invented demand. */
+  { rank: 11, label: "Private Limited Company", section: "Startup", href: "/business" },
+  { rank: 12, label: "Affidavit Preparation", section: "Legal", href: "/document/affidavit" },
+  { rank: 13, label: "Income Certificate", section: "Certificates", href: "/document/income-certificate" },
+  { rank: 14, label: "Domicile Certificate", section: "Certificates", href: "/document/domicile-certificate" },
+  { rank: 15, label: "Marriage Certificate", section: "Certificates", href: "/document/marriage-certificate" },
+  { rank: 16, label: "Caste Certificate", section: "Certificates", href: "/document/caste-certificate" },
+  { rank: 17, label: "Will Preparation", section: "Legal", href: "/document/will" },
+  { rank: 18, label: "Power of Attorney", section: "Legal", href: "/document/power-of-attorney" },
+  { rank: 19, label: "Name Change Affidavit", section: "Legal", href: "/document/name-change-affidavit" },
+  { rank: 20, label: "Legal Heir Certificate", section: "Certificates", href: "/document/legal-heir" },
+  { rank: 21, label: "EWS Certificate", section: "Certificates", href: "/document/ews-certificate" },
 ];
 
 /**

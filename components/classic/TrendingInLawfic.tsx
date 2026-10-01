@@ -30,8 +30,8 @@ export default function TrendingInLawfic() {
       className="mx-auto max-w-7xl px-4 py-14 sm:px-6"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <h2 id="trending-heading" className="type-h2 text-foreground">
-          {tx("Trending in LAWFIC")}
+        <h2 id="trending-heading" className="home-section-title">
+          {tx("Top Twenty One Trending In LAWFIC")}
         </h2>
         <Link
           href="/services"

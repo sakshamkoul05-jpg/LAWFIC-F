@@ -40,13 +40,14 @@ export type Phase = "idle" | "creating" | "checkout" | "confirming" | "landed" |
  * intent on a phone, some 3DS flows). Those come back through
  * /wallet/topup/return, which exists for exactly that path.
  */
-export function useTopUp(initialBalancePaise: number, paymentsReady: boolean) {
+export function useTopUp(initialBalancePaise: number, paymentsReady: boolean, initialAmount?: number) {
   const router = useRouter();
   const reduced = useReducedMotion();
 
   const [balance, setBalance] = useState(initialBalancePaise);
-  const [amount, setAmount] = useState(1000);
-  const [custom, setCustom] = useState("");
+  const [amount, setAmount] = useState(PRESETS.includes(initialAmount ?? -1) ? initialAmount! : 1000);
+  const [customStart] = useState(initialAmount && !PRESETS.includes(initialAmount) ? String(initialAmount) : "");
+  const [custom, setCustom] = useState(customStart);
   const [phase, setPhase] = useState<Phase>("idle");
   const [message, setMessage] = useState("");
   const [credited, setCredited] = useState(0);

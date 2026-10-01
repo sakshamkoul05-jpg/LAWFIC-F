@@ -173,8 +173,8 @@ export const ANNOUNCEMENTS = FALLBACK_LINES;
 function ClaimIcon({ children }: { children: React.ReactNode }) {
   return (
     <svg
-      width="19"
-      height="19"
+      width="26"
+      height="26"
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
@@ -191,7 +191,9 @@ function ClaimIcon({ children }: { children: React.ReactNode }) {
          gives each claim a mark with its own colour, which is what makes the
          row scannable rather than merely readable. */
       className="shrink-0"
-      style={{ color: "var(--band-gold)" }}
+      /* "LOGO KA COLOUR GOLDEN RAKHO" — the client's IMP 1: big, gold marks,
+         small white letters, a gap between them. */
+      style={{ color: "#E6B23C" }}
       aria-hidden
     >
       {children}
@@ -231,7 +233,7 @@ function Run({ claims, hidden = false }: { claims: Claim[]; hidden?: boolean }) 
     >
       {claims.map((claim) => (
         <li key={claim.text} className="flex items-center whitespace-nowrap">
-          <span className="flex items-center gap-2.5 px-7">
+          <span className="flex items-center gap-3.5 px-9">
             {claim.icon && <ClaimIcon>{claim.icon}</ClaimIcon>}
             {/* 15px and a 500 weight. The strip is the first thing on the page
                 and at 13px it was still small enough to scan straight past.
@@ -239,8 +241,8 @@ function Run({ claims, hidden = false }: { claims: Claim[]; hidden?: boolean }) 
                 that suits 13px looks sparse at 15, and a ticker is already
                 wide enough without loosening the letters. */}
             <span
-              className="text-[15px] font-medium tracking-[0.04em]"
-              style={{ color: "var(--band-ink)" }}
+              className="text-[13.5px] font-medium tracking-[0.03em]"
+              style={{ color: "#FFFFFF" }}
             >
               {tx(claim.text)}
             </span>
@@ -276,8 +278,10 @@ export default function AnnouncementTicker({
        under it — sitting it on the same navy as the section bar would fuse the
        two into one slab and lose the bar. */
     <div
-      className="ticker group relative w-full overflow-hidden border-b py-3"
-      style={{ background: "var(--band-deep)", borderColor: "var(--band-edge)" }}
+      className="ticker group relative w-full overflow-hidden border-b py-2.5"
+      /* Black and still — "background black rahega … back ground stable hoga,
+         letter logo chalat rahega": only the claims move. */
+      style={{ background: "#000000", borderColor: "rgba(230,178,60,0.25)" }}
       aria-label={tx("LAWFIC service highlights")}
     >
       <div className="ticker-track flex w-max">

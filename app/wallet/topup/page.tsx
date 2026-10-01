@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isWalletLocked } from "@/lib/wallet-lock";
 import { redirect } from "next/navigation";
 import TopUpForm from "../TopUpForm";
+import { checkTopUpAmount } from "@/lib/money";
 import { normalizePrefs, DEFAULT_PREFS } from "@/lib/wallet-custom";
 import { configFromRow } from "@/lib/wallet3d/config";
 import { PRIVATE_PAGE_ROBOTS } from "@/lib/seo";
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function TopUpPage() {
+/* `?amount=2000` preselects an amount — the home page's "Recharge now" buttons
+   link here that way. Anything checkTopUpAmount refuses is simply ignored. */
+export default async function TopUpPage({ searchParams }: { searchParams: Promise<{ amount?: string }> }) {
+  const { amount: asked } = await searchParams;
+  const preset = asked && checkTopUpAmount(Number(asked)).ok ? Number(asked) : undefined;
   const supabase = await createClient();
 
   if (!supabase) {
@@ -78,6 +83,7 @@ export default async function TopUpPage() {
       </p>
       <TopUpForm
         initialBalancePaise={balancePaise}
+        initialAmount={preset}
         paymentsReady={isCashfreeConfigured}
         look={prefs}
         config={walletConfig}

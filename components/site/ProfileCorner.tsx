@@ -6,6 +6,7 @@ import WalletAvatar from "@/components/wallet/WalletAvatar";
 import { useAvatarUrl } from "@/components/profile/useAvatarUrl";
 import { usePreferencesValue } from "@/components/account/usePreferences";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useProfile } from "@/components/profile/ProfileProvider";
 
 /**
  * The far-right corner: a face, the greeting under it, and the account menu.
@@ -67,6 +68,7 @@ export default function ProfileCorner({
   const [greeting, setGreeting] = useState<string | null>(null);
   const { tx } = useLocale();
   const { privacy } = usePreferencesValue();
+  const { profile } = useProfile();
 
   useEffect(() => {
     setGreeting(greetingFor(new Date().getHours()));
@@ -80,13 +82,6 @@ export default function ProfileCorner({
 
   const seed = name ?? "guest";
 
-  /* A GUEST IS ADDRESSED TOO.
-     Signed out this read "Good morning 😊" — a greeting with nobody in it,
-     which looks less like a choice than like a name that failed to load. So a
-     visitor with no account is "User": the sentence has the same shape whoever
-     is reading it, and it fills in with the real first name the moment there
-     is one. */
-  const addressee = name ? name.split(" ")[0] : tx("User");
 
   /* The customer's own photograph, when they have uploaded one. The generated
      avatar stays as the fallback rather than a grey silhouette — but a real
@@ -94,42 +89,38 @@ export default function ProfileCorner({
      trouble of taking a photo should see it wherever they see themselves. */
   const photo = useAvatarUrl(Boolean(user));
 
+  /* The sheet: "Very Good Morning" over the customer's full name ("Dr.
+     Aarti Chopra"), beside a larger photo, with the smiley under them. */
+  const fullName = profile?.fullName?.trim() || name || tx("User");
+
   return (
-    <div className="flex shrink-0 items-start gap-1.5">
-      <div className="flex flex-col items-center gap-1">
+    <div className="flex shrink-0 items-center gap-2">
+      <div className="flex items-center gap-2">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- a signed URL
           // that expires; the optimizer would cache it past its own lifetime.
           <img
             src={photo}
             alt=""
-            width={34}
-            height={34}
-            className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
+            width={48}
+            height={48}
+            className="h-[48px] w-[48px] shrink-0 rounded-full object-cover ring-1 ring-[color:var(--border-2)]"
           />
         ) : (
-          <WalletAvatar seed={seed} size={34} />
+          <WalletAvatar seed={seed} size={48} />
         )}
 
-        {/* Reserved height even before the greeting resolves, so the header
-            does not jolt a few milliseconds after it paints. */}
-        {/* WRAPS, RATHER THAN SETTING THE WIDTH OF THIS WHOLE CORNER.
-            `whitespace-nowrap` made "Good night User 😊" one 143px line, and
-            because the corner is a flex column that line decided how wide the
-            corner was — so adding the name to the greeting quietly took
-            forty-eight pixels off the search bar. Capped and allowed to wrap,
-            it says exactly the same thing over two short lines and the corner
-            goes back to being about as wide as the avatar. */}
-        <span className="hidden max-w-[92px] flex-col items-center gap-0.5 text-center text-[11px] leading-tight text-muted-foreground lg:flex">
+        <span className="hidden max-w-[150px] flex-col leading-tight lg:flex">
           {greeting && privacy.showName && (
-            <span>
-              {/* "Good morning Saksham 😊", or "Good morning User 😊" before
-                  anyone has signed in. The first name only, and no comma: a
-                  comma turns a greeting into the salutation on a letter, and
-                  the first name is what a person is called rather than what
-                  their account happens to be registered as. */}
-              {tx(greeting)} {addressee} <span aria-hidden>{GREETING_EMOJI}</span>
-            </span>
+            <>
+              <span className="text-[12px] font-medium text-foreground">
+                {tx("Very")} {tx(greeting)}
+              </span>
+              <span className="home-serif truncate text-[13.5px] text-foreground">{fullName}</span>
+              <span aria-hidden className="mt-0.5 self-end text-[16px] leading-none">
+                {GREETING_EMOJI}
+              </span>
+            </>
           )}
         </span>
       </div>

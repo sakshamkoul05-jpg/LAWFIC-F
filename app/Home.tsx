@@ -1,9 +1,12 @@
 "use client";
 
-import ClassicHomePage from "@/components/classic/ClassicHomePage";
-import PersonalizedHero from "@/components/classic/PersonalizedHero";
-import TrackRecommendations from "@/components/classic/TrackRecommendations";
-import { useProfile } from "@/components/profile/ProfileProvider";
+import OfferPosters from "@/components/home/OfferPosters";
+import WelcomeOffers from "@/components/home/WelcomeOffers";
+import WhyChooseCards from "@/components/home/WhyChooseCards";
+import LaunchAndSoon from "@/components/home/LaunchAndSoon";
+import TrendingInLawfic from "@/components/classic/TrendingInLawfic";
+import ServiceByCategory from "@/components/classic/ServiceByCategory";
+import { usePreferencesValue } from "@/components/account/usePreferences";
 import QuickActionsHomeTrigger from "@/components/quick-actions/QuickActionsHomeTrigger";
 import type { Banner } from "@/lib/promotional";
 
@@ -16,14 +19,31 @@ import type { Banner } from "@/lib/promotional";
  * separately, so the page made three identical round trips before it could
  * decide what to show.
  */
+/**
+ * The home page, in the order of the client's "HOME PAGE SECTION FINAL" sheet.
+ * The ticker, logo bar, search band and menu above this are drawn by the
+ * shell (components/theme/ThemeShell.tsx); this is everything below them:
+ *
+ *   5  eleven scrolling posters        6  new-customer offer strip
+ *   1  welcome by name + 5×5 offers + the fixed wallet card
+ *   2  why choose LAWFIC               3  top twenty-one trending
+ *   4  service explore by category     5  latest launch     6  coming soon
+ *
+ * The dashboard preference still decides which of the optional blocks a
+ * signed-in customer sees.
+ */
 export default function Home({ banners }: { banners?: Banner[] }) {
-  const { profile, personalised } = useProfile();
+  const { sections } = usePreferencesValue();
+  void banners;
 
   return (
     <>
-      {personalised && profile && <PersonalizedHero profile={profile} />}
-      <TrackRecommendations />
-      <ClassicHomePage banners={banners} />
+      {sections.promotions && <OfferPosters />}
+      <WelcomeOffers />
+      {sections.why && <WhyChooseCards />}
+      {sections.trending && <TrendingInLawfic />}
+      {sections.categories && <ServiceByCategory />}
+      <LaunchAndSoon />
       {/* The client asked for the logo again, low on the home page, opening
           the same box. It is a trigger, not a second widget — see
           components/quick-actions/QuickActionsHomeTrigger.tsx. */}

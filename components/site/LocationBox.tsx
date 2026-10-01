@@ -88,56 +88,40 @@ export default function LocationBox({ className = "" }: { className?: string }) 
   const region = getRegion(code);
   const cities = citiesFor(code);
 
-  /* The answer, in the sheet's own order: city first, then state.
-     Empty when nothing has been chosen — an "All India" placeholder is a line
-     of text that says nothing, and the row below the box should either carry a
-     fact or carry nothing at all. */
-  const chosen = region ? [city, region.name].filter(Boolean).join(", ") : "";
-
   return (
     <div ref={box} className={`relative shrink-0 ${className}`}>
+      {/* THE SHEET'S LAYOUT: the flag and "BHARAT" on top, the pin with the
+          city and state dropdowns under it, and a bordered box below with the
+          promise running inside — "Box ke ander text move hona chahiye". */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        /* 140, not the 168 it was and not the 124 it briefly became. The
-             search bar wanted the difference, but the second line is a marquee
-             and a marquee needs enough width to read as a sentence going past
-             rather than as three words in a slot — at 124 it showed about half
-             a phrase at any instant. */
-        className="flex w-[128px] flex-col items-start gap-0.5 rounded-xl border border-border px-2 py-1.5 text-left transition-colors hover:border-border-3 2xl:w-[160px]"
+        aria-label={tx("Choose your state and city")}
+        className="flex w-[232px] flex-col items-start gap-1 rounded-xl px-1.5 py-1 text-left transition-colors hover:bg-surface-2/60"
       >
-        <span className="flex w-full items-center gap-1.5">
+        <span className="flex items-center gap-2">
+          {/* Drawn, not an emoji: Windows has no flag emoji and shows "IN". */}
+          <IndiaFlag />
+          <span className="text-[18px] font-medium leading-none tracking-wide text-foreground">{tx("BHARAT")}</span>
+        </span>
+        <span className="flex w-full items-center gap-1 text-[10.5px] text-muted-foreground">
           <PinIcon />
-          {/* The flag is an emoji, not an image: it needs no request, it scales
-              with the text, and it is the country's own glyph rather than a
-              picture of it. */}
-          <span aria-hidden className="text-[13px] leading-none">
-            🇮🇳
-          </span>
-          <span className="type-label text-subtle">{tx("India")}</span>
+          <span className="max-w-[86px] truncate">{city ?? tx("City")}</span>
+          <Chevron open={open} />
+          <span className="ml-2 max-w-[96px] truncate">{region?.name ?? tx("State")}</span>
           <Chevron open={open} />
         </span>
-
-        {/* The promise, running. */}
-        <span className="marquee-clip w-full">
-          <span className="marquee-track text-[10.5px] font-medium text-primary">
-            <span className="pr-8">{tx("Pan India Best & Quality Service.")}</span>
-            {/* A second copy, so the loop has no gap to jump across. */}
-            <span aria-hidden className="pr-8">
-              {tx("Pan India Best & Quality Service.")}
+        <span className="marquee-clip mt-0.5 w-full rounded-md border border-border-3 px-2 py-[3px]">
+          <span className="marquee-track text-[10px] font-medium text-foreground/80">
+            <span className="pr-10">{tx("Pan India Best & Quality Service,")} {tx("Meri Bhasha Meri Pehchan")}</span>
+            <span aria-hidden className="pr-10">
+              {tx("Pan India Best & Quality Service,")} {tx("Meri Bhasha Meri Pehchan")}
             </span>
           </span>
         </span>
       </button>
-
-      {/* The answer, below the box — and nothing at all until there is one. */}
-      {chosen && (
-        <p className="mt-0.5 truncate px-2.5 text-[11.5px] font-medium text-foreground" title={chosen}>
-          {chosen}
-        </p>
-      )}
 
       {open && (
         <div
@@ -195,6 +179,18 @@ export default function LocationBox({ className = "" }: { className?: string }) 
   );
 }
 
+function IndiaFlag() {
+  return (
+    <svg width="24" height="16" viewBox="0 0 24 16" aria-hidden className="shrink-0 overflow-hidden rounded-[2px] shadow-[0_0_0_0.5px_rgba(0,0,0,0.25)]">
+      <rect width="24" height="5.34" fill="#FF9933" />
+      <rect y="5.33" width="24" height="5.34" fill="#FFFFFF" />
+      <rect y="10.66" width="24" height="5.34" fill="#138808" />
+      <circle cx="12" cy="8" r="2.1" fill="none" stroke="#000080" strokeWidth="0.55" />
+      <circle cx="12" cy="8" r="0.45" fill="#000080" />
+    </svg>
+  );
+}
+
 function PinIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-primary">
@@ -217,7 +213,7 @@ function Chevron({ open }: { open: boolean }) {
       viewBox="0 0 10 10"
       fill="none"
       aria-hidden
-      className={`ml-auto shrink-0 text-subtle transition-transform ${open ? "rotate-180" : ""}`}
+      className={`shrink-0 text-subtle transition-transform ${open ? "rotate-180" : ""}`}
     >
       <path d="M2 3.5 5 6.5 8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
