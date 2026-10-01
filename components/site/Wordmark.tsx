@@ -27,17 +27,34 @@ export default function Wordmark({ className = "" }: { className?: string }) {
         alt=""
         className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14 lg:h-[68px] lg:w-[68px]"
       />
-      <span className="home-serif mt-1 text-[16px] font-bold leading-none text-foreground [letter-spacing:0.05em] sm:text-[19px] lg:text-[22px]">
-        LAWFIC
-      </span>
-      {/* Sized so twenty-five tracked characters land on the width of six
-          large ones above. The name is tracked OUT and the tagline set small
-          and tight; matching them by choosing a font size alone leaves one
-          line visibly wider at every breakpoint but the one it was picked at. */}
-      {/* "Quality Service With Love !!" under the name, set so it can actually
-          be read — the client's note: "ye ache se set hona chahiye". */}
-      <span className="mt-[3px] hidden w-full whitespace-nowrap text-center text-[7.5px] font-medium leading-none text-muted-foreground sm:block lg:text-[8.5px]">
-        {tx("Quality Service With Love")} <span aria-hidden className="text-[#E6B23C]">♥</span>
+      {/* The name and tagline share one box whose width is the NAME's. The
+          tagline is drawn as SVG text with textLength, so it is stretched or
+          squeezed to exactly that width — flush under "LAWFIC" at every size,
+          never sticking out either side. The wrapper's w-0 min-w-full keeps
+          the tagline from widening the box itself. */}
+      <span className="mt-1 inline-flex flex-col items-stretch">
+        {/* The negative right margin cancels the letter-spacing after the
+            last letter, so the box ends where the C ends. */}
+        <span className="home-serif mr-[-0.12em] text-[16px] font-bold leading-none text-foreground [letter-spacing:0.12em] sm:text-[19px] lg:text-[22px]">
+          LAWFIC
+        </span>
+        <span className="mt-[3px] hidden w-0 min-w-full sm:block">
+          <svg viewBox="0 0 200 18" className="block h-auto w-full overflow-visible" role="img" aria-label={tx("Quality Service With Love")}>
+            <text
+              x="0"
+              y="13.5"
+              textLength="200"
+              lengthAdjust="spacingAndGlyphs"
+              fontSize="15.5"
+              fontWeight="500"
+              fontFamily="Inter, system-ui, sans-serif"
+              fill="currentColor"
+              className="text-muted-foreground"
+            >
+              {tx("Quality Service With Love")} <tspan fill="#E6B23C">♥</tspan>
+            </text>
+          </svg>
+        </span>
       </span>
     </span>
   );
