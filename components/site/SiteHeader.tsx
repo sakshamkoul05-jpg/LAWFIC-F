@@ -200,6 +200,22 @@ export default function SiteHeader() {
           {!isHomePage && <HeaderSearch className="hidden min-w-0 flex-1 md:block" />}
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+            {/* The app download, where the QR tile is not shown. On a phone
+                a QR code is no use — the phone is the device — so this is a
+                plain gold button straight to /download. */}
+            <Link
+              href="/download"
+              aria-label={t("nav.appDownload", "Download the LAWFIC app")}
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-b from-[#E8CC7C] to-[#C6A15B] px-3 text-[12.5px] font-semibold text-[#17120A] shadow-[0_8px_18px_-10px_rgba(198,161,91,0.9)] transition hover:brightness-105 xl:hidden"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" />
+                <path d="M12 7.5v7m0 0-2.5-2.5M12 14.5l2.5-2.5" />
+              </svg>
+              <span>
+                <span className="hidden min-[380px]:inline">Get </span>App
+              </span>
+            </Link>
             {mounted ? (
               <ProfileCorner user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
@@ -249,6 +265,21 @@ export default function SiteHeader() {
                 </svg>
               </button>
             </div>
+
+            {/* The app, first thing in the drawer on every screen size. */}
+            <Link
+              href="/download"
+              onClick={() => setDrawer(false)}
+              className="mx-4 mt-4 flex shrink-0 items-center gap-3 rounded-2xl border border-[#C6A15B]/50 bg-[#C6A15B]/10 px-4 py-3 transition-colors hover:bg-[#C6A15B]/15"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/lawfic-logo.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-semibold text-foreground">Download the LAWFIC app</span>
+                <span className="block text-[12px] text-muted-foreground">Android APK · iPhone web app</span>
+              </span>
+              <span aria-hidden className="text-[18px] text-primary">→</span>
+            </Link>
 
             <MegaMenu onNavigate={() => setDrawer(false)} />
 

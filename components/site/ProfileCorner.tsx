@@ -96,7 +96,7 @@ export default function ProfileCorner({
   /* The sheet's corner: the photo centred, the salutation on one line under
      it, and the two-line account menu beside the pair. */
   return (
-    <div className="flex shrink-0 items-center gap-3">
+    <div className="flex shrink-0 items-center gap-2 sm:gap-3">
       <div className="flex flex-col items-center gap-1">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- a signed URL

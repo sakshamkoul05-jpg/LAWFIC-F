@@ -82,7 +82,7 @@ export default function ProfileMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={user ? "Your account" : "Account and sign in"}
-        className="grid size-11 place-items-center rounded-xl border border-border text-muted-foreground lg:size-[52px] transition-colors hover:border-border-3 hover:text-foreground"
+        className="grid size-10 place-items-center rounded-xl sm:size-11 border border-border text-muted-foreground lg:size-[52px] transition-colors hover:border-border-3 hover:text-foreground"
       >
         {/* TWO LINES, BOTH COLOURED — the small sibling of the four-line
             icon on the far left. Two rather than four because this one opens
