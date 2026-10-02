@@ -182,9 +182,7 @@ export default function SiteHeader() {
               DOWNLOAD" tile. It opens the app's web version until the store
               listings exist. */}
           <a
-            href="https://law-m.vercel.app"
-            target="_blank"
-            rel="noreferrer"
+            href="/download"
             aria-label={t("nav.appDownload", "Download the LAWFIC app")}
             className="header-qr hidden xl:flex"
           >

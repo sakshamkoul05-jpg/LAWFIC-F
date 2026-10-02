@@ -49,7 +49,7 @@ export const POSTERS: Poster[] = [
     line: "Lawfic services are now available on our app too.",
     fine: "Download now & get ₹100 cash back in your wallet.",
     tone: "navy",
-    href: "/wallet",
+    href: "/download",
     app: true,
   },
   {
