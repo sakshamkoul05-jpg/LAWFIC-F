@@ -10,12 +10,12 @@
  * app is on its way instead of offering a link that 404s.
  */
 export const ANDROID_RELEASE = {
-  ready: false,
+  ready: true,
   version: "0.1.0",
   /** Shown beside the button, e.g. "64 MB". Empty until a build exists. */
-  size: "",
+  size: "84 MB",
   /** SHA-256 of the APK, so a careful customer can check the file. */
-  sha256: "",
+  sha256: "c22ae20122c14203040819b12b12050c6ccd4a55c7b97dfcc997bf9b4e4fad5e",
   url: "https://github.com/sakshamkoul05-jpg/LAW-M/releases/latest/download/lawfic.apk",
 } as const;
 
