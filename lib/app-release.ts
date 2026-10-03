@@ -11,11 +11,11 @@
  */
 export const ANDROID_RELEASE = {
   ready: true,
-  version: "0.1.0",
+  version: "0.1.1",
   /** Shown beside the button, e.g. "64 MB". Empty until a build exists. */
   size: "84 MB",
   /** SHA-256 of the APK, so a careful customer can check the file. */
-  sha256: "c22ae20122c14203040819b12b12050c6ccd4a55c7b97dfcc997bf9b4e4fad5e",
+  sha256: "738cdde9295311e150ae7b1bd803364ec0845073c0d2a9ec84f5efbfa8bf27e6",
   url: "https://github.com/sakshamkoul05-jpg/LAW-M/releases/latest/download/lawfic.apk",
 } as const;
 
