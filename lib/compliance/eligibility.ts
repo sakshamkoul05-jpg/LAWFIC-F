@@ -91,13 +91,25 @@ export function assess(i: EligibilityInput): { findings: Finding[]; msme: Classi
   const threshold = gstThreshold(i.state, i.supply);
   const compulsory: string[] = [];
   if (i.interState && i.supply !== "services") compulsory.push("you sell goods to other states");
-  if (i.ecommerce && i.supply !== "services") compulsory.push("you sell goods through an e-commerce marketplace");
+  /* Notification 34/2023 – Central Tax: from 1 October 2023 a goods seller on
+     a marketplace may stay unregistered if it sells only within its own state
+     and turnover is up to ₹20 lakh — with an enrolment number instead. */
+  const ecomExempt = i.ecommerce && !i.interState && i.turnover <= 20 * LAKH;
+  if (i.ecommerce && i.supply !== "services" && !ecomExempt) compulsory.push("you sell goods through an e-commerce marketplace");
   if (compulsory.length) {
     findings.push({
       id: "gst",
       title: "GST registration",
       verdict: "required",
       why: `Required whatever your turnover, because ${compulsory.join(" and ")} (s.24).`,
+      slug: "gst",
+    });
+  } else if (ecomExempt && i.supply !== "services") {
+    findings.push({
+      id: "gst",
+      title: "GST registration",
+      verdict: "recommended",
+      why: "Not compulsory yet: you sell only within your state through a marketplace and turnover is up to ₹20 lakh, so you can sell with a GST enrolment number instead (Notification 34/2023). The moment you ship to another state, registration becomes compulsory.",
       slug: "gst",
     });
   } else if (i.turnover > threshold) {

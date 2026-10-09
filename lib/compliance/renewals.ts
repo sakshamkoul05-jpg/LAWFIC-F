@@ -17,6 +17,7 @@ export type LicenceKind =
   | "shop_establishment"
   | "drug_licence"
   | "iso"
+  | "dir3kyc"
   | "other";
 
 export const LICENCE_KINDS: { id: LicenceKind; label: string; warnDays: number; renewSlug?: string; note: string }[] = [
@@ -27,6 +28,7 @@ export const LICENCE_KINDS: { id: LicenceKind; label: string; warnDays: number; 
   { id: "shop_establishment", label: "Shop & Establishment", warnDays: 45, renewSlug: "shop-establishment", note: "Renewal cycle depends on your state; some are lifetime." },
   { id: "drug_licence", label: "Drug licence", warnDays: 90, renewSlug: "drug-licence", note: "Retention fee is due before expiry." },
   { id: "iso", label: "ISO certificate", warnDays: 90, renewSlug: "iso-certification", note: "Surveillance audits fall due every year." },
+  { id: "dir3kyc", label: "Director KYC (DIR-3 KYC)", warnDays: 60, renewSlug: "roc-filings", note: "Once every three years, by 30 June. Enter that 30 June as the date." },
   { id: "other", label: "Something else", warnDays: 30, note: "" },
 ];
 

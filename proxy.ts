@@ -111,7 +111,11 @@ export async function proxy(request: NextRequest) {
        day than it needs to be. */
     const backOffice = pathname === "/admin" || pathname.startsWith("/admin/");
     url.pathname = backOffice ? "/admin/login" : "/login";
-    url.searchParams.set("next", pathname);
+    /* The query string travels inside `next`, not beside it: the free
+       calendar's "Save to my account" link carries the customer's answers in
+       it, and dropping them would make them answer twice. */
+    url.search = "";
+    url.searchParams.set("next", pathname + request.nextUrl.search);
     return redirectKeepingSession(url);
   }
 

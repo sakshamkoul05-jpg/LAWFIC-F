@@ -90,7 +90,7 @@ create table if not exists public.business_licences (
   business_id  uuid not null references public.businesses (id) on delete cascade,
   user_id      uuid not null references auth.users (id) on delete cascade,
   kind         text not null
-                 check (kind in ('fssai', 'trademark', 'dsc', 'trade_licence', 'shop_establishment', 'drug_licence', 'iso', 'other')),
+                 check (kind in ('fssai', 'trademark', 'dsc', 'trade_licence', 'shop_establishment', 'drug_licence', 'iso', 'dir3kyc', 'other')),
   label        text not null default '' check (length(label) <= 80),
   number       text not null default '' check (length(number) <= 40),
   expires_on   date not null,

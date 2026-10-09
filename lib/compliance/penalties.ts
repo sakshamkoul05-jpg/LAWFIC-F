@@ -35,7 +35,7 @@ export const PENALTY_KINDS: { id: PenaltyKind; label: string }[] = [
   { id: "tds-payment", label: "TDS deposit (paid late)" },
   { id: "roc", label: "Company annual filing (AOC-4 / MGT-7)" },
   { id: "llp", label: "LLP filing (Form 8 / Form 11)" },
-  { id: "dir3kyc", label: "Director KYC (DIR-3 KYC)" },
+  { id: "dir3kyc", label: "Director KYC (DIR-3 KYC, every three years)" },
 ];
 
 export type PenaltyInput = {
@@ -147,6 +147,7 @@ export function estimatePenalty(input: PenaltyInput): PenaltyResult {
         });
       }
       caveats.push("A belated return cannot carry forward most business losses.");
+      caveats.push("A belated return can be filed only until 31 December after the year ends; after that only an updated return (ITR-U) with additional tax is possible.");
       break;
     }
     case "tds-return": {
@@ -161,11 +162,14 @@ export function estimatePenalty(input: PenaltyInput): PenaltyResult {
       break;
     }
     case "tds-payment": {
-      const m = monthsPart(daysLate);
+      /* s.201(1A) runs from the date of DEDUCTION, which falls in the month
+         before the deposit due date — so the count starts one month earlier
+         than the lateness, and any part of a month is a whole month. */
+      const m = monthsPart(daysLate) + 1;
       lines.push({
         label: "Interest at 1.5% a month (s.201(1A))",
         rupees: round(tax * 0.015 * m),
-        note: `${m} month${m === 1 ? "" : "s"} from deduction to deposit`,
+        note: `${m} months, counted from the month the tax was deducted`,
       });
       if (!tax) caveats.push("Enter the TDS amount to calculate the interest.");
       break;

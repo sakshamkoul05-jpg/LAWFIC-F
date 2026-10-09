@@ -37,7 +37,7 @@ export function healthScore(i: HealthInput): Health {
   /* Overdue filings in the window the calendar shows (last 90 days). */
   let overduePoints = 0;
   for (const e of i.events) {
-    if (i.filed.has(e.key)) continue;
+    if (i.filed.has(e.key) || e.conditional) continue;
     const d = daysBetween(e.due, i.today);
     if (d <= 0) continue;
     const pts = Math.min(OVERDUE_EACH, OVERDUE_MAX - overduePoints);

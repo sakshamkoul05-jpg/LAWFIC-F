@@ -8,7 +8,7 @@ import {
   formatDue,
   profileFromBusiness,
   profileToParams,
-  stateOf,
+  addDays,
   todayIST,
   type EntityType,
 } from "@/lib/compliance/calendar";
@@ -94,9 +94,14 @@ export default async function ComplianceDashboard({
   const events = buildCalendar(profile, today, { back: 90, ahead: 365 });
   const health = healthScore({ today, events, filed, licences, vaultKinds });
 
-  const overdue = events.filter((e) => stateOf(e, today, filed) === "overdue");
-  const soon = events.filter((e) => ["due-soon", "upcoming"].includes(stateOf(e, today, filed)) && e.due <= addMonth(today));
-  const later = events.filter((e) => e.due > addMonth(today) || (stateOf(e, today, filed) === "filed" && e.due >= today));
+  /* Four buckets with no overlap and no gaps: everything in the window lands
+     in exactly one. A filing marked done stays visible (with Undo) wherever it
+     falls, so a mis-tap can always be reversed. */
+  const horizon = addDays(today, 30);
+  const overdue = events.filter((e) => e.due < today && !filed.has(e.key));
+  const recentlyFiled = events.filter((e) => e.due < today && filed.has(e.key)).reverse();
+  const soon = events.filter((e) => e.due >= today && e.due <= horizon);
+  const later = events.filter((e) => e.due > horizon);
 
   const query = profileToParams(profile);
   const webcal = `webcal://${SITE_URL.replace(/^https?:\/\//, "")}/tools/compliance-calendar/ics?${query}`;
@@ -256,6 +261,17 @@ export default async function ComplianceDashboard({
         </section>
       )}
 
+      {recentlyFiled.length > 0 && (
+        <details className="mt-6 rounded-2xl border border-border bg-surface px-5 py-3">
+          <summary className="cursor-pointer text-[13px] text-muted">
+            {recentlyFiled.length} past filing{recentlyFiled.length === 1 ? "" : "s"} marked done — open to review or undo
+          </summary>
+          <div className="mt-3">
+            <EventList events={recentlyFiled} today={today} filed={filed} action={markAction} />
+          </div>
+        </details>
+      )}
+
       {/* next 30 days */}
       <section className="mt-10">
         <h2 className="type-label mb-3 text-subtle">Next 30 days</h2>
@@ -323,10 +339,4 @@ export default async function ComplianceDashboard({
       </section>
     </PageShell>
   );
-}
-
-function addMonth(date: string): string {
-  const [y, m, d] = date.split("-").map(Number);
-  const t = new Date(Date.UTC(y, m - 1, d + 30));
-  return t.toISOString().slice(0, 10);
 }

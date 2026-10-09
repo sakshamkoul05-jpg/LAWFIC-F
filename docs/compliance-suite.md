@@ -32,6 +32,8 @@ no page yet), nav/footer/account links, sitemap entries.
    `compliance_filings`, `business_licences`, `vault_documents`,
    `compliance_reminders_sent` and the private `vault` bucket with owner-only
    policies. It relies on `public.is_staff()`, which already exists.
+   Then run `supabase/migrations/20261009150000_compliance_fixes.sql`
+   (adds the Director KYC renewal type).
 2. **Set `CRON_SECRET`** in Vercel. `vercel.json` schedules the reminder run
    daily at 09:00 IST.
 3. **WhatsApp (optional):** create two Utility templates in WhatsApp Manager

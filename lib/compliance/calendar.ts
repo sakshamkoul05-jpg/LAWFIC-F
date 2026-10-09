@@ -77,6 +77,10 @@ export type ComplianceEvent = {
   serviceSlug?: string;
   /** Shown when the obligation only applies in some cases. */
   caveat?: string;
+  /** Applies only above a threshold we do not ask about. Shown, but never
+      counted against the health score — a business below the threshold would
+      otherwise be marked down for something it does not owe. */
+  conditional?: boolean;
 };
 
 /* ── date helpers, on strings ─────────────────────────────────────────── */
@@ -197,6 +201,7 @@ export function obligationsForFy(p: BusinessProfile, fy: number): ComplianceEven
           period: monthLabel(y, m),
           serviceSlug: "gst-returns",
           caveat: "Not needed if there is no tax payable after input credit.",
+          conditional: true,
         });
       }
       out.push({
@@ -259,6 +264,7 @@ export function obligationsForFy(p: BusinessProfile, fy: number): ComplianceEven
       period: fyLabel(fy),
       serviceSlug: "gst-returns",
       caveat: "Optional where aggregate turnover is up to ₹2 crore.",
+      conditional: true,
     });
   }
 
@@ -309,6 +315,7 @@ export function obligationsForFy(p: BusinessProfile, fy: number): ComplianceEven
       due: ymd(y, m, d),
       period: fyLabel(fy),
       caveat: "Only if the year's tax after TDS is ₹10,000 or more. Presumptive-scheme businesses pay it all by 15 March.",
+      conditional: true,
     });
   });
 
@@ -348,17 +355,13 @@ export function obligationsForFy(p: BusinessProfile, fy: number): ComplianceEven
       period: fyLabel(fy),
       serviceSlug: "roc-filings",
     });
-    out.push({
-      key: `DIR3KYC:${fy + 1}`,
-      code: "DIR-3 KYC",
-      title: "Director KYC",
-      what: "Every director confirms their details, or their DIN is deactivated.",
-      authority: "MCA",
-      due: ymd(fy + 1, 9, 30),
-      period: `${fy + 1}`,
-      serviceSlug: "roc-filings",
-      caveat: "A director whose details have not changed may file the shorter web form.",
-    });
+    /* DIR-3 KYC is no longer annual. From 31 March 2026 (Companies
+       (Appointment and Qualification of Directors) Amendment Rules, notified
+       31 December 2025) each director files once every three financial years,
+       by 30 June of the third. Which year that is depends on the director, not
+       the company, so it cannot be put on a company calendar without asking —
+       a wrong annual date here showed every company as overdue. Track it as a
+       renewal on the dashboard instead. */
     out.push({
       key: `AOC4:${fy}`,
       code: p.entity === "opc" ? "AOC-4 (OPC)" : "AOC-4",

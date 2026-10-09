@@ -95,6 +95,9 @@ export function expectedBy(turnaround: string, fromIso: string): Date | null {
   const start = new Date(fromIso);
   if (Number.isNaN(start.getTime())) return null;
 
+  /* "Appointment in 2–4 days" is when the customer visits, not when the
+     work is finished — a date here would promise the wrong thing. */
+  if (/appointment/.test(t)) return null;
   if (/same day/.test(t)) return start;
 
   const hours = /(\d+)\s*(?:–|-|to)?\s*(\d+)?\s*hours?/.exec(t);
