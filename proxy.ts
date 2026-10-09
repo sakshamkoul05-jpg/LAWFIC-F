@@ -12,7 +12,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/sup
  * out of the database and into here.
  */
 
-const PROTECTED = ["/account", "/orders", "/admin"];
+const PROTECTED = ["/account", "/orders", "/admin", "/compliance", "/vault"];
 
 /* Doors, which cannot be behind the locks they open. /admin/login sits under a
    protected prefix, so without this it would redirect to itself forever. */

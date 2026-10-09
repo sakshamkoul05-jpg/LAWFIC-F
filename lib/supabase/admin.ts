@@ -3,7 +3,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
 /**
  * Service-role client. Bypasses RLS entirely.
  *
- * There are exactly four legitimate callers:
+ * There are exactly five legitimate callers:
  *
  *   1. the Cashfree webhook, which arrives with no user session but is
  *      authenticated by an HMAC signature over the raw body, and has to write
@@ -20,7 +20,11 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
  *      confirmation and this project's mailer fails. It mints no session — the
  *      browser signs in with the password immediately afterwards.
  *
- * Note the shape common to all three: the caller is verified first, and the
+ *   5. the daily compliance reminder run (/api/compliance/reminders), which
+ *      is authenticated by CRON_SECRET, reads opted-in businesses across
+ *      customers, and writes only to the reminders-sent ledger.
+ *
+ * Note the shape common to all of them: the caller is verified first, and the
  * service role is then used for one narrow write whose target this code
  * decides. None of them lets a request choose what gets touched.
  *

@@ -76,6 +76,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry("/contact", 0.6, "monthly"),
     entry("/startup", 0.6, "monthly"),
     entry("/jobs", 0.5, "weekly"),
+    entry("/instant-help", 0.6, "monthly"),
+  ];
+
+  /* The free tools answer searches people make before they know they need a
+     filing — "gstr 3b late fee", "do I need gst" — so they rank with the
+     service pages. */
+  const toolPages = [
+    entry("/tools", 0.8, "monthly"),
+    ...["compliance-calendar", "eligibility", "penalty-calculator", "fee-calculator", "name-check", "verify"].map((t) =>
+      entry(`/tools/${t}`, 0.8, "monthly"),
+    ),
   ];
 
   /* The service pages are the ones that answer a real search — somebody types
@@ -89,5 +100,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const legalPages = legalDocs.map((d) => entry(`/legal/${d.slug}`, 0.3, "yearly"));
 
-  return [...core, ...servicePages, ...documentPages, ...legalPages];
+  return [...core, ...toolPages, ...servicePages, ...documentPages, ...legalPages];
 }

@@ -23,6 +23,18 @@
  */
 
 export const hiPhrases: Record<string, string> = {
+  /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Free tools": "मुफ़्त टूल",
+  "Compliance calendar": "अनुपालन कैलेंडर",
+  "Talk to an expert": "विशेषज्ञ से बात करें",
+  "Compliance Dashboard": "अनुपालन डैशबोर्ड",
+  "Free Compliance Calendar": "मुफ़्त अनुपालन कैलेंडर",
+  "Free Business Tools": "मुफ़्त व्यवसाय टूल",
+  "Stay compliant": "अनुपालन में रहें",
+  "Your Businesses": "आपके व्यवसाय",
+  "Documents held for you": "आपके लिए रखे गए दस्तावेज़",
+  "Your private document vault.": "आपका निजी दस्तावेज़ वॉल्ट।",
+  "Due dates, filings, renewals and your business health score.": "नियत तिथियाँ, फ़ाइलिंग, नवीनीकरण और आपके व्यवसाय का स्वास्थ्य स्कोर।",
   /* ── Blueprint: the nine category headings ─────────────── */
   "Identification Document Service": "पहचान दस्तावेज़ सेवा",
   "Business Document Service": "व्यवसाय दस्तावेज़ सेवा",

@@ -104,6 +104,9 @@ export default function Footer() {
                   {[
                     ["/services", "All services"],
                     ["/pricing", "Pricing"],
+                    ["/tools", "Free tools"],
+                    ["/tools/compliance-calendar", "Compliance calendar"],
+                    ["/instant-help", "Talk to an expert"],
                     ["/about", "About us"],
                     ["/contact", "Contact"],
                     ["/jobs", "Jobs"],

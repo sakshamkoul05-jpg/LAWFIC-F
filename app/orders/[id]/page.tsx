@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatEntry, formatPaise } from "@/lib/money";
-import { orderTotalPaise, STATUS_META, type ServiceOrder } from "@/lib/orders";
+import { expectedBy, orderTotalPaise, STATUS_META, type ServiceOrder } from "@/lib/orders";
 import { getService } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import { isWalletLocked } from "@/lib/wallet-lock";
@@ -194,6 +194,23 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           <div>
             <p className="label mb-6 text-primary">Progress</p>
             <Timeline status={order.status} />
+
+            {/* When it should be done. Only once paid — before that there is
+                no clock running — and only when the service's turnaround is a
+                real duration. "About", because government offices keep their
+                own holidays. */}
+            {service && order.paid_at && (order.status === "paid" || order.status === "in_progress") && (() => {
+              const eta = expectedBy(service.turnaround, order.paid_at);
+              return eta ? (
+                <p className="mt-6 rounded border border-border bg-surface-2 px-4 py-3 text-[13px] text-muted">
+                  Expected by about{" "}
+                  <span className="text-foreground">
+                    {eta.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}
+                  </span>{" "}
+                  <span className="text-subtle">· {service.turnaround}</span>
+                </p>
+              ) : null;
+            })()}
 
             {service && (
               <div className="mt-10 rounded border border-border bg-surface p-5">

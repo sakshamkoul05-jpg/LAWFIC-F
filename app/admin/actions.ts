@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { notifyOrderStatus } from "@/lib/notify-order";
 
 /**
  * Back-office actions.
@@ -59,6 +61,8 @@ export async function quoteOrder(formData: FormData) {
     return { error: "Could not save that quote." };
   }
 
+  after(() => notifyOrderStatus(supabase, orderId, "quoted"));
+
   revalidatePath("/admin");
   revalidatePath(`/orders/${orderId}`);
   return { ok: true };
@@ -87,6 +91,8 @@ export async function advanceOrder(formData: FormData) {
     return { error: "Could not move that order." };
   }
 
+  after(() => notifyOrderStatus(supabase, orderId, status as "in_progress" | "completed"));
+
   revalidatePath("/admin");
   revalidatePath(`/orders/${orderId}`);
   return { ok: true };
@@ -113,6 +119,8 @@ export async function rejectOrder(formData: FormData) {
     console.error("[admin] reject failed", error);
     return { error: "Could not close that order." };
   }
+
+  after(() => notifyOrderStatus(supabase, orderId, "rejected"));
 
   revalidatePath("/admin");
   revalidatePath(`/orders/${orderId}`);

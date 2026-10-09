@@ -79,3 +79,41 @@ export function orderTotalPaise(order: {
 }): number {
   return (order.government_fee_paise ?? 0) + (order.professional_fee_paise ?? 0);
 }
+
+/**
+ * When a paid filing should be done, read from the service's own turnaround
+ * line — "7–10 working days", "Same day", "e-PAN in 48 hours".
+ *
+ * It takes the UPPER end of a range and counts working days as weekdays, so
+ * the date is one LAWFIC can keep rather than one that flatters. Government
+ * holidays are not modelled; the page says "about". Returns null when the
+ * turnaround is not a duration (an appointment, a quote), because a made-up
+ * date is worse than none.
+ */
+export function expectedBy(turnaround: string, fromIso: string): Date | null {
+  const t = turnaround.toLowerCase();
+  const start = new Date(fromIso);
+  if (Number.isNaN(start.getTime())) return null;
+
+  if (/same day/.test(t)) return start;
+
+  const hours = /(\d+)\s*(?:–|-|to)?\s*(\d+)?\s*hours?/.exec(t);
+  if (hours) {
+    const h = Number(hours[2] ?? hours[1]);
+    return new Date(start.getTime() + h * 3_600_000);
+  }
+
+  const days = /(\d+)\s*(?:–|-|to)?\s*(\d+)?\s*(working\s+)?days?/.exec(t);
+  if (!days) return null;
+  const n = Number(days[2] ?? days[1]);
+  const working = Boolean(days[3]);
+
+  const d = new Date(start);
+  let added = 0;
+  while (added < n) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const dow = d.getUTCDay();
+    if (!working || (dow !== 0 && dow !== 6)) added++;
+  }
+  return d;
+}

@@ -250,7 +250,15 @@ export function catalogueIntegrity(liveSlugs: string[]): string[] {
  * This deliberately does NOT check `status: "live"`. Live means "we have
  * written the page", not "we will take the work".
  */
+/**
+ * Things a customer can order that are not catalogue services and have no
+ * menu row: a paid call with an expert is booked from /instant-help, and goes
+ * through the same request → quote → pay-from-wallet flow as any filing.
+ */
+export const REQUEST_ONLY_SLUGS = ["expert-call"] as const;
+
 export function isRequestableSlug(slug: string, documentSlugs: string[] = []): boolean {
+  if ((REQUEST_ONLY_SLUGS as readonly string[]).includes(slug)) return true;
   if (allServices.some((s) => s.slug === slug)) return true;
   return documentSlugs.includes(slug);
 }

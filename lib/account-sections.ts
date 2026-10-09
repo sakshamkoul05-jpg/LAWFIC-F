@@ -77,7 +77,15 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
   {
     id: "dashboard",
     title: "Dash Board",
-    rows: [{ label: "Set Dash Board Preference", href: "/profile/preferences" }],
+    rows: [
+      { label: "Set Dash Board Preference", href: "/profile/preferences" },
+      {
+        label: "Compliance Dashboard",
+        href: "/compliance",
+        note: "Due dates, filings, renewals and your business health score.",
+      },
+      { label: "Your Businesses", href: "/compliance/businesses" },
+    ],
   },
   { id: "address", title: "Address", rows: [{ label: "Saved addresses" }] },
   {
@@ -93,7 +101,11 @@ export const ACCOUNT_GROUPS: AccountGroup[] = [
       { label: "Privacy policy", href: "/legal/privacy" },
     ],
   },
-  { id: "storage", title: "Your Storage File", rows: [{ label: "Documents held for you" }] },
+  {
+    id: "storage",
+    title: "Your Storage File",
+    rows: [{ label: "Documents held for you", href: "/vault", note: "Your private document vault." }],
+  },
   {
     id: "offline",
     title: "Your Offline File",

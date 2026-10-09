@@ -123,6 +123,9 @@ export const classicTabs: NavTab[] = [
       { label: "Import Export (IEC)", href: "/business#iec" },
       { label: "Payroll & PF/ESI", href: "/business#payroll" },
       { label: "ROC Filings", href: "/business#roc" },
+      { label: "Compliance Dashboard", href: "/compliance", group: "Stay compliant" },
+      { label: "Free Compliance Calendar", href: "/tools/compliance-calendar", group: "Stay compliant" },
+      { label: "Free Business Tools", href: "/tools", group: "Stay compliant" },
     ],
   },
   {

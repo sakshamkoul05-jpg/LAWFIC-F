@@ -103,6 +103,44 @@ const NOTES: IntakeField = {
 
 export const INTAKES: Intake[] = [
   {
+    slug: "expert-call",
+    intro: "We confirm a slot and the fee before anything is charged. The call is paid from your wallet.",
+    fields: [
+      {
+        name: "topic",
+        label: "What is it about?",
+        type: "select",
+        options: [
+          "Starting a business — which structure",
+          "GST — registration, returns or a notice",
+          "Income tax or TDS",
+          "Company / LLP compliance (ROC)",
+          "Trademark or brand",
+          "Licences — FSSAI, shop, trade",
+          "Agreements and legal documents",
+          "Something else",
+        ],
+        required: true,
+      },
+      {
+        name: "slot",
+        label: "When suits you?",
+        type: "select",
+        options: ["As soon as possible", "Today, afternoon", "Today, evening", "Tomorrow, morning", "Tomorrow, afternoon", "Later this week"],
+        required: true,
+        hint: "Monday to Saturday, 10:00–19:00 IST. We will confirm the exact time.",
+      },
+      { name: "language", label: "Language", type: "select", options: ["English", "Hindi"], required: true },
+      {
+        name: "notes",
+        label: "Your question, in a sentence or two",
+        type: "textarea",
+        required: true,
+        placeholder: "So the expert can come prepared",
+      },
+    ],
+  },
+  {
     slug: "pan-application",
     intro: "We will confirm the government fee and ours before anything is filed.",
     fields: [

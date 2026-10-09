@@ -8,6 +8,7 @@ import RequestForm from "@/components/site/RequestForm";
 import ApplySlot from "@/components/apply/ApplySlot";
 import { hasApplyForm } from "@/lib/apply-forms";
 import Reveal from "@/components/ui/Reveal";
+import { DocumentChecklist } from "@/components/compliance/DocumentChecklist";
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -250,17 +251,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
           </Reveal>
 
           <Reveal delay={0.08}>
-            <ul className="grid gap-px overflow-hidden rounded border border-border sm:grid-cols-2">
-              {service.documents.map((d) => (
-                <li key={d} className="flex items-start gap-3 bg-surface-2 px-5 py-4 text-[14px] leading-relaxed text-muted">
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="mt-0.5 shrink-0" aria-hidden>
-                    <rect x="2.5" y="1.5" width="10" height="12" rx="1.5" stroke="var(--color-primary)" strokeWidth="1.1" />
-                    <path d="M5 5.5h5M5 8h5M5 10.5h3" stroke="var(--color-primary)" strokeWidth="1.1" strokeLinecap="round" />
-                  </svg>
-                  {d}
-                </li>
-              ))}
-            </ul>
+            <DocumentChecklist slug={service.slug} documents={service.documents} />
           </Reveal>
         </div>
       </section>

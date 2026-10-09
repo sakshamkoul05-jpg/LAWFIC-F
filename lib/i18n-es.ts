@@ -18,6 +18,18 @@
  */
 
 export const esPhrases: Record<string, string> = {
+  /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Free tools": "Herramientas gratuitas",
+  "Compliance calendar": "Calendario de cumplimiento",
+  "Talk to an expert": "Habla con un experto",
+  "Compliance Dashboard": "Panel de cumplimiento",
+  "Free Compliance Calendar": "Calendario de cumplimiento gratuito",
+  "Free Business Tools": "Herramientas gratuitas para empresas",
+  "Stay compliant": "Cumple a tiempo",
+  "Your Businesses": "Tus empresas",
+  "Documents held for you": "Documentos guardados para ti",
+  "Your private document vault.": "Tu archivo privado de documentos.",
+  "Due dates, filings, renewals and your business health score.": "Vencimientos, declaraciones, renovaciones y la salud de tu empresa.",
   /* ── Blueprint: the nine category headings ─────────────── */
   "Identification Document Service": "Servicio de documentos de identidad",
   "Business Document Service": "Servicio de documentos de empresa",
