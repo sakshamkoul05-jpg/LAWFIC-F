@@ -33,7 +33,7 @@ export type SearchHit = {
   id: string;
   label: string;
   href: string;
-  kind: "Service" | "Document" | "Section";
+  kind: "Service" | "Document" | "Section" | "Tool";
   blurb?: string;
   /** Not shown; matched against. */
   terms: string[];
@@ -98,8 +98,86 @@ function build(): SearchHit[] {
     });
   }
 
+  /* Free tools and the account pages people ask for by what they do, not
+     by name — "gst late fee", "verify gstin", "due dates". The extra terms
+     are those phrasings. */
+  for (const t of TOOLS) {
+    out.push({
+      id: `tool-${t.href}`,
+      label: t.label,
+      href: t.href,
+      kind: "Tool",
+      blurb: t.blurb,
+      terms: forms(t.label, t.blurb, ...t.terms),
+      live: true,
+    });
+  }
+
   return out;
 }
+
+const TOOLS: { label: string; href: string; blurb: string; terms: string[] }[] = [
+  {
+    label: "Compliance calendar",
+    href: "/tools/compliance-calendar",
+    blurb: "Every GST, TDS, ITR and ROC due date for your business.",
+    terms: ["due date", "due dates", "deadline", "gstr 3b date", "gstr-1 date", "tds due date", "itr due date", "roc due date", "calendar"],
+  },
+  {
+    label: "Penalty calculator",
+    href: "/tools/penalty-calculator",
+    blurb: "Late fee and interest on a missed GST, ITR, TDS or ROC filing.",
+    terms: ["late fee", "penalty", "interest", "234f", "234e", "gst late fee", "missed return"],
+  },
+  {
+    label: "Do I need GST, FSSAI or Udyam?",
+    href: "/tools/eligibility",
+    blurb: "Which registrations your business needs, from turnover and state.",
+    terms: ["eligibility", "threshold", "gst limit", "40 lakh", "20 lakh", "fssai limit", "do i need gst"],
+  },
+  {
+    label: "Fee calculator",
+    href: "/tools/fee-calculator",
+    blurb: "Government fee and LAWFIC fee, itemised.",
+    terms: ["cost", "price", "charges", "how much"],
+  },
+  {
+    label: "Company and brand name checker",
+    href: "/tools/name-check",
+    blurb: "Will the registrar accept your company, LLP or brand name?",
+    terms: ["name availability", "company name", "trademark search", "brand name", "llp name"],
+  },
+  {
+    label: "Verify a GSTIN, PAN or Udyam number",
+    href: "/tools/verify",
+    blurb: "Catch a mistyped or fake number in a second.",
+    terms: ["gstin check", "verify gst", "gst number", "pan check", "udyam number", "cin", "fake gst"],
+  },
+  {
+    label: "Compliance dashboard",
+    href: "/compliance",
+    blurb: "Your filings, renewals and business health score.",
+    terms: ["dashboard", "my filings", "renewal", "health score", "reminders"],
+  },
+  {
+    label: "Document vault",
+    href: "/vault",
+    blurb: "Your documents, kept privately in one place.",
+    terms: ["vault", "my documents", "storage", "upload"],
+  },
+  {
+    label: "Talk to an expert",
+    href: "/instant-help",
+    blurb: "A 15-minute call with a specialist.",
+    terms: ["expert", "consultation", "call", "advice", "ca", "lawyer"],
+  },
+  {
+    label: "Admission certificate planner",
+    href: "/admission",
+    blurb: "Which certificates counselling needs, and when to apply.",
+    terms: ["admission", "counselling", "josaa", "neet", "clat", "cat", "ews certificate", "obc ncl"],
+  },
+];
 
 export const searchIndex: SearchHit[] = build();
 
@@ -133,6 +211,7 @@ export function searchSuggest(raw: string, limit = 8, scope?: string): SearchHit
     if (best === 0) continue;
     if (hit.live) best += 12;
     if (hit.kind === "Service") best += 6;
+    if (hit.kind === "Tool") best += 4;
     scored.push({ hit, score: best });
   }
 

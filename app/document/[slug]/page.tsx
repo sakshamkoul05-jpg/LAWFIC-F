@@ -20,8 +20,13 @@ import RequestForm from "@/components/site/RequestForm";
  * already exists.
  */
 
+/* Documents with a hand-built page of their own. Their folders sit beside
+   [slug] and win the route; leaving them out here stops the generic version
+   being prerendered at the same path. */
+const BESPOKE_DOCUMENTS = ["birth-certificate", "marriage-certificate", "passport-application"];
+
 export function generateStaticParams() {
-  return documents.filter((d) => !d.live).map((d) => ({ slug: d.slug }));
+  return documents.filter((d) => !d.live && !BESPOKE_DOCUMENTS.includes(d.slug)).map((d) => ({ slug: d.slug }));
 }
 
 export async function generateMetadata({

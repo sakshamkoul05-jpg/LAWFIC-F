@@ -19,6 +19,7 @@
 
 export const esPhrases: Record<string, string> = {
   /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Tool": "Herramienta",
   "Free tools": "Herramientas gratuitas",
   "Compliance calendar": "Calendario de cumplimiento",
   "Talk to an expert": "Habla con un experto",

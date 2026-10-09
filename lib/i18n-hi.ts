@@ -24,6 +24,7 @@
 
 export const hiPhrases: Record<string, string> = {
   /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Tool": "टूल",
   "Free tools": "मुफ़्त टूल",
   "Compliance calendar": "अनुपालन कैलेंडर",
   "Talk to an expert": "विशेषज्ञ से बात करें",

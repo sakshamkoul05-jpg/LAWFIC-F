@@ -71,8 +71,8 @@ export const classicTabs: NavTab[] = [
     label: "Admission",
     sublabel: "Tab 4",
     href: "/admission",
-    live: false,
-    tagline: "College and course admissions guidance.",
+    live: true,
+    tagline: "The certificates counselling asks for, and when to apply for each.",
     sub: [
       { label: "Engineering", href: "/admission#engineering" },
       { label: "Medical", href: "/admission#medical" },
