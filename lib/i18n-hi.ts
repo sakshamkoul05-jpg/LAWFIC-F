@@ -24,6 +24,12 @@
 
 export const hiPhrases: Record<string, string> = {
   /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Website & app development": "वेबसाइट और ऐप डेवलपमेंट",
+  "Digital marketing": "डिजिटल मार्केटिंग",
+  "Brand photoshoot": "ब्रांड फ़ोटोशूट",
+  "Lead generation": "लीड जनरेशन",
+  "Get a quote": "कोटेशन पाएँ",
+  "Websites, apps, marketing, photoshoots, lead generation and SaaS.": "वेबसाइट, ऐप, मार्केटिंग, फ़ोटोशूट, लीड जनरेशन और SaaS।",
   "Tool": "टूल",
   "Free tools": "मुफ़्त टूल",
   "Compliance calendar": "अनुपालन कैलेंडर",

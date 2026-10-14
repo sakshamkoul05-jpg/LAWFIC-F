@@ -172,6 +172,12 @@ const TOOLS: { label: string; href: string; blurb: string; terms: string[] }[] =
     terms: ["expert", "consultation", "call", "advice", "ca", "lawyer"],
   },
   {
+    label: "Branding studio — websites, apps and marketing",
+    href: "/branding",
+    blurb: "Websites, apps, digital marketing, photoshoots, lead generation and SaaS.",
+    terms: ["website", "app development", "android app", "ios app", "digital marketing", "seo", "social media", "photoshoot", "photography", "lead generation", "saas", "software", "branding", "logo"],
+  },
+  {
     label: "Admission certificate planner",
     href: "/admission",
     blurb: "Which certificates counselling needs, and when to apply.",

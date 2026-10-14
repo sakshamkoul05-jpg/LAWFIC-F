@@ -19,6 +19,12 @@
 
 export const esPhrases: Record<string, string> = {
   /* ── Compliance suite: tools, dashboard, vault ─────────── */
+  "Website & app development": "Desarrollo web y de apps",
+  "Digital marketing": "Marketing digital",
+  "Brand photoshoot": "Sesión de fotos de marca",
+  "Lead generation": "Generación de clientes potenciales",
+  "Get a quote": "Pide un presupuesto",
+  "Websites, apps, marketing, photoshoots, lead generation and SaaS.": "Webs, apps, marketing, fotografía, captación de clientes y SaaS.",
   "Tool": "Herramienta",
   "Free tools": "Herramientas gratuitas",
   "Compliance calendar": "Calendario de cumplimiento",
