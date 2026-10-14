@@ -27,6 +27,7 @@ export default function QuoteBuilder() {
   const [business, setBusiness] = useState("");
   const [note, setNote] = useState("");
   const [typing, setTyping] = useState(false);
+  const [flights, setFlights] = useState<number[]>([]);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -186,7 +187,23 @@ export default function QuoteBuilder() {
               </AnimatePresence>
             </div>
           </div>
-          <div className="bg-[#202c33] p-3">
+          <div className="relative bg-[#202c33] p-3">
+            <AnimatePresence>
+              {flights.map((f) => (
+                <motion.svg
+                  key={f}
+                  viewBox="0 0 24 24"
+                  className="pointer-events-none absolute left-1/2 top-2 z-10 size-7 text-[#25d366]"
+                  initial={{ x: 0, y: 0, opacity: 1, rotate: -20, scale: 0.8 }}
+                  animate={{ x: [0, 60, 180], y: [0, -120, -320], opacity: [1, 1, 0], rotate: [-20, -30, -40], scale: [0.8, 1.2, 0.6] }}
+                  transition={{ duration: 1.1, ease: "easeIn" }}
+                  onAnimationComplete={() => setFlights((cur) => cur.filter((x) => x !== f))}
+                  aria-hidden
+                >
+                  <path fill="currentColor" d="M2 11.5 21.5 3l-6.8 18.5-3.4-7.3L2 11.5Zm9.6 2.2 1.9 4 3.7-10-5.6 6Z" />
+                </motion.svg>
+              ))}
+            </AnimatePresence>
             {href ? (
               <motion.a
                 href={href}
@@ -194,6 +211,7 @@ export default function QuoteBuilder() {
                 rel="noopener noreferrer"
                 whileHover={reduced ? undefined : { scale: 1.02 }}
                 whileTap={reduced ? undefined : { scale: 0.98 }}
+                onClick={() => !reduced && setFlights((cur) => [...cur, Date.now()])}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25d366] px-5 py-3 text-[14.5px] font-semibold text-[#0b141a]"
               >
                 <svg viewBox="0 0 24 24" className="size-5" aria-hidden>

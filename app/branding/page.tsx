@@ -4,6 +4,7 @@ import StudioMorph from "@/components/branding/StudioMorph";
 import WorkShowcase from "@/components/branding/WorkShowcase";
 import QuoteBuilder from "@/components/branding/QuoteBuilder";
 import QuoteButton from "@/components/branding/QuoteButton";
+import { KineticHeadline, Magnetic, ScrollProgress, Spotlight } from "@/components/branding/Motion";
 import { APPS, SITES, STUDIO_SERVICES, quoteMessage, whatsappHref } from "@/lib/branding";
 
 /**
@@ -30,22 +31,25 @@ export default function BrandingPage() {
 
   return (
     <>
+      <ScrollProgress />
       {/* ── hero ── */}
+      <Spotlight>
       <section className="mx-auto max-w-6xl px-5 pb-20 pt-12 sm:px-8">
-        <h1 className="max-w-4xl text-[clamp(2.4rem,6.2vw,4.8rem)] font-bold leading-[0.98] tracking-[-0.05em] text-foreground">
-          Brands, built and shipped.
-        </h1>
+        <KineticHeadline />
         <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
           <p className="max-w-xl text-[16px] leading-relaxed text-muted">
             Websites, apps, marketing, photography, lead generation and software — by the team that built lawfic.pro.
             {` ${APPS.length} apps live on Google Play and ${SITES.length}+ websites shipped.`}
           </p>
-          <QuoteButton label="Get a quote on WhatsApp" />
+          <Magnetic>
+            <QuoteButton label="Get a quote on WhatsApp" />
+          </Magnetic>
         </div>
         <div className="mt-14">
           <StudioMorph />
         </div>
       </section>
+      </Spotlight>
 
       {/* ── what each service includes ── */}
       <section className="border-y border-border bg-surface/40">
@@ -87,7 +91,9 @@ export default function BrandingPage() {
                   ))}
                 </ul>
                 <div className="mt-6">
-                  <QuoteButton service={s.id} label={`Get a quote for ${s.name.toLowerCase()}`} />
+                  <Magnetic strength={0.2}>
+                    <QuoteButton service={s.id} label={`Get a quote for ${s.name.toLowerCase()}`} />
+                  </Magnetic>
                 </div>
               </article>
             ))}

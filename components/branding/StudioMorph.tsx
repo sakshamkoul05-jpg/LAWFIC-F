@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { STUDIO_SERVICES, type ServiceId } from "@/lib/branding";
+import { Tilt } from "./Motion";
 
 /**
  * The studio's one big moving piece: a single frame that becomes whatever you
@@ -98,6 +99,7 @@ export default function StudioMorph() {
         })}
       </div>
 
+      <Tilt max={5}>
       <div
         id="studio-stage"
         role="tabpanel"
@@ -124,6 +126,7 @@ export default function StudioMorph() {
         </AnimatePresence>
         <span className="absolute bottom-3 right-4 text-[10.5px] text-subtle">Illustration</span>
       </div>
+      </Tilt>
     </div>
   );
 }
