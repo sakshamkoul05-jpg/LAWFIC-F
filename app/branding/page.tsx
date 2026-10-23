@@ -6,7 +6,9 @@ import Statement from "@/components/branding/Statement";
 import ServiceList from "@/components/branding/ServiceList";
 import QuoteBuilder from "@/components/branding/QuoteBuilder";
 import Contact from "@/components/branding/Contact";
-import { PROCESS, quoteMessage, whatsappHref } from "@/lib/branding";
+import Showreel from "@/components/branding/Showreel";
+import Stage from "@/components/branding/Stage";
+import { INTRO_SEEN_SCRIPT, PROCESS, quoteMessage, whatsappHref } from "@/lib/branding";
 
 /**
  * Branding — the studio, laid out the way designers lay out their own
@@ -32,9 +34,16 @@ export default function BrandingPage() {
 
   return (
     <div id="top">
+      {/* before paint: skip the intro for a visitor who has already seen it */}
+      <script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
+      <Stage />
       <Hero />
 
-      <section id="work" className={`${WRAP} scroll-mt-28 pb-28 pt-8 sm:pb-36`}>
+      <div id="work" className="scroll-mt-0">
+        <Showreel />
+      </div>
+
+      <section className={`${WRAP} pb-28 pt-24 sm:pb-36 sm:pt-32`}>
         <WorkIndex />
       </section>
 

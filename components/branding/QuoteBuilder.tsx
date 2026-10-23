@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { studioScrollTo } from "./Stage";
 import { BUDGETS, STUDIO_SERVICES, TIMELINES, quoteMessage, whatsappHref, type ServiceId } from "@/lib/branding";
 
 /**
@@ -34,7 +35,7 @@ export default function QuoteBuilder() {
     const onPick = (e: Event) => {
       const id = (e as CustomEvent<ServiceId>).detail;
       setServices((cur) => (cur.includes(id) ? cur : [...cur, id]));
-      root.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      studioScrollTo(root.current);
     };
     window.addEventListener(QUOTE_EVENT, onPick);
     return () => window.removeEventListener(QUOTE_EVENT, onPick);

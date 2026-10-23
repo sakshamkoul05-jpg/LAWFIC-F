@@ -208,6 +208,13 @@ export const PROCESS: { title: string; line: string }[] = [
   { title: "After launch", line: "Hosting, updates and fixes, on a monthly plan or whenever you need them." },
 ];
 
+/* ── the intro on /branding plays once per visit ────────────────────────── */
+
+export const INTRO_KEY = "lawfic-studio-intro";
+
+/** Runs before paint so a returning visitor never sees the curtain flash. */
+export const INTRO_SEEN_SCRIPT = `try{if(sessionStorage.getItem("${INTRO_KEY}"))document.documentElement.classList.add("studio-intro-seen")}catch(e){}`;
+
 /* ── the WhatsApp quote ─────────────────────────────────────────────────── */
 
 export const BUDGETS = ["Under ₹25,000", "₹25,000 – ₹1 lakh", "₹1 – 5 lakh", "Above ₹5 lakh", "Not sure yet"] as const;

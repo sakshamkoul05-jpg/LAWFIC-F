@@ -2384,3 +2384,31 @@
   .home-posters-track { animation: none; }
   .home-posters .classic-marquee-group { overflow-x: auto; }
 }
+
+/* ---------- /branding: the studio page ----------------------------------- */
+/* Lenis drives the scroll there; the site-wide smooth scroll would fight it. */
+html.lenis {
+  scroll-behavior: auto !important;
+}
+/* The page's own cursor replaces the system one, but only once it is running
+   (the class is added by script) and never over a text field. */
+@media (hover: hover) and (pointer: fine) {
+  .studio-cursor,
+  .studio-cursor * {
+    cursor: none !important;
+  }
+  .studio-cursor input,
+  .studio-cursor textarea {
+    cursor: text !important;
+  }
+}
+/* The intro plays once per visit; on a return within the visit (set before
+   paint by an inline script), or with reduced motion, it is never drawn. */
+html.studio-intro-seen .studio-intro {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-intro {
+    display: none;
+  }
+}

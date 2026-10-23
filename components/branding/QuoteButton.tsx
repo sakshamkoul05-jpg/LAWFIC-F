@@ -1,6 +1,7 @@
 "use client";
 
 import type { ServiceId } from "@/lib/branding";
+import { studioScrollTo } from "./Stage";
 
 const BASE =
   "inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
@@ -20,7 +21,7 @@ export default function QuoteButton({
       type="button"
       onClick={() => {
         if (service) window.dispatchEvent(new CustomEvent("lawfic:quote", { detail: service }));
-        else document.getElementById("quote")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        else studioScrollTo(document.getElementById("quote"));
       }}
       className={className}
     >

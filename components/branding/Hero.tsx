@@ -1,10 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { APPS, SITES } from "@/lib/branding";
 import { AppIcon, IndiaTime, Magnetic, SiteShot } from "./Shared";
 import QuoteButton from "./QuoteButton";
+import { useIntroDone } from "./Stage";
 
 /**
  * The opening of /branding.
@@ -43,11 +44,12 @@ function Cycle<T>({ items, every, render }: { items: T[]; every: number; render:
 
 function Slot({ delay, className, children }: { delay: number; className: string; children: ReactNode }) {
   const reduced = !!useReducedMotion();
+  const done = useIntroDone();
   return (
     <motion.span
       className={`relative mx-[0.12em] inline-block overflow-hidden align-[-0.08em] ${className}`}
       initial={reduced ? false : { scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      animate={done || reduced ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
       transition={{ delay, duration: 0.6, ease: EASE }}
       aria-hidden
     >
@@ -58,12 +60,13 @@ function Slot({ delay, className, children }: { delay: number; className: string
 
 function Line({ i, children }: { i: number; children: ReactNode }) {
   const reduced = !!useReducedMotion();
+  const done = useIntroDone();
   return (
     <span className="block overflow-hidden pb-[0.06em]">
       <motion.span
         className="block"
         initial={reduced ? false : { y: "110%" }}
-        animate={{ y: 0 }}
+        animate={{ y: done || reduced ? "0%" : "110%" }}
         transition={{ delay: 0.15 + i * 0.09, duration: 1, ease: EASE }}
       >
         {children}
@@ -74,14 +77,21 @@ function Line({ i, children }: { i: number; children: ReactNode }) {
 
 export default function Hero() {
   const reduced = !!useReducedMotion();
+  const done = useIntroDone();
   const after = (d: number) => ({
-    initial: reduced ? false : { opacity: 0, y: 12 },
-    animate: { opacity: 1, y: 0 },
+    initial: reduced ? false : ({ opacity: 0, y: 12 } as const),
+    animate: done || reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 },
     transition: { delay: d, duration: 0.7, ease: EASE },
   });
 
+  /* as the page moves on, the headline drifts up and lets go */
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const drift = useTransform(scrollYProgress, [0, 1], ["0%", "-18%"]);
+  const fade = useTransform(scrollYProgress, [0, 0.85], [1, 0.15]);
+
   return (
-    <section className="mx-auto flex min-h-[calc(100svh-7rem)] max-w-[1440px] flex-col justify-between gap-16 px-5 pb-12 pt-10 sm:px-10 sm:pt-14">
+    <section ref={ref} className="mx-auto flex min-h-[calc(100svh-7rem)] max-w-[1440px] flex-col justify-between gap-16 px-5 pb-12 pt-10 sm:px-10 sm:pt-14">
       <motion.div {...after(0.05)} className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 text-[14px] text-muted">
         <p className="font-medium text-foreground">LAWFIC Studio</p>
         <div className="flex items-center gap-6">
@@ -98,7 +108,8 @@ export default function Hero() {
         </div>
       </motion.div>
 
-      <h1
+      <motion.h1
+        style={reduced ? undefined : { y: drift, opacity: fade }}
         aria-label="We design and build websites, apps and brands."
         className="text-[clamp(2.15rem,8.4vw,8.75rem)] font-medium leading-[0.98] tracking-[-0.06em] text-foreground"
       >
@@ -119,7 +130,7 @@ export default function Hero() {
             and brands.
           </Line>
         </span>
-      </h1>
+      </motion.h1>
 
       <motion.div {...after(0.9)} className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <p className="max-w-[46ch] text-[16px] leading-relaxed text-muted">

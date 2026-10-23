@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, useSpring } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { APPS, SITES, type AppProject, type SiteProject } from "@/lib/branding";
-import { AppIcon, SiteShot } from "./Shared";
+import { AppIcon, SiteShot, usePointerFine } from "./Shared";
 
 /**
  * The work, as an index.
@@ -35,18 +35,6 @@ const VIEWS = [
   { id: "apps", label: "Apps", rows: APP_ROWS },
 ] as const;
 
-function usePointerFine() {
-  const [fine, setFine] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const on = () => setFine(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return fine;
-}
-
 function AppPanel({ app }: { app: AppProject }) {
   return (
     <span className="flex size-full items-center gap-6 bg-surface-2 px-[9%]">
@@ -74,7 +62,7 @@ export default function WorkIndex() {
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-6 border-b border-foreground pb-5">
-        <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">Live work</h2>
+        <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">Full index</h2>
         <div role="tablist" aria-label="Show" className="flex gap-1 rounded-full border border-border p-1">
           {VIEWS.map((v) => {
             const on = v.id === view;
@@ -109,6 +97,7 @@ export default function WorkIndex() {
       </div>
 
       <ul
+        data-cursor="hide"
         onMouseMove={(e) => {
           x.set(e.clientX);
           y.set(e.clientY);

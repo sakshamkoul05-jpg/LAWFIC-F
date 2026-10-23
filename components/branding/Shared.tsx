@@ -48,7 +48,18 @@ export function Magnetic({ children, strength = 0.3 }: { children: ReactNode; st
  * A website's homepage. Shows the domain set in type until a real capture has
  * loaded (see sitePreview for why the width is checked).
  */
-export function SiteShot({ site, className = "", eager = false }: { site: SiteProject; className?: string; eager?: boolean }) {
+export function SiteShot({
+  site,
+  className = "",
+  eager = false,
+  bare = false,
+}: {
+  site: SiteProject;
+  className?: string;
+  eager?: boolean;
+  /** Leave out the fallback's own browser bar (the frame already has one). */
+  bare?: boolean;
+}) {
   const img = useRef<HTMLImageElement>(null);
   const [ready, setReady] = useState(false);
   const check = () => {
@@ -63,11 +74,13 @@ export function SiteShot({ site, className = "", eager = false }: { site: SitePr
         className={`absolute inset-0 flex flex-col transition-opacity duration-500 ${ready ? "opacity-0" : "opacity-100"}`}
         aria-hidden
       >
-        <span className="flex h-[9%] min-h-3 items-center gap-[3%] border-b border-border px-[4%]">
-          {[0, 1, 2].map((d) => (
-            <span key={d} className="aspect-square h-[34%] rounded-full bg-border-3" />
-          ))}
-        </span>
+        {!bare && (
+          <span className="flex h-[9%] min-h-3 items-center gap-[3%] border-b border-border px-[4%]">
+            {[0, 1, 2].map((d) => (
+              <span key={d} className="aspect-square h-[34%] rounded-full bg-border-3" />
+            ))}
+          </span>
+        )}
         <span className="flex flex-1 items-center justify-center px-[8%] text-center text-[clamp(0.7rem,2.4cqw,1.6rem)] font-medium tracking-[-0.03em] text-muted">
           {site.domain}
         </span>
@@ -107,4 +120,17 @@ export function AppIcon({ app, className = "" }: { app: AppProject; className?: 
       className={`rounded-[22%] object-cover ${className}`}
     />
   );
+}
+
+/** True with a mouse or trackpad; false on touch screens. */
+export function usePointerFine() {
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const on = () => setFine(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return fine;
 }
