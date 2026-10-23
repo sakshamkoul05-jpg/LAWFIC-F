@@ -68,8 +68,8 @@ export default function QuoteBuilder() {
               return (
                 <label
                   key={s.id}
-                  className={`relative cursor-pointer select-none rounded-full border px-4 py-2 text-[13.5px] transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/50 ${
-                    on ? "border-primary bg-primary text-background" : "border-border text-foreground hover:border-primary/40"
+                  className={`relative cursor-pointer select-none rounded-full border px-4 py-2 text-[13.5px] transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground/40 ${
+                    on ? "border-foreground bg-foreground text-background" : "border-border-3 text-foreground hover:border-foreground"
                   }`}
                 >
                   <input type="checkbox" className="sr-only" checked={on} onChange={() => toggle(s.id)} />
@@ -95,8 +95,8 @@ export default function QuoteBuilder() {
                 return (
                   <label
                     key={o}
-                    className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/50 ${
-                      on ? "border-accent bg-accent-light text-foreground" : "border-border text-muted hover:text-foreground"
+                    className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-foreground/40 ${
+                      on ? "border-foreground text-foreground" : "border-border text-muted hover:text-foreground"
                     }`}
                   >
                     <input type="radio" name={g.legend} className="sr-only" checked={on} onChange={() => g.set(o)} />
@@ -114,7 +114,7 @@ export default function QuoteBuilder() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value.slice(0, 60))}
-              className="mt-1.5 w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-primary/50"
+              className="mt-1.5 w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-foreground/50"
             />
           </label>
           <label className="block">
@@ -122,7 +122,7 @@ export default function QuoteBuilder() {
             <input
               value={business}
               onChange={(e) => setBusiness(e.target.value.slice(0, 80))}
-              className="mt-1.5 w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-primary/50"
+              className="mt-1.5 w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-foreground/50"
             />
           </label>
           <label className="block sm:col-span-2">
@@ -131,7 +131,7 @@ export default function QuoteBuilder() {
               value={note}
               rows={2}
               onChange={(e) => setNote(e.target.value.slice(0, 400))}
-              className="mt-1.5 w-full resize-none rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-primary/50"
+              className="mt-1.5 w-full resize-none rounded-xl border border-border bg-background/60 px-3 py-2.5 text-[14px] text-foreground outline-none focus:border-foreground/50"
               placeholder="A link to a site you like, or what the app should do"
             />
           </label>

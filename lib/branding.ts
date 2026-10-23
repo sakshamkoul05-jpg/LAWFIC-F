@@ -160,7 +160,15 @@ export const APPS: AppProject[] = [
   },
 ];
 
-export type SiteProject = { domain: string; url: string; kind: string; line: string };
+export type SiteProject = {
+  domain: string;
+  url: string;
+  kind: string;
+  line: string;
+  /** A screenshot in /public (e.g. "/work/guleri.jpg"). When absent, a live
+   *  capture is requested from WordPress's mShots service — see sitePreview. */
+  shot?: string;
+};
 
 export const SITES: SiteProject[] = [
   { domain: "shop.doodhvalefarms.com", url: "https://shop.doodhvalefarms.com", kind: "E-commerce", line: "Farm ghee, oils and pantry staples, sold direct." },
@@ -173,6 +181,31 @@ export const SITES: SiteProject[] = [
   { domain: "lawfic.pro", url: "https://lawfic.pro", kind: "Platform", line: "This site — registrations, compliance and a prepaid wallet." },
   { domain: "kashmircultural.in", url: "https://kashmircultural.in", kind: "Crafts store", line: "Kashmiri crafts and culture." },
   { domain: "korahouse.in", url: "https://korahouse.in", kind: "Hospitality", line: "A guesthouse in McLeodganj." },
+];
+
+/**
+ * The picture shown for a website in the work index.
+ *
+ * A screenshot committed under /public wins. Otherwise WordPress's free mShots
+ * service captures the live homepage. The first request for a URL returns a
+ * small "generating" placeholder while it renders, so the component checks the
+ * width it gets back and keeps its lettered fallback until the real capture
+ * (1000px wide) arrives. To pin a picture, save one to /public/work/ and set
+ * `shot` on the site above.
+ */
+export function sitePreview(site: Pick<SiteProject, "url" | "shot">, width = 1000): string {
+  if (site.shot) return site.shot;
+  const h = Math.round((width * 10) / 16);
+  return `https://s0.wp.com/mshots/v1/${encodeURIComponent(site.url)}?w=${width}&h=${h}&vpw=1440&vph=900`;
+}
+
+/** How a project runs — a real sequence, so it is numbered on the page. */
+export const PROCESS: { title: string; line: string }[] = [
+  { title: "Talk it through", line: "A call or a WhatsApp chat about what you need and what it has to do for the business." },
+  { title: "Written quote", line: "Scope, price and timeline in writing. Nothing is charged before you agree to it." },
+  { title: "Design", line: "You see the pages, screens or shoot plan and sign them off before anything is built." },
+  { title: "Build and launch", line: "Built, tested on real phones, and put live on your domain or the Play Store." },
+  { title: "After launch", line: "Hosting, updates and fixes, on a monthly plan or whenever you need them." },
 ];
 
 /* ── the WhatsApp quote ─────────────────────────────────────────────────── */

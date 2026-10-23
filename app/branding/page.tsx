@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import StudioMorph from "@/components/branding/StudioMorph";
-import WorkShowcase from "@/components/branding/WorkShowcase";
+import Hero from "@/components/branding/Hero";
+import WorkIndex from "@/components/branding/WorkIndex";
+import Statement from "@/components/branding/Statement";
+import ServiceList from "@/components/branding/ServiceList";
 import QuoteBuilder from "@/components/branding/QuoteBuilder";
-import QuoteButton from "@/components/branding/QuoteButton";
-import { KineticHeadline, Magnetic, ScrollProgress, Spotlight } from "@/components/branding/Motion";
-import { APPS, SITES, STUDIO_SERVICES, quoteMessage, whatsappHref } from "@/lib/branding";
+import Contact from "@/components/branding/Contact";
+import { PROCESS, quoteMessage, whatsappHref } from "@/lib/branding";
 
 /**
- * Branding — the studio.
+ * Branding — the studio, laid out the way designers lay out their own
+ * portfolios: the claim in big type, then the work as an index you can hover
+ * through, a paragraph that reads itself as you scroll, the services as one
+ * list, how a project runs, the quote, and a close in reverse colours.
  *
- * Websites and apps, digital marketing, brand photoshoots, lead generation and
- * SaaS, shown by doing rather than describing: a frame at the top that turns
- * into each one, the apps and sites already shipped, and a quote that writes
- * itself into WhatsApp.
- *
- * The menu's older anchors (/branding#static-site, #apps, #advertising …) are
- * kept as aliases on the matching service so no existing link breaks.
+ * The menu's anchors (#web-apps, #marketing, #photoshoot, #leads, #saas, #work,
+ * #quote and the older #static-site, #apps, #advertising …) all still land.
  */
 
 export const metadata: Metadata = {
@@ -26,107 +25,77 @@ export const metadata: Metadata = {
   alternates: { canonical: "/branding" },
 };
 
+const WRAP = "mx-auto max-w-[1440px] px-5 sm:px-10";
+
 export default function BrandingPage() {
   const quickHref = whatsappHref(quoteMessage({ services: [] }));
 
   return (
-    <>
-      <ScrollProgress />
-      {/* ── hero ── */}
-      <Spotlight>
-      <section className="mx-auto max-w-6xl px-5 pb-20 pt-12 sm:px-8">
-        <KineticHeadline />
-        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <p className="max-w-xl text-[16px] leading-relaxed text-muted">
-            Websites, apps, marketing, photography, lead generation and software — by the team that built lawfic.pro.
-            {` ${APPS.length} apps live on Google Play and ${SITES.length}+ websites shipped.`}
-          </p>
-          <Magnetic>
-            <QuoteButton label="Get a quote on WhatsApp" />
-          </Magnetic>
-        </div>
-        <div className="mt-14">
-          <StudioMorph />
-        </div>
-      </section>
-      </Spotlight>
+    <div id="top">
+      <Hero />
 
-      {/* ── what each service includes ── */}
-      <section className="border-y border-border bg-surface/40">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[0.7fr_1.3fr]">
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <h2 className="text-[clamp(1.6rem,3.2vw,2.4rem)] font-semibold leading-tight tracking-[-0.03em] text-foreground">
-              What each one includes
-            </h2>
-            <p className="mt-3 max-w-sm text-[14.5px] leading-relaxed text-muted">
-              Pick one or several. Every project starts with a conversation and a written quote — nothing is charged before
-              you agree to it.
-            </p>
-            <p className="mt-6 max-w-sm text-[13px] text-muted">
-              Protecting the brand itself?{" "}
-              <Link href="/document/trademark" className="text-primary hover:underline">
-                Trademark registration
-              </Link>{" "}
-              and{" "}
-              <Link href="/request/copyright" className="text-primary hover:underline">
-                copyright
-              </Link>{" "}
-              are handled by our filings team.
-            </p>
-          </div>
-          <div className="grid gap-px overflow-hidden rounded-[28px] border border-border bg-border">
-            {STUDIO_SERVICES.map((s) => (
-              <article key={s.id} id={s.anchor} className="relative scroll-mt-32 bg-background p-6 sm:p-8">
-                {s.aliases?.map((a) => (
-                  <span key={a} id={a} className="absolute -top-32" aria-hidden />
-                ))}
-                <h3 className="text-[20px] font-semibold tracking-[-0.02em] text-foreground">{s.name}</h3>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{s.line}</p>
-                <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-                  {s.includes.map((x) => (
-                    <li key={x} className="flex gap-2.5 text-[13.5px] leading-relaxed text-foreground">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                      {x}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6">
-                  <Magnetic strength={0.2}>
-                    <QuoteButton service={s.id} label={`Get a quote for ${s.name.toLowerCase()}`} />
-                  </Magnetic>
-                </div>
-              </article>
+      <section id="work" className={`${WRAP} scroll-mt-28 pb-28 pt-8 sm:pb-36`}>
+        <WorkIndex />
+      </section>
+
+      <section className={`${WRAP} pb-28 sm:pb-40`}>
+        <Statement text="We are the studio inside LAWFIC, the team that designed and built this platform. We make websites, apps, campaigns and photographs for dairies, cafés, fashion labels, trusts and guesthouses, and we stay on after launch to keep them running." />
+      </section>
+
+      <section className={`${WRAP} grid gap-10 pb-28 sm:pb-36 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16`}>
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">What we do</h2>
+          <p className="mt-4 max-w-[34ch] text-[15px] leading-relaxed text-muted">
+            One of these or several together. Every project starts with a conversation and a written quote.
+          </p>
+          <p className="mt-6 max-w-[34ch] text-[14px] leading-relaxed text-muted">
+            Protecting the brand itself?{" "}
+            <Link href="/document/trademark" className="text-foreground underline decoration-border-3 underline-offset-4 hover:decoration-foreground">
+              Trademark registration
+            </Link>{" "}
+            and{" "}
+            <Link href="/request/copyright" className="text-foreground underline decoration-border-3 underline-offset-4 hover:decoration-foreground">
+              copyright
+            </Link>{" "}
+            are handled by our filings team.
+          </p>
+        </div>
+        <ServiceList />
+      </section>
+
+      <section className="border-t border-border">
+        <div className={`${WRAP} py-24 sm:py-32`}>
+          <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">How a project runs</h2>
+          <ol className="mt-12 grid gap-px overflow-hidden border-y border-border bg-border sm:grid-cols-2 lg:grid-cols-5">
+            {PROCESS.map((p, i) => (
+              <li key={p.title} className="bg-background py-8 pr-6 sm:px-6 lg:first:pl-0">
+                <span className="block text-[clamp(2.5rem,4vw,3.5rem)] font-medium leading-none tracking-[-0.05em] text-subtle tabular-nums">
+                  {i + 1}
+                </span>
+                <h3 className="mt-8 text-[18px] font-medium tracking-[-0.02em] text-foreground">{p.title}</h3>
+                <p className="mt-2 max-w-[30ch] text-[14.5px] leading-relaxed text-muted">{p.line}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* ── work ── */}
-      <section id="work" className="mx-auto max-w-6xl scroll-mt-28 px-5 py-20 sm:px-8">
-        <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-bold leading-tight tracking-[-0.04em] text-foreground">Our work, live right now</h2>
-        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
-          Not mock-ups — every app and site below is in use by its business today.
-        </p>
-        <div className="mt-12">
-          <WorkShowcase />
-        </div>
-      </section>
-
-      {/* ── quote ── */}
-      <section id="quote" className="scroll-mt-24 border-t border-border bg-surface/40">
-        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
-          <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-bold leading-tight tracking-[-0.04em] text-foreground">Get a quote</h2>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">
-            Choose what you need and watch the message write itself. It opens in WhatsApp, ready to send — we reply with
-            questions and a written quote.
+      <section id="quote" className="scroll-mt-24 border-t border-border bg-surface/50">
+        <div className={`${WRAP} py-24 sm:py-32`}>
+          <h2 className="text-[clamp(2rem,4.6vw,4rem)] font-medium leading-[1] tracking-[-0.05em] text-foreground">Tell us what you need</h2>
+          <p className="mt-4 max-w-[52ch] text-[15.5px] leading-relaxed text-muted">
+            Choose what fits and the message writes itself. It opens in WhatsApp ready to send, and we reply with questions and a written
+            quote.
           </p>
-          <div className="mt-12">
+          <div className="mt-14">
             <QuoteBuilder />
           </div>
         </div>
       </section>
 
-      {/* mobile: a direct WhatsApp shortcut that stays in reach */}
+      <Contact />
+
+      {/* phones: a direct WhatsApp shortcut that stays in reach */}
       {quickHref && (
         <a
           href={quickHref}
@@ -137,6 +106,6 @@ export default function BrandingPage() {
           WhatsApp us
         </a>
       )}
-    </>
+    </div>
   );
 }

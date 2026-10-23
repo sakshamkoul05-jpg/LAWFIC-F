@@ -2,8 +2,19 @@
 
 import type { ServiceId } from "@/lib/branding";
 
-/** Preselects a service in the quote builder and scrolls to it. */
-export default function QuoteButton({ service, label = "Get a quote" }: { service?: ServiceId; label?: string }) {
+const BASE =
+  "inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground";
+
+/** Preselects a service in the quote builder (if given) and scrolls to it. */
+export default function QuoteButton({
+  service,
+  label = "Get a quote",
+  className = BASE,
+}: {
+  service?: ServiceId;
+  label?: string;
+  className?: string;
+}) {
   return (
     <button
       type="button"
@@ -11,7 +22,7 @@ export default function QuoteButton({ service, label = "Get a quote" }: { servic
         if (service) window.dispatchEvent(new CustomEvent("lawfic:quote", { detail: service }));
         else document.getElementById("quote")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }}
-      className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13.5px] font-medium text-background transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className={className}
     >
       {label}
     </button>
