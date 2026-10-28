@@ -49,10 +49,27 @@ export default function ThemeShell({
   const pathname = usePathname();
   const isBackOffice = pathname === "/admin" || pathname.startsWith("/admin/");
   const isHome = pathname === "/";
+  /* /branding is the studio's portfolio and stands on its own: just the two
+     menus at the top, no section strip, no quick icons, no site footer and no
+     help bubble — the page closes with its own contact block. */
+  const isStudio = pathname === "/branding" || pathname.startsWith("/branding/");
 
   if (isBackOffice) {
     return (
       <div className="flex min-h-screen flex-col bg-background">{children}</div>
+    );
+  }
+
+  if (isStudio) {
+    return (
+      <ProfileProvider>
+        <QuickActionsProvider>
+          <div className="flex min-h-screen flex-col bg-background">
+            <SiteHeader variant="studio" />
+            <main className="flex-1">{children}</main>
+          </div>
+        </QuickActionsProvider>
+      </ProfileProvider>
     );
   }
 

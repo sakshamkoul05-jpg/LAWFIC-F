@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { APPS, SITES } from "@/lib/branding";
+import { APPS, SITES, WEBSITES_DELIVERED } from "@/lib/branding";
 import { AppIcon, IndiaTime, Magnetic, SiteShot } from "./Shared";
 import QuoteButton from "./QuoteButton";
 import { useIntroDone } from "./Stage";
@@ -91,9 +91,9 @@ export default function Hero() {
   const fade = useTransform(scrollYProgress, [0, 0.85], [1, 0.15]);
 
   return (
-    <section ref={ref} className="mx-auto flex min-h-[calc(100svh-7rem)] max-w-[1440px] flex-col justify-between gap-16 px-5 pb-12 pt-10 sm:px-10 sm:pt-14">
+    <section ref={ref} className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-[1440px] flex-col justify-between gap-16 px-5 pb-12 pt-6 sm:px-10 sm:pt-10">
       <motion.div {...after(0.05)} className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 text-[14px] text-muted">
-        <p className="font-medium text-foreground">LAWFIC Studio</p>
+        <p className="font-medium text-foreground">{WEBSITES_DELIVERED} websites delivered</p>
         <div className="flex items-center gap-6">
           <p className="flex items-center gap-2">
             <span className="relative flex size-2">
@@ -135,7 +135,7 @@ export default function Hero() {
       <motion.div {...after(0.9)} className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <p className="max-w-[46ch] text-[16px] leading-relaxed text-muted">
           Websites, Android and iOS apps, marketing, photography and custom software, by the team that built lawfic.pro.{" "}
-          {APPS.length} apps are live on Google Play, and the {SITES.length} websites below are a few of the many we have delivered.
+          {WEBSITES_DELIVERED} websites delivered, and {APPS.length} apps live on Google Play.
         </p>
         <div className="flex items-center gap-6">
           <a href="#work" className="text-[15px] font-medium text-foreground underline decoration-border-3 underline-offset-[6px] hover:decoration-foreground">

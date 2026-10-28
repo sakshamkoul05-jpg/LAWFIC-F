@@ -3,7 +3,7 @@
 import Lenis from "lenis";
 import { AnimatePresence, motion, useReducedMotion, useSpring } from "motion/react";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { APPS, INTRO_KEY, SITES } from "@/lib/branding";
+import { APPS, INTRO_KEY, SITES, WEBSITES_DELIVERED } from "@/lib/branding";
 import { usePointerFine } from "./Shared";
 
 /**
@@ -33,7 +33,7 @@ export function useIntroDone() {
 
 let lenis: Lenis | null = null;
 /** Scroll to an element through the smooth scroller when it is running. */
-export function studioScrollTo(el: HTMLElement | null, offset = -110) {
+export function studioScrollTo(el: HTMLElement | null, offset = -80) {
   if (!el) return;
   if (lenis) lenis.scrollTo(el, { offset, duration: 1.4 });
   else el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -129,7 +129,7 @@ function Intro() {
         </div>
         <div className="flex items-end justify-between gap-6">
           <span className="max-w-[18ch] text-[14px] leading-snug text-background/60">
-            {SITES.length} websites and {APPS.length} apps, live right now
+            {WEBSITES_DELIVERED} websites delivered
           </span>
           <span className="text-[clamp(5rem,19vw,17rem)] font-medium leading-[0.8] tracking-[-0.07em] tabular-nums">{n}</span>
         </div>
@@ -212,7 +212,7 @@ export default function Stage() {
 
   useEffect(() => {
     if (reduced) return;
-    const l = new Lenis({ autoRaf: true, lerp: 0.085, anchors: { offset: -110 } });
+    const l = new Lenis({ autoRaf: true, lerp: 0.085, anchors: { offset: -80 } });
     lenis = l;
     if (!introDone && !document.documentElement.classList.contains("studio-intro-seen")) l.stop();
     return () => {

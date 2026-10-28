@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import MenuLines from "@/components/site/MenuLines";
 
 /**
  * The account control at the far right.
@@ -84,21 +85,9 @@ export default function ProfileMenu({
         aria-label={user ? "Your account" : "Account and sign in"}
         className="grid size-10 place-items-center rounded-xl sm:size-11 border border-border text-muted-foreground lg:size-[52px] transition-colors hover:border-border-3 hover:text-foreground"
       >
-        {/* TWO LINES, BOTH COLOURED — the small sibling of the four-line
-            icon on the far left. Two rather than four because this one opens
-            an account list and not the whole site, and the count is the only
-            thing distinguishing them at a glance; the colours say they are the
-            same kind of control. The two hues are taken from the four on the
-            left rather than invented, so the pair reads as one family.
-
-            Colour carries no meaning here — the button has a label and a
-            tooltip either way — so it costs nothing to a viewer who cannot
-            separate the hues. */}
-        {/* Two coloured bars: the account menu, beside the photo. */}
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-          <path d="M3 6.5h12" stroke="#C58F6B" strokeWidth="2" strokeLinecap="round" />
-          <path d="M3 11.5h12" stroke="#7FA8A0" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+        {/* FOUR LINES, the same icon as the site menu at the far left, so
+            the two ends of the bar read as a pair. */}
+        <MenuLines />
       </button>
 
       {open && (

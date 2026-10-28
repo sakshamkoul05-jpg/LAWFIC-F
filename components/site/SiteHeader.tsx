@@ -11,6 +11,8 @@ import LocationBox from "@/components/site/LocationBox";
 import HeaderActions from "@/components/site/HeaderActions";
 import ProfileCorner from "@/components/site/ProfileCorner";
 import MegaMenu from "@/components/site/MegaMenu";
+import MenuLines from "@/components/site/MenuLines";
+import ProfileMenu from "@/components/site/ProfileMenu";
 import { LanguageMenu } from "@/components/site/HeaderMenus";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { classicTabs, tabAccent } from "@/lib/nav-tabs";
@@ -41,7 +43,13 @@ type User = {
   user_metadata?: Record<string, string>;
 };
 
-export default function SiteHeader() {
+/**
+ * `studio` is the bar for /branding: the page is the studio's own portfolio,
+ * so it keeps only the two menus — everything on the left, the account on the
+ * right — around a small studio mark, and drops location, language, search,
+ * the app download and the quick-icon row.
+ */
+export default function SiteHeader({ variant = "full" }: { variant?: "full" | "studio" }) {
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
   const [drawer, setDrawer] = useState(false);
@@ -99,8 +107,36 @@ export default function SiteHeader() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const menuButton = (
+    <button
+      type="button"
+      onClick={() => setDrawer(true)}
+      aria-label={t("nav.openMenu")}
+      aria-expanded={drawer}
+      className="grid size-11 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-border-3 hover:text-foreground lg:size-[52px]"
+    >
+      <MenuLines />
+    </button>
+  );
+
   return (
     <>
+      {variant === "studio" ? (
+        <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-xl">
+          <div className="flex w-full items-center justify-between gap-4 px-3 py-2.5 sm:px-4 lg:px-6">
+            {menuButton}
+            <Link href="/" className="text-[15px] font-medium tracking-[-0.02em] text-foreground">
+              LAWFIC <span className="text-muted">Studio</span>
+            </Link>
+            {mounted ? (
+              <ProfileMenu user={user} onSignInClick={() => setSignIn(true)} />
+            ) : (
+              <span className="size-11 lg:size-[52px]" aria-hidden />
+            )}
+          </div>
+        </header>
+      ) : (
+      <>
       {/* The background is a variable so the home page's carousel can tint it
           to the flyer on screen; it is unset everywhere else and falls back to
           the theme's own surface. The transition is what stops a slide change
@@ -154,17 +190,7 @@ export default function SiteHeader() {
                 Colour alone never carries meaning here: this is decoration on a
                 control that already has a label, so it costs a viewer who
                 cannot separate the hues precisely nothing. */}
-            <svg
-              viewBox="0 0 18 18"
-              fill="none"
-              aria-hidden
-              className="size-[18px] sm:size-[22px] lg:size-[26px]"
-            >
-              <path d="M2 3.5h14" stroke="#C58F6B" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 7.2h14" stroke="#7FA8A0" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 10.9h14" stroke="#C9B87E" strokeWidth="1.9" strokeLinecap="round" />
-              <path d="M2 14.6h14" stroke="#8FA3C9" strokeWidth="1.9" strokeLinecap="round" />
-            </svg>
+            <MenuLines />
           </button>
 
           <Link href="/" aria-label="LAWFIC home" className="shrink-0">
@@ -239,6 +265,8 @@ export default function SiteHeader() {
           </div>
         )}
       </header>
+      </>
+      )}
 
       {/* Everything, in one place. Opened from the hamburger at any width. */}
       {drawer && (

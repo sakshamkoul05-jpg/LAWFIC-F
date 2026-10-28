@@ -160,6 +160,10 @@ export const APPS: AppProject[] = [
   },
 ];
 
+/** Websites delivered to date, as the studio states it. The showreel shows
+ *  the most recent of them (SITES below). */
+export const WEBSITES_DELIVERED = "500+";
+
 export type SiteProject = {
   domain: string;
   url: string;

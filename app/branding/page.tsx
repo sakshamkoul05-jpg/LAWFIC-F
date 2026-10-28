@@ -7,6 +7,7 @@ import ServiceList from "@/components/branding/ServiceList";
 import QuoteBuilder from "@/components/branding/QuoteBuilder";
 import Contact from "@/components/branding/Contact";
 import Showreel from "@/components/branding/Showreel";
+import ServiceReel from "@/components/branding/ServiceReel";
 import Stage from "@/components/branding/Stage";
 import { INTRO_SEEN_SCRIPT, PROCESS, quoteMessage, whatsappHref } from "@/lib/branding";
 
@@ -51,7 +52,9 @@ export default function BrandingPage() {
         <Statement text="We are the studio inside LAWFIC, the team that designed and built this platform. We make websites, apps, campaigns and photographs for dairies, cafés, fashion labels, trusts and guesthouses, and we stay on after launch to keep them running." />
       </section>
 
-      <section className={`${WRAP} grid gap-10 pb-28 sm:pb-36 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16`}>
+      <ServiceReel />
+
+      <section className={`${WRAP} grid gap-10 pt-24 pb-28 sm:pb-36 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16`}>
         <div className="lg:sticky lg:top-32 lg:self-start">
           <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">What we do</h2>
           <p className="mt-4 max-w-[34ch] text-[15px] leading-relaxed text-muted">

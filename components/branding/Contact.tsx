@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "motion/react";
+import Link from "next/link";
 import { useRef } from "react";
 import { company } from "@/lib/company";
 import { quoteMessage, whatsappHref } from "@/lib/branding";
@@ -17,7 +18,7 @@ export default function Contact() {
   const wa = whatsappHref(quoteMessage({ services: [] }));
   const tel = company.supportPhone?.replace(/\s/g, "");
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.25"] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.45"] });
   const side = useTransform(scrollYProgress, [0, 1], [7, 0]);
   const round = useTransform(scrollYProgress, [0, 1], [56, 0]);
   const clip = useMotionTemplate`inset(0% ${side}% 0% ${side}% round ${round}px)`;
@@ -71,6 +72,15 @@ export default function Contact() {
             <a href="#top" className="hover:text-background">
               Back to top
             </a>
+          </div>
+        </div>
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 text-[13px] text-background/50">
+          <p>© {new Date().getFullYear()} LAWFIC</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/" className="hover:text-background">lawfic.pro home</Link>
+            <Link href="/legal/terms" className="hover:text-background">Terms</Link>
+            <Link href="/legal/privacy" className="hover:text-background">Privacy</Link>
+            <Link href="/legal/refunds" className="hover:text-background">Payments and refunds</Link>
           </div>
         </div>
       </div>
