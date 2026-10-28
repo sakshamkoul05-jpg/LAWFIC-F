@@ -7,6 +7,7 @@ import SiteHeader from "@/components/site/SiteHeader";
 import ClassicCategoryTabs from "@/components/classic/ClassicCategoryTabs";
 import HomeSearchHero from "@/components/home/HomeSearchHero";
 import Footer from "@/components/site/Footer";
+import FooterLegalBand from "@/components/site/FooterLegalBand";
 import { QuickActionsProvider } from "@/components/quick-actions/QuickActionsContext";
 import QuickActionsWidget from "@/components/quick-actions/QuickActionsWidget";
 
@@ -49,9 +50,10 @@ export default function ThemeShell({
   const pathname = usePathname();
   const isBackOffice = pathname === "/admin" || pathname.startsWith("/admin/");
   const isHome = pathname === "/";
-  /* /branding is the studio's portfolio and stands on its own: just the two
-     menus at the top, no section strip, no quick icons, no site footer and no
-     help bubble — the page closes with its own contact block. */
+  /* /branding is the studio's portfolio and stands on its own: the two menus
+     and a way home at the top, no section strip, quick icons or search, and
+     at the bottom only the blue legal band under the page's own contact block.
+     The panda assistant stays, as on every page. */
   const isStudio = pathname === "/branding" || pathname.startsWith("/branding/");
 
   if (isBackOffice) {
@@ -67,6 +69,8 @@ export default function ThemeShell({
           <div className="flex min-h-screen flex-col bg-background">
             <SiteHeader variant="studio" />
             <main className="flex-1">{children}</main>
+            <FooterLegalBand />
+            <QuickActionsWidget />
           </div>
         </QuickActionsProvider>
       </ProfileProvider>

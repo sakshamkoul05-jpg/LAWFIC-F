@@ -29,6 +29,9 @@ export const metadata: Metadata = {
 };
 
 const WRAP = "mx-auto max-w-[1440px] px-5 sm:px-10";
+/** Section titles: set as large as the hero's second voice, so each part of
+ *  the page announces itself the way the reels do. */
+const BIG = "text-[clamp(2.6rem,7.4vw,7rem)] font-medium leading-[0.95] tracking-[-0.055em] text-foreground";
 
 export default function BrandingPage() {
   const quickHref = whatsappHref(quoteMessage({ services: [] }));
@@ -54,13 +57,14 @@ export default function BrandingPage() {
 
       <ServiceReel />
 
-      <section className={`${WRAP} grid gap-10 pt-24 pb-28 sm:pb-36 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16`}>
-        <div className="lg:sticky lg:top-32 lg:self-start">
-          <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">What we do</h2>
-          <p className="mt-4 max-w-[34ch] text-[15px] leading-relaxed text-muted">
-            One of these or several together. Every project starts with a conversation and a written quote.
+      <section className={`${WRAP} pb-28 pt-28 sm:pb-36 sm:pt-36`}>
+        <h2 className={BIG}>What we do</h2>
+        <div className="mt-8 grid gap-6 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+          <p className="max-w-[44ch] text-[clamp(1.05rem,1.6vw,1.35rem)] leading-relaxed text-muted">
+            Websites, apps, marketing, photography, lead generation and software. One of these or several together, and every
+            project starts with a conversation and a written quote.
           </p>
-          <p className="mt-6 max-w-[34ch] text-[14px] leading-relaxed text-muted">
+          <p className="max-w-[44ch] text-[15px] leading-relaxed text-muted lg:justify-self-end">
             Protecting the brand itself?{" "}
             <Link href="/document/trademark" className="text-foreground underline decoration-border-3 underline-offset-4 hover:decoration-foreground">
               Trademark registration
@@ -72,12 +76,14 @@ export default function BrandingPage() {
             are handled by our filings team.
           </p>
         </div>
-        <ServiceList />
+        <div className="mt-14 sm:mt-20">
+          <ServiceList />
+        </div>
       </section>
 
       <section className="border-t border-border">
         <div className={`${WRAP} py-24 sm:py-32`}>
-          <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">How a project runs</h2>
+          <h2 className={BIG}>How a project runs</h2>
           <ol className="mt-12 grid gap-px overflow-hidden border-y border-border bg-border sm:grid-cols-2 lg:grid-cols-5">
             {PROCESS.map((p, i) => (
               <li key={p.title} className="bg-background py-8 pr-6 sm:px-6 lg:first:pl-0">
@@ -94,7 +100,7 @@ export default function BrandingPage() {
 
       <section id="quote" className="scroll-mt-24 border-t border-border bg-surface/50">
         <div className={`${WRAP} py-24 sm:py-32`}>
-          <h2 className="text-[clamp(2rem,4.6vw,4rem)] font-medium leading-[1] tracking-[-0.05em] text-foreground">Tell us what you need</h2>
+          <h2 className={BIG}>Tell us what you need</h2>
           <p className="mt-4 max-w-[52ch] text-[15.5px] leading-relaxed text-muted">
             Choose what fits and the message writes itself. It opens in WhatsApp ready to send, and we reply with questions and a written
             quote.

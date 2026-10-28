@@ -62,7 +62,7 @@ export default function WorkIndex() {
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-6 border-b border-foreground pb-5">
-        <h2 className="text-[clamp(1.6rem,3vw,2.5rem)] font-medium leading-none tracking-[-0.04em] text-foreground">Full index</h2>
+        <h2 className="text-[clamp(2.6rem,7.4vw,7rem)] font-medium leading-[0.95] tracking-[-0.055em] text-foreground">Full index</h2>
         <div role="tablist" aria-label="Show" className="flex gap-1 rounded-full border border-border p-1">
           {VIEWS.map((v) => {
             const on = v.id === view;

@@ -123,16 +123,30 @@ export default function SiteHeader({ variant = "full" }: { variant?: "full" | "s
     <>
       {variant === "studio" ? (
         <header className="sticky top-0 z-50 bg-background/70 backdrop-blur-xl">
-          <div className="flex w-full items-center justify-between gap-4 px-3 py-2.5 sm:px-4 lg:px-6">
-            {menuButton}
-            <Link href="/" className="text-[15px] font-medium tracking-[-0.02em] text-foreground">
+          <div className="flex w-full items-center gap-4 px-3 py-2.5 sm:px-4 lg:px-6">
+            <div className="flex flex-1 items-center gap-2 sm:gap-3">
+              {menuButton}
+              <Link
+                href="/"
+                className="flex h-11 items-center gap-2 rounded-xl border border-border px-3 text-[14px] font-medium text-foreground transition-colors hover:border-border-3 sm:px-4 lg:h-[52px]"
+              >
+                <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M3 10.5 12 3l9 7.5" />
+                  <path d="M5 9.5V21h14V9.5" />
+                </svg>
+                Home
+              </Link>
+            </div>
+            <Link href="/branding" className="hidden text-[15px] font-medium tracking-[-0.02em] text-foreground sm:block">
               LAWFIC <span className="text-muted">Studio</span>
             </Link>
+            <div className="flex flex-1 justify-end">
             {mounted ? (
               <ProfileMenu user={user} onSignInClick={() => setSignIn(true)} />
             ) : (
               <span className="size-11 lg:size-[52px]" aria-hidden />
             )}
+            </div>
           </div>
         </header>
       ) : (
