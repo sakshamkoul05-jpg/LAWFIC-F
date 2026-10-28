@@ -93,8 +93,8 @@ export default function ProfileCorner({
      Aarti Chopra"), beside a larger photo, with the smiley under them. */
   const fullName = profile?.fullName?.trim() || name || tx("User");
 
-  /* The sheet's corner: the photo centred, the salutation on one line under
-     it, and the two-line account menu beside the pair. */
+  /* The sheet's corner: the photo centred, the greeting under it on two lines
+     — salutation, then name and smile — and the account menu beside the pair. */
   return (
     <div className="flex shrink-0 items-center gap-2 sm:gap-3">
       <div className="flex flex-col items-center gap-1">
@@ -113,12 +113,15 @@ export default function ProfileCorner({
         )}
 
         {greeting && privacy.showName && (
-          <span className="hidden max-w-[240px] items-center gap-1 whitespace-nowrap text-[11.5px] leading-none text-foreground lg:flex">
-            <span className="font-medium">
+          /* Two lines: the salutation, then the name with the smile. */
+          <span className="hidden max-w-[240px] flex-col items-center gap-[3px] text-center text-[11.5px] leading-none text-foreground lg:flex">
+            <span className="whitespace-nowrap font-medium">
               {tx("Very")} {tx(greeting)},
             </span>
-            <span className="home-serif truncate font-bold">{fullName}</span>
-            <span aria-hidden className="text-[13px]">{GREETING_EMOJI}</span>
+            <span className="flex max-w-full items-center gap-1">
+              <span className="home-serif truncate font-bold">{fullName}</span>
+              <span aria-hidden className="text-[13px]">{GREETING_EMOJI}</span>
+            </span>
           </span>
         )}
       </div>
