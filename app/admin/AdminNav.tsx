@@ -41,6 +41,7 @@ const LINKS: {
   { href: "/admin/content", label: "Content", exact: false, needs: "view" },
   { href: "/admin/categories", label: "Categories", exact: false, needs: "view" },
   { href: "/admin/jobs", label: "Jobs", exact: false, needs: "view" },
+  { href: "/admin/invoices", label: "Invoices", exact: false, needs: "operate" },
   { href: "/admin/settings", label: "Settings", exact: false, needs: "settings" },
   { href: "/admin/people", label: "People", exact: false, needs: "view" },
 ];
